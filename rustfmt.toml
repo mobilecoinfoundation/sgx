@@ -1,0 +1,8 @@
+edition = "2018"
+wrap_comments = true
+imports_granularity = "Crate"
+
+ignore = [
+    "sgx/types",   # copy-pasta from rust-sgx-sdk
+    "sgx/urts",    # came from Baidu
+]

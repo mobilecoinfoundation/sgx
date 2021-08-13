@@ -10,7 +10,7 @@ Aborting panic handler for Intel-SGX enclaves.
 [![Crates.io Downloads][downloads-image]][crate-link]
 [![Build Status][build-image]][build-link]
 
-This crate provides a panic handler implementation intended to be executed inside an SGX enclave. Specifically, it will provide the required `rust_eh_personality()` and `#![panic_handler]` methods to satisfy the linker for a no-std environment.
+This crate provides a panic handler implementation intended to be executed inside an SGX enclave. Specifically, it will provide the required `rust_eh_personality()` and `#![panic_handler]` methods to satisfy the linker for a `#![no_std]` environment. As a result, this crate will 
 
 This crate currently requires independent linkage to the `libsgx_trts.a` library, which provides the `abort()` call we use to mark the enclave dead. The goal for all crates in this repository is to handle the intricate linkage requirements of the Intel SGX SDK automagically, but that is not in place yet, so users of this crate will need to link it themselves for now.
 
