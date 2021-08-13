@@ -7,11 +7,12 @@ members = [
 [profile.dev]
 opt-level = 0
 rpath = true
+lto = true
 
 [profile.release]
 opt-level = 3
 rpath = false
-lto = false
+lto = true
 debug-assertions = false
 overflow-checks = false
 
