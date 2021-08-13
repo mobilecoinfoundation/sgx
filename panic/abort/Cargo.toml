@@ -1,0 +1,14 @@
+[package]
+name = "mc-sgx-panic-abort"
+version = "0.1.0"
+authors = ["MobileCoin"]
+description = "Aborting panic handler for Intel-SGX enclaves."
+edition = "2018"
+repository = "https://github.com/mobilecoinfoundation/sgx.git"
+license = "GPLv3"
+keywords = ["no-std", "sgx", "mobilecoin", "panic-handler"]
+categories = ["hardware-support", "api-bindings"]
+readme = "README.md"
+
+[badges]
+maintenance = { status = "actively-developed" }
