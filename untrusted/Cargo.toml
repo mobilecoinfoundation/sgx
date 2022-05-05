@@ -1,0 +1,13 @@
+[package]
+name = "sgx-untrusted"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[dev-dependencies]
+test_enclave = {path = "test_enclave"}
+
+[build-dependencies]
+bindgen = "0.59.2"
+cargo-emit = "0.2.1"
