@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Builds the FFI type bindings for the common SGX SDK types
 
+//! Builds the FFI bindings for the untrusted side of the Intel SGX SDK
 use bindgen::{callbacks::ParseCallbacks, Builder};
 use std::{env, path::PathBuf};
 
@@ -12,7 +12,8 @@ struct Callbacks;
 impl ParseCallbacks for Callbacks {
     fn item_name(&self, name: &str) -> Option<String> {
         match name {
-            "_status_t" => Some("sgx_status_t".to_owned()),
+            "_attributes_t" => Some("sgx_attributes_t".to_owned()),
+            "_sgx_misc_attribute_t" => Some("sgx_misc_attribute_t".to_owned()),
             _ => None,
         }
     }
@@ -24,17 +25,13 @@ fn sgx_library_path() -> String {
 
 fn main() {
     let bindings = Builder::default()
-        .header_contents(
-            "core_types.h",
-            "#include <sgx_error.h>\n#include <sgx_report.h>",
-        )
+        .header_contents("urts_types.h", "#include <sgx_urts.h>")
         .clang_arg(&format!("-I{}/include", sgx_library_path()))
-        .newtype_enum("_status_t")
         .blocklist_function("*")
-        .allowlist_type("_status_t")
-        .allowlist_type("sgx_target_info_t")
+        .allowlist_type("sgx_enclave_id_t")
+        .allowlist_type("sgx_launch_token_t")
+        .allowlist_type("sgx_misc_attribute_t")
         .parse_callbacks(Box::new(Callbacks))
-        .ctypes_prefix("core::ffi")
         .generate()
         .expect("Unable to generate bindings");
 

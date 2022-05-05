@@ -1,0 +1,17 @@
+[package]
+name = "mc-sgx-urts-sys-types"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+sw = []
+default = ["sw"]
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.60.1"
+cargo-emit = "0.2.1"
+
+[dev-dependencies]
+test_enclave = { path = "../../../test_enclave" }

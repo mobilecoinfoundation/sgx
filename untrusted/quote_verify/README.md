@@ -1,6 +1,6 @@
 # Quote Verification
 
-A quote is the output of an attestation.  There are 2 types of quotes:
+A quote is the output of an attestation. There are 2 types of quotes:
 
 1. **Remote**: A remote attestation quote is for verifying that a quote came
    from a known enclave on a different machine. This quote is verified by an

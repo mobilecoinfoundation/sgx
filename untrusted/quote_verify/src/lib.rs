@@ -16,8 +16,8 @@ const SIGNATURE_COMPONENT_SIZE: usize = 32;
 // The starting byte of the quote report.  The *QE Report* member of the Quote
 // Signature Data Structure.  Table 4 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-// TODO as more of the quote structure is brought in, derive the start by summation
-//  of previous type/member sizes.
+// TODO as more of the quote structure is brought in, derive the start by
+// summation  of previous type/member sizes.
 const QUOTING_ENCLAVE_REPORT_START: usize = 0x234;
 
 // The starting byte of the signature for the quote. *QE Report Signature* of
@@ -44,8 +44,7 @@ impl Quote {
     ///
     /// # Arguments
     ///
-    /// * `bytes` the bytes of the quote as defined in
-    ///     https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+    /// * `bytes` the bytes of the quote as defined in https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Quote {
             bytes: bytes.to_vec(),
@@ -70,7 +69,8 @@ impl Quote {
         //TODO this should only be looking at the `Certification Data`
         // of the `QE Certification Data`, Table 9 of
         // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-        // However the pem crate walks over the other data nicely for initial development
+        // However the pem crate walks over the other data nicely for initial
+        // development
         let pem = pem::parse(self.bytes.as_slice())?;
         Certificate::from_pem(&pem.contents).map_err(Error::Certificate)
     }
