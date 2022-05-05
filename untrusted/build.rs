@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//
-// Builds the FFI bindings for the untrusted side of the Intel SGXSDK
+
+//! Builds the FFI bindings for the untrusted side of the Intel SGX SDK
 extern crate bindgen;
 use cargo_emit::{rustc_link_arg, rustc_link_search, warning};
 use std::{env, path::PathBuf};
@@ -8,7 +8,7 @@ use std::{env, path::PathBuf};
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
 fn sgx_library_path() -> String{
-    env::var("SGX_SDK").unwrap_or_else(|_| String::from(DEFAULT_SGX_SDK_PATH))
+    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
 }
 
 fn sgx_library_suffix() -> String{

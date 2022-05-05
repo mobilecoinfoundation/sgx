@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use cc::Build;
 use std::process::{Command};
 
-/// Edger generated C files.  This is only teh C files.
+/// Edger generated C files.  This is only the C files.
 struct EdgerFiles {
     /// The full path to the trusted C file, <path/to/basename>_t.c
     trusted: PathBuf,
@@ -71,7 +71,7 @@ fn ld_linker() -> String{
 /// # Returns
 /// The full path to resultant C files for the enclave definition
 fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
-    rerun_if_changed!(edl_file.as_ref().as_os_str().to_str().expect("Invalid UTF-8 in edl path"));
+    rerun_if_changed!(edl_file.as_ref().to_str().expect("Invalid UTF-8 in edl path"));
 
     let mut command = Command::new(&format!("{}/bin/x64/sgx_edger8r", sgx_library_path()));
     let out_dir = out_dir();
@@ -79,14 +79,14 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
     let status = command.status().expect("Failed to run edger8r");
     match status.code().unwrap() {
         0 => (),
-        _ => panic!("Failed to run edger8")
+        code => panic!("edger8r exited with code {}", code)
     }
 
     let basename = edl_file.as_ref().file_stem().unwrap().to_str().unwrap();
     let trusted = out_dir.join(format!("{}_t.c", basename));
     let untrusted = out_dir.join(format!("{}_u.c", basename));
 
-    EdgerFiles{trusted, untrusted}
+    EdgerFiles{ trusted, untrusted }
 }
 
 /// Create enclave binary.  The binary is a shared library.
@@ -105,7 +105,7 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
         P::Item: AsRef<Path>, {
 
     for file in files.clone() {
-        rerun_if_changed!(file.as_ref().as_os_str().to_str().expect("Invalid UTF-8 in enclave c file"));
+        rerun_if_changed!(file.as_ref().to_str().expect("Invalid UTF-8 in enclave C file"));
     }
 
     // This `Build` builds a static library.  If we don't omit the
@@ -118,7 +118,9 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
     Build::new().files(files)
         .include(format!("{}/include", sgx_library_path()))
         .include(format!("{}/include/tlibc", sgx_library_path()))
-        .cargo_metadata(false) .shared_flag(true).compile("enclave");
+        .cargo_metadata(false)
+        .shared_flag(true)
+        .compile("enclave");
 
     let static_enclave = out_dir().join("libenclave.a");
     let dynamic_enclave = build_dynamic_enclave_binary(static_enclave);
@@ -167,10 +169,9 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let status = command.status().expect("Failed to run the linker for dynamic enclave");
     match status.code().unwrap() {
         0 => (),
-        _ => panic!("Failed to link the dynamic enclave")
+        code => panic!("Linker exited with code {}", code)
     }
     dynamic_enclave
-
 }
 
 /// Sign the enclave binary
@@ -187,14 +188,20 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
     signed_binary.set_extension("signed.so");
 
     let mut command = Command::new(format!("{}/bin/x64/sgx_sign", sgx_library_path()));
-    command.arg("sign") .arg("-enclave") .arg(unsigned_enclave.as_ref())
-        .arg("-config") .arg(ENCLAVE_CONFIG)
-        .arg("-key") .arg(SIGNING_KEY)
-        .arg("-out") .arg(&signed_binary);
+    command
+        .arg("sign")
+        .arg("-enclave")
+        .arg(unsigned_enclave.as_ref())
+        .arg("-config")
+        .arg(ENCLAVE_CONFIG)
+        .arg("-key")
+        .arg(SIGNING_KEY)
+        .arg("-out")
+        .arg(&signed_binary);
     let status = command.status().expect("Failed to execute enclave signer");
     match status.code().unwrap() {
         0 => (),
-        _ => panic!("Failed to sign enclave")
+        code => panic!("sgx_sign exited with code {}", code)
     }
 
     signed_binary
@@ -208,12 +215,11 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 ///
 /// # Arguments
 ///
-/// * `untrusted_file` - The untrusted C file generated from edger8
+/// * `untrusted_file` - The untrusted C file generated from `edger8r`
 ///
 /// # Returns
 /// The full path to resultant untrusted library.
 fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
-
     Build::new().file(untrusted_file)
         .include(format!("{}/include", sgx_library_path()))
         .include(format!("{}/include/tlibc", sgx_library_path()))
@@ -232,7 +238,7 @@ fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
 ///
 /// # Arguments
 ///
-/// * `header` - The untrusted header file generated from edger8
+/// * `header` - The untrusted header file generated from `edger8r`
 fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
     let bindings = bindgen::Builder::default()
         .header(header.as_ref().to_str().unwrap())

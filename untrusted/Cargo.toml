@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 
 [dev-dependencies]
-test_enclave = {path = "test_enclave"}
+test_enclave = { path = "test_enclave" }
 
 [build-dependencies]
 bindgen = "0.59.2"
