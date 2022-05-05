@@ -6,6 +6,6 @@
 /// The location to the test enclave.  This is determined at compile time.
 /// As such moving the enclave binary after the fact will *not* update this
 /// value.
-pub static ENCLAVE: &str = concat!(env!("OUT_DIR"), "/libenclave.signed.so");
+pub static ENCLAVE_PATH: &str = concat!(env!("OUT_DIR"), "/libenclave.signed.so");
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

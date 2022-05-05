@@ -158,7 +158,6 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
         .arg("--end-group")
         .arg("-Bstatic")
         .arg("-Bsymbolic")
-        .arg("--no-undefined")
         .arg("-pie")
         .arg("-eenclave_entry")
         .arg("--export-dynamic")

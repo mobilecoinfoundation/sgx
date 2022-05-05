@@ -7,20 +7,22 @@ use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
-fn sgx_library_path() -> String{
+fn sgx_library_path() -> String {
     env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
 }
 
-fn sgx_library_suffix() -> String{
+fn sgx_library_suffix() -> String {
     let mode = env::var("SGX_MODE").unwrap_or_else(|_| String::from("SW"));
     let suffix = match mode.as_str() {
-       "SW" => "_sim",
-       "HW" => "",
-       mode => {
-           warning!("'SGX_MODE' was set to '{}'. Should be one of 'SW' or 'HW', defaulting to 'SW'", mode);
-           "_sim"
-       },
-
+        "SW" => "_sim",
+        "HW" => "",
+        mode => {
+            warning!(
+                "'SGX_MODE' was set to '{}'. Should be one of 'SW' or 'HW', defaulting to 'SW'",
+                mode
+            );
+            "_sim"
+        }
     };
     String::from(suffix)
 }

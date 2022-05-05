@@ -113,7 +113,7 @@ impl Drop for Enclave {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test_enclave::{ecall_add_2, ENCLAVE};
+    use test_enclave::{ecall_add_2, ENCLAVE_PATH};
 
     #[test]
     fn fail_to_create_enclave_with_non_existent_file() {
@@ -123,13 +123,13 @@ mod tests {
 
     #[test]
     fn creating_enclave_succeeds() {
-        let mut enclave = Enclave::new(ENCLAVE);
+        let mut enclave = Enclave::new(ENCLAVE_PATH);
         assert_eq!(enclave.create(), _status_t_SGX_SUCCESS);
     }
 
     #[test]
     fn calling_into_a_an_enclave_function_provides_valid_results() {
-        let mut enclave = Enclave::new(ENCLAVE);
+        let mut enclave = Enclave::new(ENCLAVE_PATH);
         enclave.create();
         let id = enclave.get_id().unwrap();
 
