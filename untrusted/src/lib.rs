@@ -9,29 +9,36 @@ use std::{ffi::CString, mem::MaybeUninit, os::raw::c_int};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-#[derive(Default)]
+#[derive(PartialEq, Debug)]
+pub enum Error {
+    SgxStatus(sgx_status_t),
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Enclave {
+    // The enclave ID, assigned by the sgx interface
+    id: sgx_enclave_id_t,
+}
+
+#[derive(Default)]
+pub struct EnclaveBuilder {
     // The filename of the enclave
     filename: CString,
-
-    // The enclave ID, assigned by the sgx interface
-    // Will be `None` when the enclave has not been created.
-    id: Option<sgx_enclave_id_t>,
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
 }
 
-impl Enclave {
-    /// Returns an Enclave for the provided signed enclave.
+impl EnclaveBuilder {
+    /// Returns an EnclaveBuilder for the provided signed enclave.
     ///
     /// # Arguments
     ///
     /// * `filename` - The name of the enclave file.  This should be a signed
     ///     enclave.
-    pub fn new(filename: &str) -> Enclave {
+    pub fn new(filename: &str) -> EnclaveBuilder {
         let filename = CString::new(filename).expect("Can't convert enclave filename to CString.");
-        Enclave {
+        EnclaveBuilder {
             filename,
             ..Default::default()
         }
@@ -42,36 +49,21 @@ impl Enclave {
     /// # Arguments
     ///
     /// * `debug` - `true` to enable enclave debugging, `false` to disable it.
-    pub fn debug(&mut self, debug: bool) -> &mut Enclave {
+    pub fn debug(&mut self, debug: bool) -> &mut EnclaveBuilder {
         self.debug = debug;
         self
-    }
-
-    /// Get the ID for this instance.  The ID will not be valid to use in SGX
-    /// calls once this instance has dropped.
-    ///
-    /// The return value is intentionally a reference to a `sgx_enclave_id_t`.
-    /// This allows consumers to leverage the lifetime of the [Enclave]
-    /// instance, preventing the call of SGX functions after the [Enclave] has
-    /// been dropped.
-    pub fn get_id(&self) -> Option<&sgx_enclave_id_t> {
-        Option::from(&self.id)
     }
 
     /// Create the enclave
     ///
     /// Will talk to the SGX SDK to create the enclave.  Once the enclave has
-    /// been created then calls on the enclave can be made.  See
+    /// been created then calls into the enclave can be made.  See
     /// [Enclave::get_id()]
-    ///
-    /// # Returns
-    ///
-    /// [_status_t_SGX_SUCCESS] when the enclave is created successfully.
     ///
     /// See
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
-    pub fn create(&mut self) -> sgx_status_t {
+    pub fn create(self) -> Result<Enclave, Error> {
         let mut launch_token: sgx_launch_token_t = [0; 1024];
         let mut launch_token_updated: c_int = 0;
         let mut misc_attr: sgx_misc_attribute_t =
@@ -87,10 +79,23 @@ impl Enclave {
                 &mut misc_attr,
             )
         };
-        if result == _status_t_SGX_SUCCESS {
-            self.id = Some(enclave_id);
+        match result {
+            _status_t_SGX_SUCCESS => Ok(Enclave { id: enclave_id }),
+            error => Err(Error::SgxStatus(error)),
         }
-        result
+    }
+}
+
+impl Enclave {
+    /// Get the ID for this instance.  The ID will not be valid to use in SGX
+    /// calls once this instance has dropped.
+    ///
+    /// The return value is intentionally a reference to a `sgx_enclave_id_t`.
+    /// This allows consumers to leverage the lifetime of the [Enclave]
+    /// instance, preventing the call of SGX functions after the [Enclave] has
+    /// been dropped.
+    pub fn get_id(&self) -> &sgx_enclave_id_t {
+        &self.id
     }
 }
 
@@ -98,15 +103,12 @@ impl Drop for Enclave {
     /// Destroys the enclave through the SGX interface.  The ID from
     /// [Enclave::get_id()] is no longer valid after dropping.
     fn drop(&mut self) {
-        if let Some(id) = self.id {
-            // Per the docs, this will only return SGX_SUCCESS or
-            // SGX_ERROR_INVALID_ENCLAVE_ID. The invalid ID error will only
-            // happen when the ID is invalid, the enclave hasn't been loaded,
-            // or the enclave has already been destroyed. Any of these cases
-            // don't afford corrective action, so ignore the return value
-            unsafe { sgx_destroy_enclave(id) };
-            self.id = None;
-        }
+        // Per the docs, this will only return SGX_SUCCESS or
+        // SGX_ERROR_INVALID_ENCLAVE_ID. The invalid ID error will only
+        // happen when the ID is invalid, the enclave hasn't been loaded,
+        // or the enclave has already been destroyed. Any of these cases
+        // don't afford corrective action, so ignore the return value
+        unsafe { sgx_destroy_enclave(self.id) };
     }
 }
 
@@ -117,21 +119,23 @@ mod tests {
 
     #[test]
     fn fail_to_create_enclave_with_non_existent_file() {
-        let mut enclave = Enclave::new("does_not_exist.signed.so");
-        assert_eq!(enclave.create(), _status_t_SGX_ERROR_ENCLAVE_FILE_ACCESS);
+        let builder = EnclaveBuilder::new("does_not_exist.signed.so");
+        assert_eq!(
+            builder.create(),
+            Err(Error::SgxStatus(_status_t_SGX_ERROR_ENCLAVE_FILE_ACCESS))
+        );
     }
 
     #[test]
     fn creating_enclave_succeeds() {
-        let mut enclave = Enclave::new(ENCLAVE_PATH);
-        assert_eq!(enclave.create(), _status_t_SGX_SUCCESS);
+        let builder = EnclaveBuilder::new(ENCLAVE_PATH);
+        assert!(builder.create().is_ok());
     }
 
     #[test]
     fn calling_into_a_an_enclave_function_provides_valid_results() {
-        let mut enclave = Enclave::new(ENCLAVE_PATH);
-        enclave.create();
-        let id = enclave.get_id().unwrap();
+        let enclave = EnclaveBuilder::new(ENCLAVE_PATH).create().unwrap();
+        let id = enclave.get_id();
 
         let mut sum: c_int = 3;
         let result = unsafe { ecall_add_2(*id, 3, &mut sum) };
@@ -144,14 +148,14 @@ mod tests {
         // For the debug flag it's not easy, in a unit test, to test it was
         // passed to `sgx_create_enclave()`, instead we focus on the
         // `as c_int` portion maps correctly to 0 or 1
-        let enclave = Enclave::new("");
-        assert_eq!(enclave.debug as c_int, 0);
+        let builder = EnclaveBuilder::new("");
+        assert_eq!(builder.debug as c_int, 0);
     }
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let mut enclave = Enclave::new("");
-        enclave.debug(true);
-        assert_eq!(enclave.debug as c_int, 1);
+        let mut builder = EnclaveBuilder::new("");
+        builder.debug(true);
+        assert_eq!(builder.debug as c_int, 1);
     }
 }

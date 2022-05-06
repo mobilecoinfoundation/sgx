@@ -4,9 +4,8 @@ Provides a rust interface for creating (`sgx_create_enclave()`) and persisting S
 
 Example usage:
 ```rust
-let mut enclave = Enclave::new(enclave_file_name);
-enclave.create();
-let id = enclave.get_id().unwrap();
+let enclave = EnclaveBuilder::new(enclave_file_name).create().unrwap()
+let id = enclave.get_id();
 
 let result = unsafe { ecall_foo(*id, arg1, arg2) };
 ```
