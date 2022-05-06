@@ -6,6 +6,7 @@
 #![allow(non_snake_case)]
 
 use std::{ffi::CString, mem::MaybeUninit, os::raw::c_int};
+use std::ops::Deref;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -14,6 +15,12 @@ pub enum Error {
     SgxStatus(sgx_status_t),
 }
 
+/// Struct for interfacing with the SGX SDK.  This should be used directly in
+/// sgx calls `sgx_create_enclave(*enclave, ...)`.
+///
+/// Avoid storing the de-referenced instance of the enclave.  The de-referenced
+/// value of the enclave will result in failures to the SGX SDK after the
+/// enclave is dropped.
 #[derive(Debug, PartialEq)]
 pub struct Enclave {
     // The enclave ID, assigned by the sgx interface
@@ -57,8 +64,8 @@ impl EnclaveBuilder {
     /// Create the enclave
     ///
     /// Will talk to the SGX SDK to create the enclave.  Once the enclave has
-    /// been created then calls into the enclave can be made.  See
-    /// [Enclave::get_id()]
+    /// been created then calls into the enclave can be made by de-referencing
+    /// the enclave.
     ///
     /// See
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
@@ -86,22 +93,17 @@ impl EnclaveBuilder {
     }
 }
 
-impl Enclave {
-    /// Get the ID for this instance.  The ID will not be valid to use in SGX
-    /// calls once this instance has dropped.
-    ///
-    /// The return value is intentionally a reference to a `sgx_enclave_id_t`.
-    /// This allows consumers to leverage the lifetime of the [Enclave]
-    /// instance, preventing the call of SGX functions after the [Enclave] has
-    /// been dropped.
-    pub fn get_id(&self) -> &sgx_enclave_id_t {
+impl Deref for Enclave {
+    type Target = sgx_enclave_id_t;
+    fn deref(&self) -> &Self::Target {
         &self.id
     }
 }
 
 impl Drop for Enclave {
-    /// Destroys the enclave through the SGX interface.  The ID from
-    /// [Enclave::get_id()] is no longer valid after dropping.
+    /// Destroys the enclave through the SGX interface.
+    /// Any de-referenced value from [Enclave] is not valid after
+    /// dropping.
     fn drop(&mut self) {
         // Per the docs, this will only return SGX_SUCCESS or
         // SGX_ERROR_INVALID_ENCLAVE_ID. The invalid ID error will only
@@ -135,10 +137,9 @@ mod tests {
     #[test]
     fn calling_into_a_an_enclave_function_provides_valid_results() {
         let enclave = EnclaveBuilder::new(ENCLAVE_PATH).create().unwrap();
-        let id = enclave.get_id();
 
         let mut sum: c_int = 3;
-        let result = unsafe { ecall_add_2(*id, 3, &mut sum) };
+        let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
         assert_eq!(result, _status_t_SGX_SUCCESS);
         assert_eq!(sum, 3 + 2);
     }
