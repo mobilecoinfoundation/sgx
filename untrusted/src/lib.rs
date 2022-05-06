@@ -5,8 +5,8 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-use std::{ffi::CString, mem::MaybeUninit, os::raw::c_int};
 use std::ops::Deref;
+use std::{ffi::CString, mem::MaybeUninit, os::raw::c_int};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -87,9 +87,15 @@ impl EnclaveBuilder {
             )
         };
         match result {
-            _status_t_SGX_SUCCESS => Ok(Enclave { id: enclave_id }),
+            _status_t_SGX_SUCCESS => Ok(Enclave::new(enclave_id)),
             error => Err(Error::SgxStatus(error)),
         }
+    }
+}
+
+impl Enclave {
+    fn new(id: sgx_enclave_id_t) -> Enclave {
+        Enclave { id }
     }
 }
 
