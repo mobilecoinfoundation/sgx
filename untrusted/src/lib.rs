@@ -6,7 +6,7 @@
 #![allow(non_snake_case)]
 
 use std::ops::Deref;
-use std::{ffi::CString, mem::MaybeUninit, os::raw::c_int};
+use std::{os::raw::c_int, ptr};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -16,7 +16,7 @@ pub enum Error {
 }
 
 /// Struct for interfacing with the SGX SDK.  This should be used directly in
-/// sgx calls `sgx_create_enclave(*enclave, ...)`.
+/// sgx calls `ecall_some_function(*enclave, ...)`.
 ///
 /// Avoid storing the de-referenced instance of the enclave.  The de-referenced
 /// value of the enclave will result in failures to the SGX SDK after the
@@ -28,25 +28,33 @@ pub struct Enclave {
 }
 
 #[derive(Default)]
-pub struct EnclaveBuilder {
-    // The filename of the enclave
-    filename: CString,
+pub struct EnclaveBuilder <'a>{
+    // The bytes for the enclave.
+    //
+    // This needs to be mutable per the signature of
+    // `sgx_create_enclave_from_buffer_ex()`.  See comment in
+    // [EnclaveBuilder::create()] for more info.
+    bytes: &'a mut [u8],
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
 }
 
-impl EnclaveBuilder {
+impl <'a> EnclaveBuilder <'a> {
     /// Returns an EnclaveBuilder for the provided signed enclave.
     ///
     /// # Arguments
     ///
-    /// * `filename` - The name of the enclave file.  This should be a signed
-    ///     enclave.
-    pub fn new(filename: &str) -> EnclaveBuilder {
-        let filename = CString::new(filename).expect("Can't convert enclave filename to CString.");
+    /// * `bytes` - The bytes representing the enclave file.  This should be a
+    ///     signed enclave.  This needs to be mutable as the sgx interface will
+    ///     modify the bytes in [EnclaveBuilder::create()].  The `bytes` will
+    ///     not be usable to create another enclave after calling
+    ///     [EnclaveBuilder::create()].  If more than one enclave is needed from
+    ///     the same original `bytes` be sure and copy them to each builder,
+    ///     prior to calling [EncalveBuilder::create()].
+    pub fn new(bytes: &mut [u8]) -> EnclaveBuilder {
         EnclaveBuilder {
-            filename,
+            bytes,
             ..Default::default()
         }
     }
@@ -56,7 +64,7 @@ impl EnclaveBuilder {
     /// # Arguments
     ///
     /// * `debug` - `true` to enable enclave debugging, `false` to disable it.
-    pub fn debug(&mut self, debug: bool) -> &mut EnclaveBuilder {
+    pub fn debug(&mut self, debug: bool) -> &'a mut EnclaveBuilder {
         self.debug = debug;
         self
     }
@@ -71,19 +79,32 @@ impl EnclaveBuilder {
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
     pub fn create(self) -> Result<Enclave, Error> {
-        let mut launch_token: sgx_launch_token_t = [0; 1024];
-        let mut launch_token_updated: c_int = 0;
-        let mut misc_attr: sgx_misc_attribute_t =
-            unsafe { MaybeUninit::<sgx_misc_attribute_t>::zeroed().assume_init() };
         let mut enclave_id: sgx_enclave_id_t = 0;
         let result = unsafe {
-            sgx_create_enclave(
-                self.filename.as_ptr(),
+            // Per the API reference `buffer` is an input, however the signature
+            // lacks the const qualifier.  Through testing it has been shown
+            // that `sgx_create_enclave_from_buffer_ex()` *will* modify the
+            // `buffer` parameter.  This can be seen by copying the input bytes
+            // and comparing before and after.
+            //
+            //      let mut buffer = self.bytes.to_vec();
+            //      println!("Pre comparing {}", buffer.as_slice() == self.bytes);
+            //      let result = unsafe {sgx_create_enclave_from_buffer_ex(...)};
+            //      println!("Post comparing {}", buffer.as_slice() == self.bytes);
+            //
+            // The modification that `sgx_create_enclave_from_buffer_ex()`
+            // makes to the `buffer` is such that if one were to re-use the
+            // modified buffer in another call to
+            // `sgx_create_enclave_from_buffer_ex()` then
+            // `SGX_ERROR_INVALID_ENCLAVE_ID` would be returned.
+            sgx_create_enclave_from_buffer_ex(
+                self.bytes.as_mut_ptr(),
+                self.bytes.len().try_into().unwrap(),
                 self.debug as c_int,
-                &mut launch_token as *mut sgx_launch_token_t,
-                &mut launch_token_updated,
                 &mut enclave_id,
-                &mut misc_attr,
+                ptr::null_mut(),
+                0,
+                ptr::null_mut()
             )
         };
         match result {
@@ -123,26 +144,29 @@ impl Drop for Enclave {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test_enclave::{ecall_add_2, ENCLAVE_PATH};
+    use test_enclave::{ecall_add_2, ENCLAVE};
 
     #[test]
     fn fail_to_create_enclave_with_non_existent_file() {
-        let builder = EnclaveBuilder::new("does_not_exist.signed.so");
+        let mut bytes = b"garbage bytes".to_vec();
+        let builder = EnclaveBuilder::new(&mut bytes);
         assert_eq!(
             builder.create(),
-            Err(Error::SgxStatus(_status_t_SGX_ERROR_ENCLAVE_FILE_ACCESS))
+            Err(Error::SgxStatus(_status_t_SGX_ERROR_INVALID_ENCLAVE))
         );
     }
 
     #[test]
     fn creating_enclave_succeeds() {
-        let builder = EnclaveBuilder::new(ENCLAVE_PATH);
+        let mut bytes = ENCLAVE.to_vec();
+        let builder = EnclaveBuilder::new(&mut bytes);
         assert!(builder.create().is_ok());
     }
 
     #[test]
     fn calling_into_a_an_enclave_function_provides_valid_results() {
-        let enclave = EnclaveBuilder::new(ENCLAVE_PATH).create().unwrap();
+        let mut bytes = ENCLAVE.to_vec();
+        let enclave = EnclaveBuilder::new(&mut bytes).create().unwrap();
 
         let mut sum: c_int = 3;
         let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
@@ -155,14 +179,16 @@ mod tests {
         // For the debug flag it's not easy, in a unit test, to test it was
         // passed to `sgx_create_enclave()`, instead we focus on the
         // `as c_int` portion maps correctly to 0 or 1
-        let builder = EnclaveBuilder::new("");
+        let mut bytes = b"".to_vec();
+        let builder = EnclaveBuilder::new(&mut bytes);
         assert_eq!(builder.debug as c_int, 0);
     }
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let mut builder = EnclaveBuilder::new("");
-        builder.debug(true);
+        let mut bytes = b"".to_vec();
+        let mut builder = EnclaveBuilder::new(&mut bytes);
+        let builder = builder.debug(true);
         assert_eq!(builder.debug as c_int, 1);
     }
 }
