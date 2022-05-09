@@ -1,13 +1,11 @@
 # Untrusted SGX rust bindings
 
-Provides a rust interface for creating (`sgx_create_enclave()`) and persisting SGX enclaves.
+Provides a rust interface for creating (`sgx_create_enclave_from_buffer_ex()`) and persisting SGX enclaves.
 
 Example usage:
 ```rust
-let enclave = EnclaveBuilder::new(enclave_file_name).create().unrwap()
-let id = enclave.get_id();
-
-let result = unsafe { ecall_foo(*id, arg1, arg2) };
+let enclave = EnclaveBuilder::new(&mut enclave_bytes).create().unrwap()
+let result = unsafe { ecall_foo(*enclave, arg1, arg2) };
 ```
 
 Users are responsible for providing their own bindings to their ECALLs. 
@@ -21,7 +19,7 @@ Users are responsible for providing their own bindings to their ECALLs.
 
 ## License
 
-Look for the *LICENSE* file at the root of the repo more information.
+Look for the *LICENSE* file at the root of the repo for more information.
 
 ## Build Instructions
 
