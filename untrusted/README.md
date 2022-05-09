@@ -15,6 +15,7 @@ Users are responsible for providing their own bindings to their ECALLs.
 - [License](#license)
 - [Build Instructions](#build-instructions)
 - [Intel SGX SDK](#intel-sgx-sdk)
+- [Features](#features)
 - [References](#references)
 
 ## License
@@ -28,9 +29,6 @@ cargo `--release` flag to build with optimizations.
 
 The [Intel SGX SDK](#intel-sgx-sdk) needs to be installed.
 
-The environment variable `SGX_MODE` controls whether to build for SGX software simulation or hardware. The valid values
-are `SW` and `HW` respectively.  When unset will default to software simulation.
-
 ## Intel SGX SDK
 
 See https://github.com/intel/linux-sgx#build-the-intelr-sgx-sdk-and-intelr-sgx-psw-package for installation
@@ -38,6 +36,11 @@ instructions.
 
 The environment variable `SGX_SDK` can be used to specify where the SDK is installed. When unset the location will
 default to `/opt/intel/sgxsdk`
+
+## Features
+
+When the `sw` feature is present the SGX sofware simulation libraries will be linked in. When the `sw` is absent the
+hardware SGX libraries will be linked in. The `sw` feature is present by default.
 
 ## References
 

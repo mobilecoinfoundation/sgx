@@ -28,7 +28,7 @@ pub struct Enclave {
 }
 
 #[derive(Default)]
-pub struct EnclaveBuilder <'a>{
+pub struct EnclaveBuilder<'a> {
     // The bytes for the enclave.
     //
     // This needs to be mutable per the signature of
@@ -40,7 +40,7 @@ pub struct EnclaveBuilder <'a>{
     debug: bool,
 }
 
-impl <'a> EnclaveBuilder <'a> {
+impl<'a> EnclaveBuilder<'a> {
     /// Returns an EnclaveBuilder for the provided signed enclave.
     ///
     /// # Arguments
@@ -104,7 +104,7 @@ impl <'a> EnclaveBuilder <'a> {
                 &mut enclave_id,
                 ptr::null_mut(),
                 0,
-                ptr::null_mut()
+                ptr::null_mut(),
             )
         };
         match result {

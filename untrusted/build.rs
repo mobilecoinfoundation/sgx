@@ -2,7 +2,7 @@
 
 //! Builds the FFI bindings for the untrusted side of the Intel SGX SDK
 extern crate bindgen;
-use cargo_emit::{rustc_link_arg, rustc_link_search, warning};
+use cargo_emit::{rustc_link_arg, rustc_link_search};
 use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
@@ -11,20 +11,13 @@ fn sgx_library_path() -> String {
     env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
 }
 
-fn sgx_library_suffix() -> String {
-    let mode = env::var("SGX_MODE").unwrap_or_else(|_| String::from("SW"));
-    let suffix = match mode.as_str() {
-        "SW" => "_sim",
-        "HW" => "",
-        mode => {
-            warning!(
-                "'SGX_MODE' was set to '{}'. Should be one of 'SW' or 'HW', defaulting to 'SW'",
-                mode
-            );
-            "_sim"
-        }
-    };
-    String::from(suffix)
+fn sgx_library_suffix() -> &'static str {
+    match () {
+        #[cfg(feature = "sw")]
+        () => "_sim",
+        #[cfg(not(feature = "sw"))]
+        () => "",
+    }
 }
 
 fn main() {

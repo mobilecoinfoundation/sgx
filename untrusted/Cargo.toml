@@ -3,7 +3,9 @@ name = "sgx-untrusted"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
+[features]
+sw = []
+default = ["sw"]
 
 [dev-dependencies]
 test_enclave = { path = "test_enclave" }
