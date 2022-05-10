@@ -39,26 +39,26 @@ fn main() {
 /// Provide the base path for the Intel SGX SDK.  Will use the environment
 /// variable `SGX_SDK`.  If this isn't set it will default to
 /// `/opt/intel/sgxsdk`.
-fn sgx_library_path() -> String{
-    env::var("SGX_SDK").unwrap_or_else(|_| String::from(DEFAULT_SGX_SDK_PATH))
+fn sgx_library_path() -> String {
+    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
 }
 
 /// The value of the environment variable `OUT_DIR`, this must be set.
 /// See https://doc.rust-lang.org/cargo/reference/environment-variables.html
 fn out_dir() -> PathBuf {
-    PathBuf::from(env::var("OUT_DIR").unwrap())
+    env::var("OUT_DIR").unwrap().into()
 }
 
 /// The root dir of this crate. Will be the value of `CARGO_MANIFEST_DIR`
 /// See https://doc.rust-lang.org/cargo/reference/environment-variables.html
 fn root_dir() -> PathBuf {
-    PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
+    env::var("CARGO_MANIFEST_DIR").unwrap().into()
 }
 
 /// The ld linker to use.  This has to be an ld linker as lld will fail
 /// to link a working enclave
-fn ld_linker() -> String{
-    env::var("LD").unwrap_or_else(|_| String::from("ld"))
+fn ld_linker() -> String {
+    env::var("LD").unwrap_or_else(|_| "ld".into()))
 }
 
 /// Create the C files for the enclave definitions.  This builds both the

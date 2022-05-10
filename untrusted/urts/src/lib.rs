@@ -51,7 +51,7 @@ impl<'a> EnclaveBuilder<'a> {
     pub fn new(bytes: &mut [u8]) -> EnclaveBuilder {
         EnclaveBuilder {
             bytes,
-            ..Default::default()
+            debug: false,
         }
     }
 
