@@ -1,4 +1,4 @@
-# Untrusted SGX rust bindings
+# Untrusted SGX rust interface
 
 Provides a rust interface for creating (`sgx_create_enclave_from_buffer_ex()`) and persisting SGX enclaves.
 
@@ -16,6 +16,7 @@ Users are responsible for providing their own bindings to their ECALLs.
 - [Build Instructions](#build-instructions)
 - [Intel SGX SDK](#intel-sgx-sdk)
 - [Features](#features)
+- [Crates](#crates)
 - [References](#references)
 
 ## License
@@ -39,7 +40,7 @@ default to `/opt/intel/sgxsdk`
 
 ## Features
 
-When the `sw` feature is present the SGX sofware simulation libraries will be linked in. When the `sw` is absent the
+When the `sw` feature is present the SGX software simulation libraries will be linked in. When the `sw` is absent the
 hardware SGX libraries will be linked in. The `sw` feature is present by default.
 
 ## References

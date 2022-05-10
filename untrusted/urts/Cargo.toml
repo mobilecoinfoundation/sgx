@@ -7,7 +7,7 @@ edition = "2021"
 mc-sgx-urts-sys = { path = "../urts_sys" }
 
 [features]
-sw = []
+sw = ["mc-sgx-urts-sys/sw"]
 default = ["sw"]
 
 [dev-dependencies]
