@@ -1,14 +1,12 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-// See https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf
-//
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
 
+#![allow(non_upper_case_globals)]
+
+use mc_sgx_urts_sys::{
+    sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_enclave_id_t, sgx_status_t,
+};
 use std::ops::Deref;
 use std::{os::raw::c_int, ptr};
-
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[derive(PartialEq, Debug)]
 pub enum Error {
@@ -108,7 +106,7 @@ impl<'a> EnclaveBuilder<'a> {
             )
         };
         match result {
-            _status_t_SGX_SUCCESS => Ok(Enclave::new(enclave_id)),
+            sgx_status_t::SGX_SUCCESS => Ok(Enclave::new(enclave_id)),
             error => Err(Error::SgxStatus(error)),
         }
     }
@@ -152,7 +150,7 @@ mod tests {
         let mut builder = EnclaveBuilder::new(&mut bytes);
         assert_eq!(
             builder.create(),
-            Err(Error::SgxStatus(_status_t_SGX_ERROR_INVALID_ENCLAVE))
+            Err(Error::SgxStatus(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE))
         );
     }
 
@@ -177,7 +175,7 @@ mod tests {
 
         let mut sum: c_int = 3;
         let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
-        assert_eq!(result, _status_t_SGX_SUCCESS);
+        assert_eq!(result, sgx_status_t::SGX_SUCCESS);
         assert_eq!(sum, 3 + 2);
     }
 

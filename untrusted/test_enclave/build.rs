@@ -246,6 +246,7 @@ fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
         // See https://github.com/rust-lang/rust-bindgen/issues/1651 for
         // disabling tests
         .layout_tests(false)
+        .blocklist_type("*")
         // There are some 128 bit functions in the untrusted bindings which
         // cause FFIwarnings in rust, so we limit to the functions we need.
         .allowlist_function("ecall_.*")

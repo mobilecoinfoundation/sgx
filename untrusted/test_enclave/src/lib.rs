@@ -6,4 +6,5 @@
 /// The test enclave as bytes.
 pub static ENCLAVE: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/libenclave.signed.so"));
 
+use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_status_t};
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

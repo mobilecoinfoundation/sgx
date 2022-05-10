@@ -1,15 +1,10 @@
-[package]
-name = "sgx-untrusted"
-version = "0.1.0"
-edition = "2021"
-
-[features]
-sw = []
-default = ["sw"]
-
-[dev-dependencies]
-test_enclave = { path = "test_enclave" }
-
-[build-dependencies]
-bindgen = "0.59.2"
-cargo-emit = "0.2.1"
+[workspace]
+resolver = "2"
+members = [
+    "urts",
+    "urts_sys",
+    "urts_sys_types",
+    ]
+exclude = [
+    "test_enclave",
+]

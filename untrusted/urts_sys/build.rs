@@ -2,7 +2,7 @@
 
 //! Builds the FFI bindings for the untrusted side of the Intel SGX SDK
 extern crate bindgen;
-use cargo_emit::{rustc_link_arg, rustc_link_search};
+use cargo_emit::{rustc_link_lib, rustc_link_search};
 use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
@@ -22,17 +22,16 @@ fn sgx_library_suffix() -> &'static str {
 
 fn main() {
     let sim_suffix = sgx_library_suffix();
-    rustc_link_arg!(
-        &format!("-lsgx_urts{}", sim_suffix),
-        &format!("-lsgx_launch{}", sim_suffix)
-    );
+    rustc_link_lib!(&format!("sgx_urts{}", sim_suffix));
+    rustc_link_lib!(&format!("sgx_launch{}", sim_suffix));
     rustc_link_search!(&format!("{}/lib64", sgx_library_path()));
 
     // TODO: This currently brings in *all* of the urts types into one binding.
     //       Need to evaluate if all the types should be intermixed here
     let bindings = bindgen::Builder::default()
-        .header_contents("status.h", "#include <sgx_error.h>\n#include <sgx_urts.h>")
-        .clang_arg("-I/opt/intel/sgxsdk/include")
+        .header_contents("urts.h", "#include <sgx_urts.h>")
+        .clang_arg(&format!("-I{}/include", sgx_library_path()))
+        .blocklist_type("*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // Suppressing warnings from tests, see
         // https://github.com/rust-lang/rust-bindgen/issues/1651

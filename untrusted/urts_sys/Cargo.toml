@@ -1,15 +1,18 @@
 [package]
-name = "test_enclave"
+name = "mc-sgx-urts-sys"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+sw = []
+default = ["sw"]
 
 [dependencies]
 mc-sgx-urts-sys-types = { path = "../urts_sys_types" }
 
-
 [build-dependencies]
-cargo-emit = "0.2.1"
-cc = "1.0.73"
 bindgen = "0.59.2"
+cargo-emit = "0.2.1"
+
+[dev-dependencies]
+test_enclave = { path = "../test_enclave" }
