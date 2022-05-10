@@ -13,9 +13,9 @@ fn sgx_library_path() -> String {
 
 fn sgx_library_suffix() -> &'static str {
     match () {
-        #[cfg(feature = "sw")]
+        #[cfg(feature = "sim")]
         () => "_sim",
-        #[cfg(not(feature = "sw"))]
+        #[cfg(not(feature = "sim"))]
         () => "",
     }
 }

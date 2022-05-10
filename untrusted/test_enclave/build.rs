@@ -58,7 +58,7 @@ fn root_dir() -> PathBuf {
 /// The ld linker to use.  This has to be an ld linker as lld will fail
 /// to link a working enclave
 fn ld_linker() -> String {
-    env::var("LD").unwrap_or_else(|_| "ld".into()))
+    env::var("LD").unwrap_or_else(|_| "ld".into())
 }
 
 /// Create the C files for the enclave definitions.  This builds both the

@@ -40,8 +40,8 @@ default to `/opt/intel/sgxsdk`
 
 ## Features
 
-When the `sw` feature is present the SGX software simulation libraries will be linked in. When the `sw` is absent the
-hardware SGX libraries will be linked in. The `sw` feature is present by default.
+When the `sim` feature is present the SGX software simulation libraries will be linked in. When the `sim` feature is
+absent the hardware SGX libraries will be linked in. The `sim` feature is present by default.
 
 ## References
 
