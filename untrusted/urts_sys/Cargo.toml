@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-sim = []
-default = ["sim"]
+hw = []
+default = []
 
 [dependencies]
 mc-sgx-urts-sys-types = { path = "../urts_sys_types" }

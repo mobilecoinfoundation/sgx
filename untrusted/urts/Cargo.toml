@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-urts-sys = { path = "../urts_sys" }
+mc-sgx-urts-sys = { path = "../urts_sys", default-features = false }
 
 [features]
-sim = ["mc-sgx-urts-sys/sim"]
-default = ["sim"]
+hw = ["mc-sgx-urts-sys/hw"]
+default = []
 
 [dev-dependencies]
 test_enclave = { path = "../test_enclave" }

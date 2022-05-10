@@ -61,6 +61,15 @@ fn ld_linker() -> String {
     env::var("LD").unwrap_or_else(|_| "ld".into())
 }
 
+fn sgx_library_suffix() -> &'static str {
+    match () {
+        #[cfg(feature = "hw")]
+        () => "",
+        #[cfg(not(feature = "hw"))]
+        () => "_sim",
+    }
+}
+
 /// Create the C files for the enclave definitions.  This builds both the
 /// trusted and the untrusted files.
 ///
@@ -141,6 +150,9 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
 fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let mut dynamic_enclave = PathBuf::from(static_enclave.as_ref());
     dynamic_enclave.set_extension("so");
+    let suffix = sgx_library_suffix();
+    let trts = format!("-lsgx_trts{}", suffix);
+    let tservice = format!("-lsgx_tservice{}", suffix);
 
     let mut command = Command::new(ld_linker());
     command
@@ -152,9 +164,9 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
         .arg("--no-undefined")
         .arg("--nostdlib")
         .arg("--start-group")
-        .args(&["--whole-archive", "-lsgx_trts_sim", "--no-whole-archive"])
+        .args(&["--whole-archive", &trts, "--no-whole-archive"])
         .arg(static_enclave.as_ref().to_str().unwrap())
-        .args(&["-lsgx_tstdc", "-lsgx_tcxx", "-lsgx_tcrypto", "-lsgx_tservice_sim"])
+        .args(&["-lsgx_tstdc", "-lsgx_tcxx", "-lsgx_tcrypto", &tservice])
         .arg("--end-group")
         .arg("-Bstatic")
         .arg("-Bsymbolic")
