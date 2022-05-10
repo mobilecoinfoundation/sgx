@@ -2,7 +2,7 @@
 #![doc = include_str!("README.md")]
 
 extern crate bindgen;
-use cargo_emit::rerun_if_changed;
+use cargo_emit::{rerun_if_changed, warning};
 use std::env;
 use std::path::{Path, PathBuf};
 use cc::Build;
@@ -61,7 +61,7 @@ fn ld_linker() -> String{
     env::var("LD").unwrap_or_else(|_| String::from("ld"))
 }
 
-fn sgx_library_suffix() -> &str {
+fn sgx_library_suffix() -> &'static str {
     let mode = env::var("SGX_MODE").unwrap_or_else(|_| String::from("SW"));
     match mode.as_str() {
         "SW" => "_sim",
@@ -158,11 +158,10 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     dynamic_enclave.set_extension("so");
     let suffix = sgx_library_suffix();
     let trts = format!("-lsgx_trts{}", suffix);
-    let service = format!("-lsgx_service{}", suffix);
+    let tservice = format!("-lsgx_tservice{}", suffix);
 
     let mut command = Command::new(ld_linker());
     command
-        A
         .arg("-o")
         .arg(dynamic_enclave.to_str().expect("Invalid UTF-8 in static enclave path"))
         .args(&["-z", "relro", "-z", "now", "-z", "noexecstack"])
@@ -171,9 +170,9 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
         .arg("--no-undefined")
         .arg("--nostdlib")
         .arg("--start-group")
-        .args(&["--whole-archive", trts, "--no-whole-archive"])
+        .args(&["--whole-archive", &trts, "--no-whole-archive"])
         .arg(static_enclave.as_ref().to_str().unwrap())
-        .args(&["-lsgx_tstdc", "-lsgx_tcxx", "-lsgx_tcrypto", service])
+        .args(&["-lsgx_tstdc", "-lsgx_tcxx", "-lsgx_tcrypto", &tservice])
         .arg("--end-group")
         .arg("-Bstatic")
         .arg("-Bsymbolic")
