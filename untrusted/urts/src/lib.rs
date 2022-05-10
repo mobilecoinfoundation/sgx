@@ -1,7 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
-#![allow(non_upper_case_globals)]
-
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_enclave_id_t, sgx_status_t,
 };
