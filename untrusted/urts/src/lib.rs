@@ -26,11 +26,7 @@ pub struct Enclave {
 #[derive(Default)]
 pub struct EnclaveBuilder<'a> {
     // The bytes for the enclave.
-    //
-    // This needs to be mutable per the signature of
-    // `sgx_create_enclave_from_buffer_ex()`.  See comment in
-    // [EnclaveBuilder::create()] for more info.
-    bytes: &'a mut [u8],
+    bytes: &'a [u8],
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
@@ -42,13 +38,8 @@ impl<'a> EnclaveBuilder<'a> {
     /// # Arguments
     ///
     /// * `bytes` - The bytes representing the enclave file.  This should be a
-    ///     signed enclave.  This needs to be mutable as the sgx interface will
-    ///     modify the bytes in [EnclaveBuilder::create()].  The `bytes` will
-    ///     not be usable to create another enclave after calling
-    ///     [EnclaveBuilder::create()].  If more than one enclave is needed from
-    ///     the same original `bytes` be sure and copy them to each builder,
-    ///     prior to calling [EncalveBuilder::create()].
-    pub fn new(bytes: &mut [u8]) -> EnclaveBuilder {
+    ///     signed enclave.
+    pub fn new(bytes: &[u8]) -> EnclaveBuilder {
         EnclaveBuilder {
             bytes,
             debug: false,
@@ -93,9 +84,10 @@ impl<'a> EnclaveBuilder<'a> {
             // modified buffer in another call to
             // `sgx_create_enclave_from_buffer_ex()` then
             // `SGX_ERROR_INVALID_ENCLAVE_ID` would be returned.
+            let mut bytes = self.bytes.to_vec();
             sgx_create_enclave_from_buffer_ex(
-                self.bytes.as_mut_ptr(),
-                self.bytes.len().try_into().unwrap(),
+                bytes.as_mut_ptr(),
+                bytes.len().try_into().unwrap(),
                 self.debug as c_int,
                 &mut enclave_id,
                 ptr::null_mut(),
@@ -144,8 +136,7 @@ mod tests {
 
     #[test]
     fn fail_to_create_enclave_with_non_existent_file() {
-        let mut bytes = b"garbage bytes".to_vec();
-        let mut builder = EnclaveBuilder::new(&mut bytes);
+        let mut builder = EnclaveBuilder::new(b"garbage bytes");
         assert_eq!(
             builder.create(),
             Err(Error::SgxStatus(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE))
@@ -154,19 +145,16 @@ mod tests {
 
     #[test]
     fn creating_enclave_succeeds() {
-        let mut bytes = ENCLAVE.to_vec();
-        let mut builder = EnclaveBuilder::new(&mut bytes);
+        let mut builder = EnclaveBuilder::new(ENCLAVE);
         assert!(builder.create().is_ok());
     }
 
     #[test]
     fn calling_into_a_an_enclave_function_provides_valid_results() {
-        let mut bytes = ENCLAVE.to_vec();
-
         // Note: the `debug()` was added to ensure proper builder behavior of
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.
-        let enclave = EnclaveBuilder::new(&mut bytes)
+        let enclave = EnclaveBuilder::new(ENCLAVE)
             .debug(true)
             .create()
             .unwrap();
@@ -182,15 +170,13 @@ mod tests {
         // For the debug flag it's not easy, in a unit test, to test it was
         // passed to `sgx_create_enclave()`, instead we focus on the
         // `as c_int` portion maps correctly to 0 or 1
-        let mut bytes = b"".to_vec();
-        let builder = EnclaveBuilder::new(&mut bytes);
+        let builder = EnclaveBuilder::new(b"");
         assert_eq!(builder.debug as c_int, 0);
     }
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let mut bytes = b"".to_vec();
-        let mut builder = EnclaveBuilder::new(&mut bytes);
+        let mut builder = EnclaveBuilder::new(b"");
         let builder = builder.debug(true);
         assert_eq!(builder.debug as c_int, 1);
     }
