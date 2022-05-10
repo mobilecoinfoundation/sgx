@@ -78,7 +78,7 @@ impl<'a> EnclaveBuilder<'a> {
     /// See
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
-    pub fn create(self) -> Result<Enclave, Error> {
+    pub fn create(&mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let result = unsafe {
             // Per the API reference `buffer` is an input, however the signature
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn fail_to_create_enclave_with_non_existent_file() {
         let mut bytes = b"garbage bytes".to_vec();
-        let builder = EnclaveBuilder::new(&mut bytes);
+        let mut builder = EnclaveBuilder::new(&mut bytes);
         assert_eq!(
             builder.create(),
             Err(Error::SgxStatus(_status_t_SGX_ERROR_INVALID_ENCLAVE))
@@ -159,14 +159,21 @@ mod tests {
     #[test]
     fn creating_enclave_succeeds() {
         let mut bytes = ENCLAVE.to_vec();
-        let builder = EnclaveBuilder::new(&mut bytes);
+        let mut builder = EnclaveBuilder::new(&mut bytes);
         assert!(builder.create().is_ok());
     }
 
     #[test]
     fn calling_into_a_an_enclave_function_provides_valid_results() {
         let mut bytes = ENCLAVE.to_vec();
-        let enclave = EnclaveBuilder::new(&mut bytes).create().unwrap();
+
+        // Note: the `debug()` was added to ensure proper builder behavior of
+        // the `create()` method.  It could go away if another test has need
+        // of similar behavior.
+        let enclave = EnclaveBuilder::new(&mut bytes)
+            .debug(true)
+            .create()
+            .unwrap();
 
         let mut sum: c_int = 3;
         let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
