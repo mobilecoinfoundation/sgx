@@ -8,7 +8,11 @@ use std::{os::raw::c_int, ptr};
 
 #[derive(PartialEq, Debug)]
 pub enum Error {
+    // An error provided from the SGX SDK
     SgxStatus(sgx_status_t),
+
+    // This builder instance can not be used to create more enclaves
+    Exhausted,
 }
 
 /// Struct for interfacing with the SGX SDK.  This should be used directly in
@@ -19,20 +23,27 @@ pub enum Error {
 /// enclave is dropped.
 #[derive(Debug, PartialEq)]
 pub struct Enclave {
-    // The enclave ID, assigned by the sgx interface
+    // The enclave ID, assigned by the SGX interface
     id: sgx_enclave_id_t,
 }
 
+/// Build an [Enclave] for use with SGX calls.
+///
+/// Due to the way the SGX SDK works a builder can only be used once.  Create a
+/// new one if more than one of the same [Enclave] is needed.
 #[derive(Default)]
-pub struct EnclaveBuilder<'a> {
+pub struct EnclaveBuilder {
     // The bytes for the enclave.
-    bytes: &'a [u8],
+    bytes: Vec<u8>,
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
+
+    // `true` if the enclave has already been built with this instance
+    built: bool,
 }
 
-impl<'a> EnclaveBuilder<'a> {
+impl EnclaveBuilder {
     /// Returns an EnclaveBuilder for the provided signed enclave.
     ///
     /// # Arguments
@@ -41,8 +52,9 @@ impl<'a> EnclaveBuilder<'a> {
     ///     signed enclave.
     pub fn new(bytes: &[u8]) -> EnclaveBuilder {
         EnclaveBuilder {
-            bytes,
+            bytes: bytes.into(),
             debug: false,
+            built: false,
         }
     }
 
@@ -51,7 +63,7 @@ impl<'a> EnclaveBuilder<'a> {
     /// # Arguments
     ///
     /// * `debug` - `true` to enable enclave debugging, `false` to disable it.
-    pub fn debug(&mut self, debug: bool) -> &'a mut EnclaveBuilder {
+    pub fn debug(&mut self, debug: bool) -> &mut EnclaveBuilder {
         self.debug = debug;
         self
     }
@@ -66,6 +78,13 @@ impl<'a> EnclaveBuilder<'a> {
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
     pub fn create(&mut self) -> Result<Enclave, Error> {
+        if self.built {
+            return Err(Error::Exhausted);
+        }
+        // We can't guarantee that SGX won't modify the bytes even in failure
+        // cases, so always mark exhausted.
+        self.built = true;
+
         let mut enclave_id: sgx_enclave_id_t = 0;
         let result = unsafe {
             // Per the API reference `buffer` is an input, however the signature
@@ -84,10 +103,9 @@ impl<'a> EnclaveBuilder<'a> {
             // modified buffer in another call to
             // `sgx_create_enclave_from_buffer_ex()` then
             // `SGX_ERROR_INVALID_ENCLAVE_ID` would be returned.
-            let mut bytes = self.bytes.to_vec();
             sgx_create_enclave_from_buffer_ex(
-                bytes.as_mut_ptr(),
-                bytes.len().try_into().unwrap(),
+                self.bytes.as_mut_ptr(),
+                self.bytes.len().try_into().unwrap(),
                 self.debug as c_int,
                 &mut enclave_id,
                 ptr::null_mut(),
@@ -98,6 +116,16 @@ impl<'a> EnclaveBuilder<'a> {
         match result {
             sgx_status_t::SGX_SUCCESS => Ok(Enclave::new(enclave_id)),
             error => Err(Error::SgxStatus(error)),
+        }
+    }
+}
+
+impl From<Vec<u8>> for EnclaveBuilder {
+    fn from(bytes: Vec<u8>) -> EnclaveBuilder {
+        EnclaveBuilder {
+            bytes,
+            debug: false,
+            built: false,
         }
     }
 }
@@ -154,15 +182,25 @@ mod tests {
         // Note: the `debug()` was added to ensure proper builder behavior of
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.
-        let enclave = EnclaveBuilder::new(ENCLAVE)
-            .debug(true)
-            .create()
-            .unwrap();
+        let enclave = EnclaveBuilder::new(ENCLAVE).debug(true).create().unwrap();
 
         let mut sum: c_int = 3;
         let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
         assert_eq!(result, sgx_status_t::SGX_SUCCESS);
         assert_eq!(sum, 3 + 2);
+    }
+
+    #[test]
+    fn create_enclave_builder_from_vector() {
+        let vector = ENCLAVE.to_vec();
+        assert!(EnclaveBuilder::from(vector).create().is_ok());
+    }
+
+    #[test]
+    fn creating_more_than_one_enclave_is_an_error() {
+        let mut builder = EnclaveBuilder::new(ENCLAVE);
+        assert!(builder.create().is_ok());
+        assert_eq!(builder.create(), Err(Error::Exhausted));
     }
 
     #[test]
