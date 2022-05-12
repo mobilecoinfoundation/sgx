@@ -10,9 +10,6 @@ use std::{os::raw::c_int, ptr};
 pub enum Error {
     // An error provided from the SGX SDK
     SgxStatus(sgx_status_t),
-
-    // This builder instance can not be used to create more enclaves
-    Exhausted,
 }
 
 /// Struct for interfacing with the SGX SDK.  This should be used directly in
@@ -28,9 +25,6 @@ pub struct Enclave {
 }
 
 /// Build an [Enclave] for use with SGX calls.
-///
-/// Due to the way the SGX SDK works a builder can only be used once.  Create a
-/// new one if more than one of the same [Enclave] is needed.
 #[derive(Default)]
 pub struct EnclaveBuilder {
     // The bytes for the enclave.
@@ -38,9 +32,6 @@ pub struct EnclaveBuilder {
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
-
-    // `true` if the enclave has already been built with this instance
-    built: bool,
 }
 
 impl EnclaveBuilder {
@@ -54,7 +45,6 @@ impl EnclaveBuilder {
         EnclaveBuilder {
             bytes: bytes.into(),
             debug: false,
-            built: false,
         }
     }
 
@@ -63,7 +53,8 @@ impl EnclaveBuilder {
     /// # Arguments
     ///
     /// * `debug` - `true` to enable enclave debugging, `false` to disable it.
-    pub fn debug(&mut self, debug: bool) -> &mut EnclaveBuilder {
+    #[must_use]
+    pub fn debug(mut self, debug: bool) -> EnclaveBuilder {
         self.debug = debug;
         self
     }
@@ -77,14 +68,7 @@ impl EnclaveBuilder {
     /// See
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
-    pub fn create(&mut self) -> Result<Enclave, Error> {
-        if self.built {
-            return Err(Error::Exhausted);
-        }
-        // We can't guarantee that SGX won't modify the bytes even in failure
-        // cases, so always mark exhausted.
-        self.built = true;
-
+    pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let result = unsafe {
             // Per the API reference `buffer` is an input, however the signature
@@ -125,7 +109,6 @@ impl From<Vec<u8>> for EnclaveBuilder {
         EnclaveBuilder {
             bytes,
             debug: false,
-            built: false,
         }
     }
 }
@@ -164,7 +147,7 @@ mod tests {
 
     #[test]
     fn fail_to_create_enclave_with_non_existent_file() {
-        let mut builder = EnclaveBuilder::new(b"garbage bytes");
+        let builder = EnclaveBuilder::new(b"garbage bytes");
         assert_eq!(
             builder.create(),
             Err(Error::SgxStatus(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE))
@@ -173,7 +156,7 @@ mod tests {
 
     #[test]
     fn creating_enclave_succeeds() {
-        let mut builder = EnclaveBuilder::new(ENCLAVE);
+        let builder = EnclaveBuilder::new(ENCLAVE);
         assert!(builder.create().is_ok());
     }
 
@@ -197,13 +180,6 @@ mod tests {
     }
 
     #[test]
-    fn creating_more_than_one_enclave_is_an_error() {
-        let mut builder = EnclaveBuilder::new(ENCLAVE);
-        assert!(builder.create().is_ok());
-        assert_eq!(builder.create(), Err(Error::Exhausted));
-    }
-
-    #[test]
     fn default_debug_flag_is_0() {
         // For the debug flag it's not easy, in a unit test, to test it was
         // passed to `sgx_create_enclave()`, instead we focus on the
@@ -214,7 +190,7 @@ mod tests {
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let mut builder = EnclaveBuilder::new(b"");
+        let builder = EnclaveBuilder::new(b"");
         let builder = builder.debug(true);
         assert_eq!(builder.debug as c_int, 1);
     }
