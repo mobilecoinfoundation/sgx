@@ -46,13 +46,13 @@ fn sgx_library_path() -> String {
 /// The value of the environment variable `OUT_DIR`, this must be set.
 /// See https://doc.rust-lang.org/cargo/reference/environment-variables.html
 fn out_dir() -> PathBuf {
-    env::var("OUT_DIR").unwrap().into()
+    env::var("OUT_DIR").expect("Missing env.OUT_DIR").into()
 }
 
 /// The root dir of this crate. Will be the value of `CARGO_MANIFEST_DIR`
 /// See https://doc.rust-lang.org/cargo/reference/environment-variables.html
 fn root_dir() -> PathBuf {
-    env::var("CARGO_MANIFEST_DIR").unwrap().into()
+    env::var("CARGO_MANIFEST_DIR").expect("Missing env.CARGO_MANIFEST_DIR").into()
 }
 
 /// The ld linker to use.  This has to be an ld linker as lld will fail

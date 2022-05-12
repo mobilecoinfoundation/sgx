@@ -161,7 +161,7 @@ mod tests {
     }
 
     #[test]
-    fn calling_into_a_an_enclave_function_provides_valid_results() {
+    fn calling_into_an_enclave_function_provides_valid_results() {
         // Note: the `debug()` was added to ensure proper builder behavior of
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.

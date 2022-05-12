@@ -15,8 +15,8 @@ test_enclave = { path = "some/path/to/this/crate" }
 
 Note: In order to disambiguate the term *build* will be used to describe the process of building different enclave
     artifacts. The term *create* will be reserved for refering to SGX SDK's use of create ala `sgx_create_enclave()`.
-# Table of Contents
 
+# Table of Contents
 - [Build Customizations](#build-customizations)
 - [Build Details](#build-details)
 
@@ -54,7 +54,7 @@ Building the signed enclave binary is a multistep process:
 graph LR
     A(enclave.edl) -->|edger8r| B(enclave_t.c)
     B --> D(enclave.a)
-    C(encalve.c) --> D
+    C(enclave.c) --> D
     D --> E(enclave.so)
     E --> |sgx_sign| F(enclave.signed.so)
 ```
