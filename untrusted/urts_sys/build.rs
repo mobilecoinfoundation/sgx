@@ -7,23 +7,18 @@ use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
+#[cfg(feature = "hw")]
+const SGX_SUFFIX: &str = "";
+#[cfg(not(feature = "hw"))]
+const SGX_SUFFIX: &str = "_sim";
+
 fn sgx_library_path() -> String {
     env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
 }
 
-fn sgx_library_suffix() -> &'static str {
-    match () {
-        #[cfg(feature = "hw")]
-        () => "",
-        #[cfg(not(feature = "hw"))]
-        () => "_sim",
-    }
-}
-
 fn main() {
-    let sim_suffix = sgx_library_suffix();
-    rustc_link_lib!(&format!("sgx_urts{}", sim_suffix));
-    rustc_link_lib!(&format!("sgx_launch{}", sim_suffix));
+    rustc_link_lib!(&format!("sgx_urts{}", SGX_SUFFIX));
+    rustc_link_lib!(&format!("sgx_launch{}", SGX_SUFFIX));
     rustc_link_search!(&format!("{}/lib64", sgx_library_path()));
 
     // TODO: This currently brings in *all* of the urts types into one binding.

@@ -24,6 +24,11 @@ const ENCLAVE_LINKER_SCRIPT: &str = "src/enclave.lds";
 const SIGNING_KEY: &str = "src/signing_key.pem";
 const ENCLAVE_CONFIG: &str = "src/config.xml";
 
+#[cfg(feature = "hw")]
+const SGX_SUFFIX: &str = "";
+#[cfg(not(feature = "hw"))]
+const SGX_SUFFIX: &str = "_sim";
+
 fn main() {
     let root_dir = root_dir();
     let edger_files = build_enclave_definitions(root_dir.join(EDGER_FILE));
@@ -59,15 +64,6 @@ fn root_dir() -> PathBuf {
 /// to link a working enclave
 fn ld_linker() -> String {
     env::var("LD").unwrap_or_else(|_| "ld".into())
-}
-
-fn sgx_library_suffix() -> &'static str {
-    match () {
-        #[cfg(feature = "hw")]
-        () => "",
-        #[cfg(not(feature = "hw"))]
-        () => "_sim",
-    }
 }
 
 /// Create the C files for the enclave definitions.  This builds both the
@@ -150,9 +146,8 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
 fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let mut dynamic_enclave = PathBuf::from(static_enclave.as_ref());
     dynamic_enclave.set_extension("so");
-    let suffix = sgx_library_suffix();
-    let trts = format!("-lsgx_trts{}", suffix);
-    let tservice = format!("-lsgx_tservice{}", suffix);
+    let trts = format!("-lsgx_trts{}", SGX_SUFFIX);
+    let tservice = format!("-lsgx_tservice{}", SGX_SUFFIX);
 
     let mut command = Command::new(ld_linker());
     command
