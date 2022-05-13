@@ -16,7 +16,6 @@ Users are responsible for providing their own bindings to their ECALLs.
 - [Build Instructions](#build-instructions)
 - [Intel SGX SDK](#intel-sgx-sdk)
 - [Features](#features)
-- [Crates](#crates)
 - [References](#references)
 
 ## License

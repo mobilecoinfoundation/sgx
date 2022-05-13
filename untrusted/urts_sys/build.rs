@@ -21,8 +21,6 @@ fn main() {
     rustc_link_lib!(&format!("sgx_launch{}", SGX_SUFFIX));
     rustc_link_search!(&format!("{}/lib64", sgx_library_path()));
 
-    // TODO: This currently brings in *all* of the urts types into one binding.
-    //       Need to evaluate if all the types should be intermixed here
     let bindings = bindgen::Builder::default()
         .header_contents("urts.h", "#include <sgx_urts.h>")
         .clang_arg(&format!("-I{}/include", sgx_library_path()))
