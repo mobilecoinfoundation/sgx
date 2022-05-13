@@ -124,7 +124,6 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
         .include(format!("{}/include", sgx_library_path()))
         .include(format!("{}/include/tlibc", sgx_library_path()))
         .cargo_metadata(false)
-        .shared_flag(true)
         .compile("enclave");
 
     let static_enclave = out_dir().join("libenclave.a");
@@ -136,6 +135,9 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
 ///
 /// See https://github.com/alexcrichton/cc-rs/issues/250 for lack of dynamic
 /// lib in cc crate
+///
+/// See https://github.com/intel/linux-sgx/blob/master/SampleCode/SampleEnclave/Makefile#L137
+/// for link flags needed to link an enclave
 ///
 /// # Arguments
 ///
