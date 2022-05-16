@@ -3,12 +3,12 @@ name: panic-abort
 on:
   pull_request:
     paths:
-      - "panic/abort/**"
+      - "trusted/panic/abort/**"
       - "Cargo.*"
 
 defaults:
   run:
-    working-directory: "panic/abort"
+    working-directory: "trusted/panic/abort"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -24,7 +24,7 @@ jobs:
       target:
         - x86_64-unknown-linux-gnu
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
