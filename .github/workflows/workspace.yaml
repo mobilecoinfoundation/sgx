@@ -12,21 +12,23 @@ jobs:
   rustfmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           components: rustfmt
           override: true
           profile: minimal
+      # actions-rs/cargo does not support the `working-directory` argument,
+      # see https://github.com/actions-rs/cargo/issues/6
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --manifest-path trusted/Cargo.toml --all -- --check
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -34,3 +36,4 @@ jobs:
           override: true
           profile: minimal
       - run: cargo clippy --all --all-features -- -D warnings
+        working-directory: ./trusted
