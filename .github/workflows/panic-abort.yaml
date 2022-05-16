@@ -1,14 +1,14 @@
-name: panic-abort
+name: rust
 
 on:
   pull_request:
     paths:
-      - "trusted/panic/abort/**"
+      - "trusted"
       - "Cargo.*"
 
 defaults:
   run:
-    working-directory: "trusted/panic/abort"
+    working-directory: "trusted"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -19,10 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        - nightly-2021-07-21
-        - nightly
-      target:
-        - x86_64-unknown-linux-gnu
+        rust:
+          - nightly-2021-07-21
+          - nightly
+        target:
+          - x86_64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
