@@ -19,6 +19,8 @@ jobs:
           components: rustfmt
           override: true
           profile: minimal
+      # actions-rs/cargo does not support the `working-directory` argument,
+      # see https://github.com/actions-rs/cargo/issues/6
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
