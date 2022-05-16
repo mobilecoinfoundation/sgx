@@ -1,0 +1,15 @@
+[package]
+name = "mc-sgx-trts-sys"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+hw = []
+
+[dependencies]
+mc-sgx-core-sys-types = { path = "../../../core/sys/types" }
+
+[build-dependencies]
+bindgen = "0.60.1"
+cargo-emit = "0.2.1"
