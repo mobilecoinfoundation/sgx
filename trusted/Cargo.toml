@@ -1,8 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "trts/sys",
+    "crypto/sys/types",
+    "crypto/sys",
     "panic/abort",
+    "trts/sys",
 ]
 
 [profile.dev]
@@ -20,4 +22,3 @@ overflow-checks = false
 # Skip the need for LD_LIBRARY_PATH in `cargo test`
 [profile.test]
 rpath = true
-
