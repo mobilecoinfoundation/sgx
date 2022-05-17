@@ -1,0 +1,11 @@
+[package]
+name = "mc-sgx-crypto"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+mc-sgx-crypto-sys = { path = "sys" }
+
+[dev-dependencies]
+sha2 = "0.10.2"
+

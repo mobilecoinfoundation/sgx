@@ -1,0 +1,15 @@
+[package]
+name = "mc-sgx-crypto-sys"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+mc-sgx-crypto-sys-types = { path = "types" }
+
+[build-dependencies]
+bindgen = "0.59.2"
+cargo-emit = "0.2.1"
+
+[dev-dependencies]
+sha2 = "0.10.2"
+
