@@ -1,0 +1,11 @@
+[package]
+name = "mc-sgx-service-sys"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mc-sgx-service-sys-types = { path = "types" }
+
+[build-dependencies]
+bindgen = "0.59.2"
+cargo-emit = "0.2.1"

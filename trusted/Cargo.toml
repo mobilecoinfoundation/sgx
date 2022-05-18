@@ -2,6 +2,9 @@
 resolver = "2"
 members = [
 	"panic/abort",
+	"service",
+	"service/sys",
+	"service/sys/types",
 ]
 
 [profile.dev]
