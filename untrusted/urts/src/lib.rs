@@ -1,4 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
+//! Provides rust wrappers for the SGX untrusted runtime system (uRTS) functionality
 
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_enclave_id_t, sgx_status_t,
@@ -25,7 +26,6 @@ pub struct Enclave {
 }
 
 /// Build an [Enclave] for use with SGX calls.
-#[derive(Default)]
 pub struct EnclaveBuilder {
     // The bytes for the enclave.
     bytes: Vec<u8>,
@@ -68,7 +68,6 @@ impl EnclaveBuilder {
     /// See
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
-    #[must_use]
     pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let result = unsafe {
