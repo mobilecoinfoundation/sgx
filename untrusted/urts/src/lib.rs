@@ -68,6 +68,7 @@ impl EnclaveBuilder {
     /// See
     /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
     /// for error codes and their meaning.
+    #[must_use]
     pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let result = unsafe {

@@ -1,7 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
+#![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
 /// The test enclave as bytes.
 pub static ENCLAVE: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/libenclave.signed.so"));
