@@ -4,6 +4,8 @@ members = [
     "crypto/sys/types",
     "crypto/sys",
     "panic/abort",
+    "service/sys",
+    "service/sys/types",
     "trts/sys",
 ]
 

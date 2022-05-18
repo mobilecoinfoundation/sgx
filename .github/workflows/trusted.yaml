@@ -28,7 +28,7 @@ jobs:
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo build --release 
-  # Only test crypto for now.  
+  # Only test crypto and service for now.  
   # - panic is no_std, `cargo test` needs std
   # - trts needs built with the custom target triple to link
   test:
@@ -40,4 +40,4 @@ jobs:
       # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-      - run: cargo test --release -p mc-sgx-crypto-sys
+      - run: cargo test --release -p mc-sgx-crypto-sys -p mc-sgx-service-sys
