@@ -22,6 +22,7 @@ pub struct Sha256 {
 
 impl Sha256 {
     pub const SIZE: usize = 32;
+
     pub fn as_slice(&self) -> &[u8] {
         &self.hash
     }
@@ -45,9 +46,11 @@ mod tests {
     fn run_sha256_804() {
         let bytes: [u8; 3] = [8, 0, 4];
         let hash = Sha256::hash(&bytes).unwrap();
-        let mut hasher = sha2::Sha256::new();
-        hasher.update(&bytes);
-        let expected = hasher.finalize();
+        let expected = {
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(&bytes);
+            hasher.finalize()
+        };
         assert_eq!(hash.as_slice(), &expected[..]);
     }
 
