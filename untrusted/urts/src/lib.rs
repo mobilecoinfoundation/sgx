@@ -146,7 +146,7 @@ mod tests {
     use test_enclave::{ecall_add_2, ENCLAVE};
 
     #[test]
-    fn fail_to_create_enclave_with_non_existent_file() {
+    fn fail_to_create_enclave_with_bogus_bytes() {
         let builder = EnclaveBuilder::new(b"garbage bytes");
         assert_eq!(
             builder.create(),
@@ -190,8 +190,7 @@ mod tests {
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let builder = EnclaveBuilder::new(b"");
-        let builder = builder.debug(true);
+        let builder = EnclaveBuilder::new(b"").debug(true);
         assert_eq!(builder.debug as c_int, 1);
     }
 }
