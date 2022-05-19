@@ -39,8 +39,7 @@ impl Sha256 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sha2::Digest;
-    use sha2;
+    use sha2::{self, Digest};
 
     #[test]
     fn run_sha256_804() {

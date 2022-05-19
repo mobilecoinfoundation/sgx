@@ -20,7 +20,10 @@ fn main() {
         .header_contents("crypto.h", "#include <sgx_tcrypto.h>")
         .clang_arg(&format!("-I{}/include", sgx_library_path()))
         .blocklist_type("*")
-        .allowlist_function("sgx_.*")
+        // Limit the functions to what is currently supported.  There are ~48
+        // total functions in tcrypto which will be brought in over a series
+        // of commits
+        .allowlist_function("sgx_sha256_msg")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // Suppressing warnings from tests, see
         // https://github.com/rust-lang/rust-bindgen/issues/1651
