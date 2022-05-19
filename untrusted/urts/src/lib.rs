@@ -7,7 +7,7 @@ use mc_sgx_urts_sys::{
 use std::ops::Deref;
 use std::{os::raw::c_int, ptr};
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     // An error provided from the SGX SDK
     SgxStatus(sgx_status_t),
@@ -161,6 +161,12 @@ mod tests {
     }
 
     #[test]
+    fn create_enclave_builder_from_vector() {
+        let vector = ENCLAVE.to_vec();
+        assert!(EnclaveBuilder::from(vector).create().is_ok());
+    }
+
+    #[test]
     fn calling_into_an_enclave_function_provides_valid_results() {
         // Note: the `debug()` was added to ensure proper builder behavior of
         // the `create()` method.  It could go away if another test has need
@@ -171,12 +177,6 @@ mod tests {
         let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
         assert_eq!(result, sgx_status_t::SGX_SUCCESS);
         assert_eq!(sum, 3 + 2);
-    }
-
-    #[test]
-    fn create_enclave_builder_from_vector() {
-        let vector = ENCLAVE.to_vec();
-        assert!(EnclaveBuilder::from(vector).create().is_ok());
     }
 
     #[test]
