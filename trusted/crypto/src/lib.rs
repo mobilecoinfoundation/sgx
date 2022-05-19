@@ -58,9 +58,11 @@ mod tests {
     fn run_sha256_7420() {
         let bytes: [u8; 4] = [7, 4, 2, 0];
         let hash = Sha256::hash(&bytes).unwrap();
-        let mut hasher = sha2::Sha256::new();
-        hasher.update(&bytes);
-        let expected = hasher.finalize();
+        let expected = {
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(&bytes);
+            hasher.finalize()
+        };
         assert_eq!(hash.as_slice(), &expected[..]);
     }
 }

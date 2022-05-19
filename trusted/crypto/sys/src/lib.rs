@@ -4,6 +4,7 @@
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
 pub use mc_sgx_crypto_sys_types::{sgx_sha256_hash_t, sgx_status_t, size_t};
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
@@ -20,9 +21,11 @@ mod tests {
             unsafe { sgx_sha256_msg(bytes.as_ptr(), bytes.len().try_into().unwrap(), &mut hash) };
         assert_eq!(result, sgx_status_t::SGX_SUCCESS);
 
-        let mut hasher = Sha256::new();
-        hasher.update(&bytes);
-        let expected = hasher.finalize();
+        let expected = {
+            let mut hasher = Sha256::new();
+            hasher.update(&bytes);
+            hasher.finalize()
+        };
         assert_eq!(hash, expected[..]);
     }
 
@@ -34,9 +37,11 @@ mod tests {
             unsafe { sgx_sha256_msg(bytes.as_ptr(), bytes.len().try_into().unwrap(), &mut hash) };
         assert_eq!(result, sgx_status_t::SGX_SUCCESS);
 
-        let mut hasher = Sha256::new();
-        hasher.update(&bytes);
-        let expected = hasher.finalize();
+        let expected = {
+            let mut hasher = Sha256::new();
+            hasher.update(&bytes);
+            hasher.finalize()
+        };
         assert_eq!(hash, expected[..]);
     }
 }
