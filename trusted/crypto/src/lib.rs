@@ -42,7 +42,7 @@ mod tests {
     use sha2::{Digest, Sha256};
 
     #[test]
-    fn run_sha256_803() {
+    fn run_sha256_804() {
         let bytes: [u8; 3] = [8, 0, 4];
         let hash = sha256_message(&bytes).unwrap();
         let mut hasher = Sha256::new();
