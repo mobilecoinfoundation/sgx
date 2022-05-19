@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-	"panic/abort",
 	"crypto",
 	"crypto/sys",
 	"crypto/sys/types",
+	"panic/abort",
 ]
 
 [profile.dev]
