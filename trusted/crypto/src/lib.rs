@@ -16,36 +16,37 @@ impl From<TryFromIntError> for Error {
     }
 }
 
-pub struct Sha256Hash {
-    hash: [u8; Sha256Hash::SIZE],
+pub struct Sha256 {
+    hash: [u8; Sha256::SIZE],
 }
 
-impl Sha256Hash {
+impl Sha256 {
     pub const SIZE: usize = 32;
     pub fn as_slice(&self) -> &[u8] {
         &self.hash
     }
-}
 
-pub fn sha256_message(data: &[u8]) -> Result<Sha256Hash, Error> {
-    let mut hash: sgx_sha256_hash_t = Default::default();
-    let result = unsafe { sgx_sha256_msg(data.as_ptr(), data.len().try_into()?, &mut hash) };
-    match result {
-        sgx_status_t::SGX_SUCCESS => Ok(Sha256Hash { hash }),
-        x => Err(Error::SGX(x)),
+    pub fn hash(data: &[u8]) -> Result<Sha256, Error> {
+        let mut hash: sgx_sha256_hash_t = Default::default();
+        let result = unsafe { sgx_sha256_msg(data.as_ptr(), data.len().try_into()?, &mut hash) };
+        match result {
+            sgx_status_t::SGX_SUCCESS => Ok(Sha256 { hash }),
+            x => Err(Error::SGX(x)),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sha2::{Digest, Sha256};
+    use sha2::Digest;
+    use sha2;
 
     #[test]
     fn run_sha256_804() {
         let bytes: [u8; 3] = [8, 0, 4];
-        let hash = sha256_message(&bytes).unwrap();
-        let mut hasher = Sha256::new();
+        let hash = Sha256::hash(&bytes).unwrap();
+        let mut hasher = sha2::Sha256::new();
         hasher.update(&bytes);
         let expected = hasher.finalize();
         assert_eq!(hash.as_slice(), &expected[..]);
@@ -54,8 +55,8 @@ mod tests {
     #[test]
     fn run_sha256_7420() {
         let bytes: [u8; 4] = [7, 4, 2, 0];
-        let hash = sha256_message(&bytes).unwrap();
-        let mut hasher = Sha256::new();
+        let hash = Sha256::hash(&bytes).unwrap();
+        let mut hasher = sha2::Sha256::new();
         hasher.update(&bytes);
         let expected = hasher.finalize();
         assert_eq!(hash.as_slice(), &expected[..]);
