@@ -117,10 +117,6 @@ impl Sha256Builder {
     pub fn build(self) -> Result<Sha256, Error> {
         let mut hash: sgx_sha256_hash_t = Default::default();
         let result = unsafe { sgx_sha256_get_hash(self.handle, &mut hash) };
-        // The errors from sgx_sha256_close() are success or a NULL pointer.
-        // There isn't much error handling we can do if for some reason
-        // self.handle is a NULL pointer.
-        unsafe { sgx_sha256_close(self.handle) };
         match result {
             sgx_status_t::SGX_SUCCESS => Ok(Sha256 { hash }),
             x => Err(Error::SGX(x)),
@@ -128,20 +124,39 @@ impl Sha256Builder {
     }
 }
 
+impl Drop for Sha256Builder {
+    fn drop(&mut self) {
+        // The errors from sgx_sha256_close() are success or a NULL pointer.
+        // There isn't much error handling we can do if for some reason
+        // self.handle is a NULL pointer.
+        unsafe { sgx_sha256_close(self.handle) };
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sha2::{self, Digest};
+    use sha2::{self, digest::crypto_common::Output, Digest};
+
+    /// Create hash of `bytes` using the [sha2] crate.  This provides a parallel
+    /// implementation of the SHA256 to compare to the SGX wrapper interface.
+    ///
+    /// # Arguments
+    /// - `bytes` the bytes to create the hash for.
+    ///
+    /// # Returns
+    /// The hash of `bytes`.
+    fn hash_with_sha2(bytes: &[u8]) -> Output<sha2::Sha256> {
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(bytes);
+        hasher.finalize()
+    }
 
     #[test]
     fn run_sha256_804() {
         let bytes: [u8; 3] = [8, 0, 4];
         let hash = Sha256::hash(&bytes).unwrap();
-        let expected = {
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(&bytes);
-            hasher.finalize()
-        };
+        let expected = hash_with_sha2(&bytes);
         assert_eq!(hash.as_slice(), &expected[..]);
     }
 
@@ -149,11 +164,7 @@ mod tests {
     fn run_sha256_7420() {
         let bytes: [u8; 4] = [7, 4, 2, 0];
         let hash = Sha256::hash(&bytes).unwrap();
-        let expected = {
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(&bytes);
-            hasher.finalize()
-        };
+        let expected = hash_with_sha2(&bytes);
         assert_eq!(hash.as_slice(), &expected[..]);
     }
 
@@ -165,25 +176,17 @@ mod tests {
             builder = builder.update(&[i]).unwrap();
         }
         let hash = builder.build().unwrap();
-        let expected = {
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(&bytes);
-            hasher.finalize()
-        };
+        let expected = hash_with_sha2(&bytes);
         assert_eq!(hash.as_slice(), &expected[..]);
     }
 
     #[test]
     fn build_sha256_1066() {
-        let bytes: [u8; 4] = [1, 9, 6, 6];
+        let bytes: [u8; 4] = [1, 0, 6, 6];
         let mut builder = Sha256Builder::new().unwrap();
         builder = builder.update(&bytes).unwrap();
         let hash = builder.build().unwrap();
-        let expected = {
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(&bytes);
-            hasher.finalize()
-        };
+        let expected = hash_with_sha2(&bytes);
         assert_eq!(hash.as_slice(), &expected[..]);
     }
 }
