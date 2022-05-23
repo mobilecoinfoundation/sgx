@@ -23,7 +23,7 @@ fn main() {
         // Limit the functions to what is currently supported.  There are ~48
         // total functions in tcrypto which will be brought in over a series
         // of commits
-        .allowlist_function("sgx_sha256_msg")
+        .allowlist_function("sgx_sha256_.*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // Suppressing warnings from tests, see
         // https://github.com/rust-lang/rust-bindgen/issues/1651

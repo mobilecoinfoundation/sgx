@@ -3,7 +3,9 @@
 
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
-pub use mc_sgx_crypto_sys_types::{sgx_sha256_hash_t, sgx_status_t, size_t};
+pub use mc_sgx_crypto_sys_types::{
+    sgx_sha256_hash_t, sgx_sha_state_handle_t, sgx_status_t, size_t,
+};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
