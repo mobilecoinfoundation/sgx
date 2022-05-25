@@ -3,10 +3,7 @@
 //
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
-// pub use mc_sgx_dcap_sys_types::{
-//     sgx_enclave_id_t, sgx_launch_token_t, sgx_misc_attribute_t, sgx_status_t, sgx_target_info_t,
-//     size_t,
-// };
+pub use mc_sgx_dcap_sys_types::{sgx_qv_path_type_t, quote3_error_t, sgx_ql_qe_report_info_t, sgx_ql_qv_result_t, time_t, sgx_ql_qve_collateral_t, sgx_ql_request_policy_t, sgx_pce_error_t, sgx_isv_svn_t, sgx_report_t, sgx_cpu_svn_t, sgx_target_info_t};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
