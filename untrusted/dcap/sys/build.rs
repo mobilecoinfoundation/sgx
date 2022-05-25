@@ -8,9 +8,11 @@ use std::{env, path::PathBuf};
 
 fn main() {
     rustc_link_lib!("sgx_dcap_quoteverify");
+    rustc_link_lib!("sgx_dcap_ql");
 
     let bindings = bindgen::Builder::default()
-        .header_contents("dcap_qv.h", "#include <sgx_dcap_quoteverify.h>")
+        //TODO: turn this into separate generation and verification crates
+        .header_contents("dcap_qv.h", "#include <sgx_dcap_quoteverify.h>\n#include <sgx_dcap_ql_wrapper.h>")
         .blocklist_type("*")
         .allowlist_function("sgx_.*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
