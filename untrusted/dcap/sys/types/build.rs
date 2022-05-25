@@ -15,6 +15,8 @@ fn main() {
         .layout_tests(false)
         // Avoid debug as dcap has packed structs which will give error E0133
         .no_debug("*")
+        .newtype_enum("_sgx_ql_request_policy")
+        .newtype_enum("_quote3_error_t")
         .generate()
         .expect("Unable to generate bindings");
 

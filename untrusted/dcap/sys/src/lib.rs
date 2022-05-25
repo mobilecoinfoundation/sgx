@@ -13,9 +13,11 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use mc_sgx_dcap_sys_types::{quote3_error_t, sgx_ql_request_policy_t};
     #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    fn setting_load_policy_works() {
+        let result = unsafe{ sgx_qv_set_enclave_load_policy(sgx_ql_request_policy_t::SGX_QL_DEFAULT) };
+        assert_eq!(result, quote3_error_t::SGX_QL_SUCCESS);
     }
 }
