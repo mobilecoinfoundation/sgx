@@ -195,6 +195,7 @@ name = "mc-sgx-dcap"
 version = "0.1.0"
 dependencies = [
  "mc-sgx-dcap-sys",
+ "mc-sgx-urts",
 ]
 
 [[package]]
