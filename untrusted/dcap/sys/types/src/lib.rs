@@ -1,8 +1,5 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+// Copyright (c) 2022 The MobileCoin Foundation
+//
+#![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
+
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
