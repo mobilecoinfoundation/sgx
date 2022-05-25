@@ -202,6 +202,7 @@ name = "mc-sgx-dcap-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-dcap-sys-types",
 ]
 

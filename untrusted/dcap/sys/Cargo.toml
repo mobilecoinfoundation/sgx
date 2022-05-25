@@ -8,3 +8,4 @@ mc-sgx-dcap-sys-types = { path = "types" }
 
 [build-dependencies]
 bindgen = "0.59.2"
+cargo-emit = "0.2.1"
