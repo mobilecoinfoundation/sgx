@@ -1,10 +1,11 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Provides rust wrappers for the SGX untrusted runtime system (uRTS) functionality
 
+pub use mc_sgx_urts_sys::{sgx_report_t, sgx_target_info_t};
+
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_enclave_id_t, sgx_status_t,
 };
-pub use mc_sgx_urts_sys::{sgx_report_t, sgx_target_info_t};
 use std::ops::Deref;
 use std::{fmt, os::raw::c_int, ptr};
 
