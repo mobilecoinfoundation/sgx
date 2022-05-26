@@ -196,6 +196,7 @@ version = "0.1.0"
 dependencies = [
  "mc-sgx-dcap-sys",
  "mc-sgx-urts",
+ "test_enclave",
 ]
 
 [[package]]

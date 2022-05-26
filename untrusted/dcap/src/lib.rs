@@ -77,11 +77,34 @@ impl Quote {
 
 #[cfg(test)]
 mod tests {
+    use std::ptr;
     use super::*;
     use mc_sgx_dcap_sys::{quote3_error_t, sgx_ql_request_policy_t};
+    use mc_sgx_urts::{EnclaveBuilder, sgx_status_t};
+    use test_enclave::{ENCLAVE, ecall_create_report};
+
+    fn report_fn(enclave: &Enclave, target_info: Option<&mc_sgx_urts::sgx_target_info_t>) -> Result<mc_sgx_urts::sgx_report_t, mc_sgx_urts::Error>{
+        let report = MaybeUninit::zeroed();
+        let mut report = unsafe { report.assume_init() };
+        let mut retval: sgx_status_t = sgx_status_t::SGX_SUCCESS;
+        let info = match target_info {
+            Some(info) => info,
+            None => ptr::null(),
+        };
+        let result =
+            unsafe { ecall_create_report(**enclave, &mut retval, info, &mut report) };
+        match result {
+            sgx_status_t::SGX_SUCCESS => match retval {
+                sgx_status_t::SGX_SUCCESS => Ok(report),
+                x => Err(mc_sgx_urts::Error::SgxStatus(x)),
+            },
+            x => Err(mc_sgx_urts::Error::SgxStatus(x)),
+        }
+    }
 
     #[test]
     fn verify_an_enclave() {
+        let enclave = EnclaveBuilder::new(ENCLAVE).report_fn(Some(report_fn)).create().unwrap();
         let result = unsafe{ sgx_qv_set_enclave_load_policy(sgx_ql_request_policy_t::SGX_QL_DEFAULT) };
         assert_eq!(result, quote3_error_t::SGX_QL_SUCCESS);
     }

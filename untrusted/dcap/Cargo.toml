@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 mc-sgx-dcap-sys = { path = "sys" }
 mc-sgx-urts = { path = "../urts" }
+
+[dev-dependencies]
+test_enclave = { path = "../test_enclave" }
