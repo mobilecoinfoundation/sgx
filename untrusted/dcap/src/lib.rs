@@ -2,17 +2,17 @@
 //! Rust wrappers for DCAP (Data Center Attestation Primitives) quote
 //! verification
 
-use mc_sgx_dcap_sys::{sgx_qv_set_enclave_load_policy};
+use mc_sgx_dcap_sys::{sgx_qe_get_quote, sgx_qe_get_quote_size, sgx_qv_set_enclave_load_policy, quote3_error_t, sgx_target_info_t, sgx_qe_get_target_info, sgx_report_t};
 use mc_sgx_urts::Enclave;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     // An error provided from the SGX SDK
-    SgxStatus(sgx_status_t),
+    SgxStatus(quote3_error_t),
 }
 
 pub struct Quote {
-    quote: sgx_quote_t,
+    quote: Vec<u8>,
 }
 
 impl Quote {
@@ -23,7 +23,7 @@ impl Quote {
         // TODO not sure if the report should live here or on teh enclave,
         //  either way I think it should use a closure since there is no
         //  standardized ecall for it.
-        let report = enclave.get_report(target_info)?;
+        let report = enclave.create_report(Some(target_info))?;
 
         Self::get_quote(report)
     }
@@ -34,26 +34,26 @@ impl Quote {
         Ok(())
     }
 
-    fn get_target_info() -> Result<sgx_target_info, Error> {
-        let mut target_info: sgx_target_info = Default::default();
+    fn get_target_info() -> Result<sgx_target_info_t, Error> {
+        let mut target_info: sgx_target_info_t = Default::default();
         let result = unsafe{ sgx_qe_get_target_info(&mut target_info) };
         match result {
-            SGX_QL_SUCCESS => Ok(target_info),
+            quote3_error_t::SGX_QL_SUCCESS => Ok(target_info),
             x => Err(Error::SgxStatus(x))
         }
     }
 
-    fn get_quote(report: sgx_report_t) -> Result<sgx_quote_t, Error> {
+    fn get_quote(report: sgx_report_t) -> Result<Quote, Error> {
         let mut size = 0;
         let result = unsafe{ sgx_qe_get_quote_size(&mut size) };
-        if result != SGX_QL_SUCCESS {
+        if result != quote3_error_t::SGX_QL_SUCCESS {
             return Err(Error::SgxStatus(result))
         }
 
         let mut quote: Vec<u8> = vec![0; size];
-        let result = unsafe{ sgx_qe_get_quote(&report, &size, quote_buffer.as_mut_ptr()) };
+        let result = unsafe{ sgx_qe_get_quote(&report, &size, quote.as_mut_ptr()) };
         match result {
-            SGX_QL_SUCCESS => Ok(Quote{quote}),
+            quote3_error_t::SGX_QL_SUCCESS => Ok(Quote{quote}),
             x => Err(Error::SgxStatus(x))
         }
     }
