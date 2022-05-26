@@ -2,6 +2,8 @@
 //! Rust wrappers for DCAP (Data Center Attestation Primitives) quote
 //! verification
 
+use std::mem;
+use std::mem::MaybeUninit;
 use mc_sgx_dcap_sys::{sgx_qe_get_quote, sgx_qe_get_quote_size, sgx_qv_set_enclave_load_policy, quote3_error_t, sgx_target_info_t, sgx_qe_get_target_info, sgx_report_t};
 use mc_sgx_urts::Enclave;
 
@@ -11,6 +13,19 @@ pub enum Error {
     SgxStatus(quote3_error_t),
 }
 
+impl From<mc_sgx_urts::Error> for Error {
+    fn from(err: mc_sgx_urts::Error) -> Self {
+        match err {
+            mc_sgx_urts::Error::SgxStatus(x) => {
+                //TODO re-think, these codes don't transfer 1:1
+                let error_code = x.0;
+                let quote3_error = quote3_error_t(error_code);
+                Error::SgxStatus(quote3_error)
+            },
+            mc_sgx_urts::Error::NoReportFunction => Error::SgxStatus(quote3_error_t::SGX_QL_UNABLE_TO_GENERATE_REPORT),
+        }
+    }
+}
 pub struct Quote {
     quote: Vec<u8>,
 }
@@ -18,12 +33,11 @@ pub struct Quote {
 impl Quote {
     pub fn new(enclave: &Enclave) -> Result<Self, Error> {
         Self::load_in_proc_enclaves()?;
+        // TODO need to have a common type instead of transmuting these
         let target_info = Self::get_target_info()?;
-
-        // TODO not sure if the report should live here or on teh enclave,
-        //  either way I think it should use a closure since there is no
-        //  standardized ecall for it.
-        let report = enclave.create_report(Some(target_info))?;
+        let target_info = unsafe{ mem::transmute(target_info) };
+        let report = enclave.create_report(Some(&target_info))?;
+        let report = unsafe{ mem::transmute(report) };
 
         Self::get_quote(report)
     }
@@ -35,7 +49,8 @@ impl Quote {
     }
 
     fn get_target_info() -> Result<sgx_target_info_t, Error> {
-        let mut target_info: sgx_target_info_t = Default::default();
+        let target_info = MaybeUninit::zeroed();
+        let mut target_info = unsafe { target_info.assume_init() };
         let result = unsafe{ sgx_qe_get_target_info(&mut target_info) };
         match result {
             quote3_error_t::SGX_QL_SUCCESS => Ok(target_info),
@@ -50,8 +65,8 @@ impl Quote {
             return Err(Error::SgxStatus(result))
         }
 
-        let mut quote: Vec<u8> = vec![0; size];
-        let result = unsafe{ sgx_qe_get_quote(&report, &size, quote.as_mut_ptr()) };
+        let mut quote: Vec<u8> = vec![0; size as usize];
+        let result = unsafe{ sgx_qe_get_quote(&report, size, quote.as_mut_ptr()) };
         match result {
             quote3_error_t::SGX_QL_SUCCESS => Ok(Quote{quote}),
             x => Err(Error::SgxStatus(x))
