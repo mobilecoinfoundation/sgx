@@ -33,7 +33,7 @@ pub struct Quote {
 
 impl Quote {
     pub fn new(enclave: &Enclave) -> Result<Self, Error> {
-        Self::load_in_proc_enclaves()?;
+        // Self::load_in_process_enclaves()?;
         // TODO need to have a common type instead of transmuting these
         let target_info = Self::get_target_info()?;
         let target_info = unsafe{ mem::transmute(target_info) };
@@ -43,13 +43,22 @@ impl Quote {
         Self::get_quote(report)
     }
 
-    fn load_in_proc_enclaves() -> Result<(), Error> {
+    fn load_in_process_enclaves() -> Result<(), Error> {
         //TODO this should be guarded by a feature and this should only be done
         //  once, maybe lazy_static
         for (path, enclave) in [(sgx_ql_path_type_t::SGX_QL_PCE_PATH, "libsgx_pce.signed.so.1"), (sgx_ql_path_type_t::SGX_QL_QE3_PATH, "libsgx_qe3.signed.so.1"), (sgx_ql_path_type_t::SGX_QL_IDE_PATH, "libsgx_id_enclave.signed.so.1")] {
-            load_in_process_enclave(path, enclave)?
+            Self::load_in_process_enclave(path, enclave)?
         }
         Ok(())
+    }
+
+    fn load_in_process_enclave(path_type: sgx_ql_path_type_t, enclave: &str) -> Result<(), Error> {
+        let path = CString::new(format!("/usr/lib/x86_64-linux-gnu/{}", enclave)).expect(&format!("Failed to convert {} to a C String", enclave));
+        let result = unsafe{ sgx_ql_set_path(path_type, path.as_ptr())};
+        match result {
+            quote3_error_t::SGX_QL_SUCCESS => Ok(()),
+            x => Err(Error::SgxStatus(x))
+        }
     }
 
     fn get_target_info() -> Result<sgx_target_info_t, Error> {
@@ -78,11 +87,6 @@ impl Quote {
     }
 }
 
-fn load_in_process_enclave(path: sgx_ql_path_type_t, enclave: &str) -> Result<(), Error> {
-    let full_enclave_name = CString::new(format!("/usr/lib/x86_64-linux-gnu/{}", enclave)).expect(&format!("Failed to convert {} to a C String", enclave));
-    let result = unsafe{ sgx_ql_set_path(path, full_enclave_name.as_ptr())};
-    Ok(())
-}
 
 
 #[cfg(test)]
@@ -114,9 +118,9 @@ mod tests {
 
     #[test]
     fn verify_an_enclave() {
-        let enclave = EnclaveBuilder::new(ENCLAVE).report_fn(Some(report_fn)).create().unwrap();
-        let quote = Quote::new(&enclave).unwrap();
         let result = unsafe{ sgx_qv_set_enclave_load_policy(sgx_ql_request_policy_t::SGX_QL_DEFAULT) };
         assert_eq!(result, quote3_error_t::SGX_QL_SUCCESS);
+        let enclave = EnclaveBuilder::new(ENCLAVE).report_fn(Some(report_fn)).create().unwrap();
+        let quote = Quote::new(&enclave).unwrap();
     }
 }
