@@ -2,9 +2,10 @@
 //! Rust wrappers for DCAP (Data Center Attestation Primitives) quote
 //! verification
 
+use std::ffi::CString;
 use std::mem;
 use std::mem::MaybeUninit;
-use mc_sgx_dcap_sys::{sgx_qe_get_quote, sgx_qe_get_quote_size, sgx_qv_set_enclave_load_policy, quote3_error_t, sgx_target_info_t, sgx_qe_get_target_info, sgx_report_t};
+use mc_sgx_dcap_sys::{sgx_qe_get_quote, sgx_qe_get_quote_size, sgx_qv_set_enclave_load_policy, quote3_error_t, sgx_target_info_t, sgx_qe_get_target_info, sgx_report_t, sgx_ql_path_type_t, sgx_ql_set_path};
 use mc_sgx_urts::Enclave;
 
 #[derive(Debug, PartialEq)]
@@ -45,6 +46,9 @@ impl Quote {
     fn load_in_proc_enclaves() -> Result<(), Error> {
         //TODO this should be guarded by a feature and this should only be done
         //  once, maybe lazy_static
+        for (path, enclave) in [(sgx_ql_path_type_t::SGX_QL_PCE_PATH, "libsgx_pce.signed.so.1"), (sgx_ql_path_type_t::SGX_QL_QE3_PATH, "libsgx_qe3.signed.so.1"), (sgx_ql_path_type_t::SGX_QL_IDE_PATH, "libsgx_id_enclave.signed.so.1")] {
+            load_in_process_enclave(path, enclave)?
+        }
         Ok(())
     }
 
@@ -72,6 +76,12 @@ impl Quote {
             x => Err(Error::SgxStatus(x))
         }
     }
+}
+
+fn load_in_process_enclave(path: sgx_ql_path_type_t, enclave: &str) -> Result<(), Error> {
+    let full_enclave_name = CString::new(format!("/usr/lib/x86_64-linux-gnu/{}", enclave)).expect(&format!("Failed to convert {} to a C String", enclave));
+    let result = unsafe{ sgx_ql_set_path(path, full_enclave_name.as_ptr())};
+    Ok(())
 }
 
 
@@ -105,6 +115,7 @@ mod tests {
     #[test]
     fn verify_an_enclave() {
         let enclave = EnclaveBuilder::new(ENCLAVE).report_fn(Some(report_fn)).create().unwrap();
+        let quote = Quote::new(&enclave).unwrap();
         let result = unsafe{ sgx_qv_set_enclave_load_policy(sgx_ql_request_policy_t::SGX_QL_DEFAULT) };
         assert_eq!(result, quote3_error_t::SGX_QL_SUCCESS);
     }

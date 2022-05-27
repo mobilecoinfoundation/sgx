@@ -18,6 +18,7 @@ fn main() {
         .no_debug("*")
         .newtype_enum("_sgx_ql_request_policy")
         .newtype_enum("_quote3_error_t")
+        .newtype_enum("sgx_ql_path_type_t")
         .generate()
         .expect("Unable to generate bindings");
 
