@@ -8,7 +8,10 @@ use std::{env, path::PathBuf};
 fn main() {
     let bindings = bindgen::Builder::default()
         //TODO: turn this into separate generation and verification crates
-        .header_contents("dcap_qv.h", "#include <sgx_dcap_quoteverify.h>\n#include <sgx_dcap_ql_wrapper.h>")
+        .header_contents(
+            "dcap_qv.h",
+            "#include <sgx_dcap_quoteverify.h>\n#include <sgx_dcap_ql_wrapper.h>",
+        )
         .blocklist_function("*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // Suppressing warnings from tests, see
