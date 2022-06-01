@@ -1,15 +1,12 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
 //! Build the FFI function bindings for DCAP (Data Center Attestation Primitives)
-//! quote verification
+//! quote generation
 extern crate bindgen;
 use cargo_emit::rustc_link_lib;
 use std::{env, path::PathBuf};
 
 fn main() {
-    //TODO: need to create a feature for in process vs out of process quoting
-    //  The feature will have logic to provide the paths to
-    //  libsgx_pce.signed.so, libsgx_qe3.signed.so, libsgx_id_enclave.signed.so
     rustc_link_lib!("sgx_dcap_quoteverify");
     rustc_link_lib!("sgx_dcap_ql");
 

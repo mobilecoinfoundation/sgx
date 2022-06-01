@@ -1,7 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
 //! Build the FFI type bindings for DCAP (Data Center Attestation Primitives)
-//! quote verification
+//! quote generation
 extern crate bindgen;
 use std::{env, path::PathBuf};
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-// See https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-//
+//! FFI functions for DCAP (Data Center Attestation Primitives) quote
+//! generation, see
+//! https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
 pub use mc_sgx_dcap_sys_types::{

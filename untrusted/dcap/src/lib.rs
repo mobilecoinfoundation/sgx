@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Rust wrappers for DCAP (Data Center Attestation Primitives) quote
-//! verification
+//! generation
 
 use mc_sgx_dcap_sys::{
     quote3_error_t, sgx_qe_cleanup_by_policy, sgx_qe_get_quote, sgx_qe_get_quote_size,
@@ -11,6 +11,7 @@ use std::ffi::CString;
 use std::mem;
 use std::mem::MaybeUninit;
 
+/// Errors generating quotes
 #[derive(Debug, PartialEq)]
 pub enum Error {
     // An error provided from the SGX SDK
@@ -21,7 +22,11 @@ impl From<mc_sgx_urts::Error> for Error {
     fn from(err: mc_sgx_urts::Error) -> Self {
         match err {
             mc_sgx_urts::Error::SgxStatus(x) => {
-                //TODO re-think, these codes don't transfer 1:1
+                // TODO re-think, these codes don't transfer 1:1
+                //  However SGX keeps the code separate by providing a mask on
+                //  the upper bits of a 16 bit value per the below macro
+                //  `#define SGX_???_ERROR(x) (0x0000?000|(x))`  The `?` changes
+                //  based on where the error comes from
                 let error_code = x.0;
                 let quote3_error = quote3_error_t(error_code);
                 Error::SgxStatus(quote3_error)
@@ -41,6 +46,10 @@ pub struct Quote {
 }
 
 impl Quote {
+    /// Returns a quote for the provided [Enclave].
+    ///
+    /// # Arguments
+    /// - `enclave` The enclave to generate the quote for.
     pub fn new(enclave: &Enclave) -> Result<Self, Error> {
         Self::load_in_process_enclaves()?;
         // TODO need to have a common type instead of transmuting these
