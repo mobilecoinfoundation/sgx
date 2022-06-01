@@ -5,7 +5,7 @@
 use std::ffi::CString;
 use std::mem;
 use std::mem::MaybeUninit;
-use mc_sgx_dcap_sys::{sgx_qe_get_quote, sgx_qe_get_quote_size, sgx_qv_set_enclave_load_policy, quote3_error_t, sgx_target_info_t, sgx_qe_get_target_info, sgx_report_t, sgx_ql_path_type_t, sgx_ql_set_path};
+use mc_sgx_dcap_sys::{sgx_qe_get_quote, sgx_qe_get_quote_size, sgx_qe_set_enclave_load_policy, quote3_error_t, sgx_target_info_t, sgx_qe_get_target_info, sgx_report_t, sgx_ql_path_type_t, sgx_ql_set_path, sgx_qe_cleanup_by_policy};
 use mc_sgx_urts::Enclave;
 
 #[derive(Debug, PartialEq)]
@@ -33,14 +33,15 @@ pub struct Quote {
 
 impl Quote {
     pub fn new(enclave: &Enclave) -> Result<Self, Error> {
-        // Self::load_in_process_enclaves()?;
+        Self::load_in_process_enclaves()?;
         // TODO need to have a common type instead of transmuting these
         let target_info = Self::get_target_info()?;
         let target_info = unsafe{ mem::transmute(target_info) };
         let report = enclave.create_report(Some(&target_info))?;
         let report = unsafe{ mem::transmute(report) };
-
-        Self::get_quote(report)
+        let quote = Self::get_quote(report);
+        Self::cleanup_in_process_enclaves();
+        quote
     }
 
     fn load_in_process_enclaves() -> Result<(), Error> {
@@ -58,6 +59,14 @@ impl Quote {
         match result {
             quote3_error_t::SGX_QL_SUCCESS => Ok(()),
             x => Err(Error::SgxStatus(x))
+        }
+    }
+
+    fn cleanup_in_process_enclaves() {
+        let result = unsafe{ sgx_qe_cleanup_by_policy() };
+        match result {
+            quote3_error_t::SGX_QL_SUCCESS => return,
+            _ => print!("Error in cleaning up enclave policy"),
         }
     }
 
@@ -118,9 +127,22 @@ mod tests {
 
     #[test]
     fn verify_an_enclave() {
-        let result = unsafe{ sgx_qv_set_enclave_load_policy(sgx_ql_request_policy_t::SGX_QL_DEFAULT) };
-        assert_eq!(result, quote3_error_t::SGX_QL_SUCCESS);
         let enclave = EnclaveBuilder::new(ENCLAVE).report_fn(Some(report_fn)).create().unwrap();
         let quote = Quote::new(&enclave).unwrap();
+
+        // This is a work around for the
+        // [static initialization order fiasco](https://en.cppreference.com/w/cpp/language/siof)
+        // The `g_ql_global_data` in `qe_logic.cpp` (Intel DCAP code) is
+        // initialized prior to `CEnclaveMngr` in
+        // `enclave_mngr.cpp` (Intel SGX SDK).
+        // Since `CEnclaveMngr` was initialized after, it will be destroyed
+        // first. `g_ql_global_data` will try to free its enclave which
+        // calls into the destroyed `CEnclaveMngr` resulting in a
+        // memory access violation.  Setting the policy to ephemeral takes
+        // advantage of an implementation detail that will destroy the
+        // quoting enclave in `g_ql_global_data`.
+        // https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/fe200aa160bc159f92149f02e703f0b02e4348d2/QuoteGeneration/quote_wrapper/quote/qe_logic.cpp#L748
+        let result = unsafe{ sgx_qe_set_enclave_load_policy(sgx_ql_request_policy_t::SGX_QL_EPHEMERAL) };
+        assert_eq!(result, quote3_error_t::SGX_QL_SUCCESS);
     }
 }
