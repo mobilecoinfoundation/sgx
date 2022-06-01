@@ -4,8 +4,7 @@
 
 use mc_sgx_dcap_sys::{
     quote3_error_t, sgx_qe_cleanup_by_policy, sgx_qe_get_quote, sgx_qe_get_quote_size,
-    sgx_qe_get_target_info, sgx_qe_set_enclave_load_policy, sgx_ql_path_type_t, sgx_ql_set_path,
-    sgx_report_t, sgx_target_info_t,
+    sgx_qe_get_target_info, sgx_ql_path_type_t, sgx_ql_set_path, sgx_report_t, sgx_target_info_t,
 };
 use mc_sgx_urts::Enclave;
 use std::ffi::CString;
@@ -33,7 +32,11 @@ impl From<mc_sgx_urts::Error> for Error {
         }
     }
 }
+
+/// A quote from the SGX interface
 pub struct Quote {
+    // Only used in tests so far
+    #[allow(dead_code)]
     quote: Vec<u8>,
 }
 
@@ -74,7 +77,7 @@ impl Quote {
 
     fn load_in_process_enclave(path_type: sgx_ql_path_type_t, enclave: &str) -> Result<(), Error> {
         let path = CString::new(format!("/usr/lib/x86_64-linux-gnu/{}", enclave))
-            .expect(&format!("Failed to convert {} to a C String", enclave));
+            .unwrap_or_else(|_| panic!("Failed to convert {} to a C String", enclave));
         let result = unsafe { sgx_ql_set_path(path_type, path.as_ptr()) };
         match result {
             quote3_error_t::SGX_QL_SUCCESS => Ok(()),
@@ -84,9 +87,10 @@ impl Quote {
 
     fn cleanup_in_process_enclaves() {
         let result = unsafe { sgx_qe_cleanup_by_policy() };
-        match result {
-            quote3_error_t::SGX_QL_SUCCESS => return,
-            _ => print!("Error in cleaning up enclave policy"),
+        if result != quote3_error_t::SGX_QL_SUCCESS {
+            // There isn't any corrective action we can take if there is a
+            // failure to unload the quoting enclaves
+            print!("Error in cleaning up enclave policy");
         }
     }
 
@@ -119,7 +123,9 @@ impl Quote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mc_sgx_dcap_sys::{quote3_error_t, sgx_ql_request_policy_t};
+    use mc_sgx_dcap_sys::{
+        quote3_error_t, sgx_qe_set_enclave_load_policy, sgx_ql_request_policy_t,
+    };
     use mc_sgx_urts::{sgx_status_t, EnclaveBuilder};
     use std::ptr;
     use test_enclave::{ecall_create_report, ENCLAVE};
