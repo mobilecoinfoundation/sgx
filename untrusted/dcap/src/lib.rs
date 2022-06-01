@@ -130,6 +130,11 @@ mod tests {
         let enclave = EnclaveBuilder::new(ENCLAVE).report_fn(Some(report_fn)).create().unwrap();
         let quote = Quote::new(&enclave).unwrap();
 
+        // The quote will be dependent on the machine being ran on so we only
+        // make sure it has contents.
+        assert_ne!(quote.quote.len(), 0);
+        assert_ne!(quote.quote, vec![0; quote.quote.len()]);
+
         // This is a work around for the
         // [static initialization order fiasco](https://en.cppreference.com/w/cpp/language/siof)
         // The `g_ql_global_data` in `qe_logic.cpp` (Intel DCAP code) is
