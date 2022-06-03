@@ -40,6 +40,12 @@ pub enum Error {
     NoReportFunction,
 }
 
+impl From<sgx_status_t> for Error {
+    fn from(status: sgx_status_t) -> Self {
+        Error::SgxStatus(status)
+    }
+}
+
 /// Struct for interfacing with the SGX SDK.  This should be used directly in
 /// sgx calls `ecall_some_function(*enclave, ...)`.
 ///
@@ -220,7 +226,7 @@ impl Drop for Enclave {
 mod tests {
     use super::*;
     use std::mem::MaybeUninit;
-    use test_enclave::{ecall_add_2, ecall_create_report, ENCLAVE};
+    use test_enclave::{self, ecall_add_2, ENCLAVE};
 
     #[test]
     fn fail_to_create_enclave_with_bogus_bytes() {
@@ -286,22 +292,7 @@ mod tests {
     fn report_function_provides_report() {
         let enclave = EnclaveBuilder::new(ENCLAVE)
             .report_fn(Some(|enclave, target_info| {
-                let report = MaybeUninit::zeroed();
-                let mut report = unsafe { report.assume_init() };
-                let mut retval: sgx_status_t = sgx_status_t::SGX_SUCCESS;
-                let info = match target_info {
-                    Some(info) => info,
-                    None => ptr::null(),
-                };
-                let result =
-                    unsafe { ecall_create_report(**enclave, &mut retval, info, &mut report) };
-                match result {
-                    sgx_status_t::SGX_SUCCESS => match retval {
-                        sgx_status_t::SGX_SUCCESS => Ok(report),
-                        x => Err(Error::SgxStatus(x)),
-                    },
-                    x => Err(Error::SgxStatus(x)),
-                }
+                Ok(test_enclave::enclave_report(**enclave, target_info)?)
             }))
             .create()
             .unwrap();
