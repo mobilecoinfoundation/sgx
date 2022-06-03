@@ -99,7 +99,7 @@ impl Quote {
         if result != quote3_error_t::SGX_QL_SUCCESS {
             // There isn't any corrective action we can take if there is a
             // failure to unload the quoting enclaves
-            print!("Error in cleaning up enclave policy");
+            println!("Error in cleaning up enclaves: {:?}", result);
         }
     }
 
