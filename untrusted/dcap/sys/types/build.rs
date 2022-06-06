@@ -17,10 +17,9 @@ fn main() {
         // Suppressing warnings from tests, see
         // https://github.com/rust-lang/rust-bindgen/issues/1651
         .layout_tests(false)
-        // Avoid debug as dcap has packed structs which will give error E0133
-        .no_debug("*")
         .newtype_enum("_sgx_ql_request_policy")
         .newtype_enum("_quote3_error_t")
+        .no_debug("_quote3_error_t")
         .newtype_enum("sgx_ql_path_type_t")
         .generate()
         .expect("Unable to generate bindings");

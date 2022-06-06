@@ -9,4 +9,15 @@
     non_upper_case_globals,
     clippy::missing_safety_doc
 )]
+
+use std::fmt;
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
+impl fmt::Debug for _quote3_error_t {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Hexify the output.  The default debug output is
+        // `_quote3_error_t(<int>)` while the error code definitions are in hex.
+        write!(fmt, "_quote3_error_t({:x})", self.0)
+    }
+}

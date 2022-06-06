@@ -51,7 +51,7 @@ impl Quote {
     /// # Arguments
     /// - `enclave` The enclave to generate the quote for.
     pub fn new(enclave: &Enclave) -> Result<Self, Error> {
-        Self::load_in_process_enclaves()?;
+        Self::set_in_process_enclave_paths()?;
         // TODO need to have a common type instead of transmuting these
         let target_info = Self::get_target_info()?;
         let target_info = unsafe { mem::transmute(target_info) };
@@ -62,9 +62,8 @@ impl Quote {
         quote
     }
 
-    fn load_in_process_enclaves() -> Result<(), Error> {
-        //TODO this should be guarded by a feature and this should only be done
-        //  once, maybe lazy_static
+    fn set_in_process_enclave_paths() -> Result<(), Error> {
+        //TODO this should be guarded by a feature
         for (path, enclave) in [
             (
                 sgx_ql_path_type_t::SGX_QL_PCE_PATH,
@@ -79,12 +78,15 @@ impl Quote {
                 "libsgx_id_enclave.signed.so.1",
             ),
         ] {
-            Self::load_in_process_enclave(path, enclave)?
+            Self::set_in_process_enclave_path(path, enclave)?
         }
         Ok(())
     }
 
-    fn load_in_process_enclave(path_type: sgx_ql_path_type_t, enclave: &str) -> Result<(), Error> {
+    fn set_in_process_enclave_path(
+        path_type: sgx_ql_path_type_t,
+        enclave: &str,
+    ) -> Result<(), Error> {
         let path = CString::new(format!("/usr/lib/x86_64-linux-gnu/{}", enclave))
             .unwrap_or_else(|_| panic!("Failed to convert {} to a C String", enclave));
         let result = unsafe { sgx_ql_set_path(path_type, path.as_ptr()) };

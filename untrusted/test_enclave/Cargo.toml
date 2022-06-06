@@ -13,4 +13,4 @@ default = []
 [build-dependencies]
 cargo-emit = "0.2.1"
 cc = "1.0.73"
-bindgen = "0.59.2"
+bindgen = "0.60.1"
