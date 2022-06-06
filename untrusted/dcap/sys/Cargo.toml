@@ -1,0 +1,16 @@
+[package]
+name = "mc-sgx-dcap-sys"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mc-sgx-dcap-sys-types = { path = "types" }
+
+[build-dependencies]
+bindgen = "0.60.1"
+cargo-emit = "0.2.1"
+
+[features]
+default = []
+generate = ["mc-sgx-dcap-sys-types/generate"]
+verify = ["mc-sgx-dcap-sys-types/verify"]
