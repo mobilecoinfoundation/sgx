@@ -1,5 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 enclave {
+    include "sgx_report.h"
 
     trusted {
 
@@ -7,6 +8,17 @@ enclave {
          * A basic function that just adds 2 to its input
          */
         public void ecall_add_2(int input, [out] int *sum);
+
+        /*
+         * Create the report for this enclave instance
+         *
+         * \param target_info The target info to use for creating the report
+         * \param report the report to be filled out.  This is only valid if
+         *      this returns `SGX_SUCCESS`.
+         * \returns The result of `sgx_create_report()`
+         */
+        public sgx_status_t ecall_create_report([in]const sgx_target_info_t* target_info,
+            [out]sgx_report_t* report);
     };
 
     untrusted {
