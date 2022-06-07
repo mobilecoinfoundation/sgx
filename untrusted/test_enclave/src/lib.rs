@@ -29,7 +29,10 @@ pub fn enclave_report(eid: sgx_enclave_id_t, target_info: Option<&sgx_target_inf
     let report = MaybeUninit::zeroed();
     let mut report = unsafe { report.assume_init() };
     let mut retval: sgx_status_t = sgx_status_t::SGX_SUCCESS;
-    let info = target_info.unwrap_or_else(|| ptr::null());
+    let info = match target_info {
+        Some(info) => info,
+        None => ptr::null(),
+    };
     let result = unsafe { ecall_create_report(eid, &mut retval, info, &mut report) };
     match result {
         sgx_status_t::SGX_SUCCESS => match retval {

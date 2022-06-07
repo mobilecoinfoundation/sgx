@@ -304,10 +304,24 @@ mod tests {
         // This test is focusing on ensuring that we can get the report
         // from `encalve.get_report()`.  While we could call
         // `ecall_create_report` directly and compare 2 reports, this would just
-        // be a copy and paste of the `report_fn()` above not providing much.
-        // Instead we focus on ensuring that the report is more than zero inited,
-        // The `mac` provides a stable value to verify. It is very unlikely to
-        // be 0 as time goes on.
+        // be a copy and paste of the `test_enclave::enclave_report()` not
+        // providing much. Instead we focus on ensuring that the report is more
+        // than zero inited, The `mac` provides a stable value to verify. It is
+        // very unlikely to be 0 as time goes on.
+        assert_ne!(report.mac, [0; 16]);
+    }
+
+    #[test]
+    fn report_function_provides_report_without_target_info() {
+        let enclave = EnclaveBuilder::new(ENCLAVE)
+            .report_fn(Some(|enclave, target_info| {
+                Ok(test_enclave::enclave_report(**enclave, target_info)?)
+            }))
+            .create()
+            .unwrap();
+
+        let report = enclave.create_report(None).unwrap();
+
         assert_ne!(report.mac, [0; 16]);
     }
 }
