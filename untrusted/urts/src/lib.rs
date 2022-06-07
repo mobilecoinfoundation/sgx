@@ -85,7 +85,7 @@ impl Enclave {
 
 impl fmt::Debug for Enclave {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "id: {}", self.id)
+        write!(f, "Enclave[id={}]", self.id)
     }
 }
 

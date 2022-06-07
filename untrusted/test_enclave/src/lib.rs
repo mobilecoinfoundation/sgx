@@ -4,10 +4,10 @@
 /// The test enclave as bytes.
 pub static ENCLAVE: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/libenclave.signed.so"));
 
-use std::ptr;
+use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_report_t, sgx_status_t, sgx_target_info_t};
 use std::mem::MaybeUninit;
+use std::ptr;
 
-use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_status_t, sgx_report_t, sgx_target_info_t};
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 /// Returns the report for the enclave pertaining to `eid`
@@ -29,10 +29,7 @@ pub fn enclave_report(eid: sgx_enclave_id_t, target_info: Option<&sgx_target_inf
     let report = MaybeUninit::zeroed();
     let mut report = unsafe { report.assume_init() };
     let mut retval: sgx_status_t = sgx_status_t::SGX_SUCCESS;
-    let info = match target_info {
-        Some(info) => info,
-        None => ptr::null(),
-    };
+    let info = target_info.unwrap_or_else(|| ptr::null());
     let result = unsafe { ecall_create_report(eid, &mut retval, info, &mut report) };
     match result {
         sgx_status_t::SGX_SUCCESS => match retval {
