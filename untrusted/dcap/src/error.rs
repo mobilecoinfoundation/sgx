@@ -6,6 +6,8 @@ use mc_sgx_dcap_sys::quote3_error_t;
 pub enum Error {
     /// An error provided from the SGX SDK
     SgxStatus(quote3_error_t),
+    /// Quote verification succeeded, but the collateral used has expired
+    CollateralExpired,
 }
 
 impl From<mc_sgx_urts::Error> for Error {

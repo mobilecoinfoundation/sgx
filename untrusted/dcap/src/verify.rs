@@ -18,7 +18,13 @@ impl Verify for Quote {
         let mut quote_verification_result = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED;
         let result = unsafe { sgx_qv_verify_quote(quote, quote_length, ptr::null(),  1, &mut expiration_status, &mut quote_verification_result, ptr::null_mut(), 0, ptr::null_mut()) };
         match result {
-            quote3_error_t::SGX_QL_SUCCESS => Ok(()),
+            quote3_error_t::SGX_QL_SUCCESS => {
+                match expiration_status {
+                    0 => Ok(()),
+                    _ => Err(Error::CollateralExpired),
+
+                }
+            },
             x => Err(Error::SgxStatus(x)),
         }
     }
