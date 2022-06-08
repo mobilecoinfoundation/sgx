@@ -21,6 +21,7 @@ fn main() {
         .newtype_enum("_quote3_error_t")
         .no_debug("_quote3_error_t")
         .newtype_enum("sgx_ql_path_type_t")
+        .newtype_enum("_sgx_ql_qv_result_t")
         .generate()
         .expect("Unable to generate bindings");
 

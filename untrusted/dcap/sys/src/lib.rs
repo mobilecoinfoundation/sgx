@@ -7,7 +7,7 @@
 pub use mc_sgx_dcap_sys_types::{
     quote3_error_t, sgx_cpu_svn_t, sgx_isv_svn_t, sgx_pce_error_t, sgx_ql_path_type_t,
     sgx_ql_qe_report_info_t, sgx_ql_qv_result_t, sgx_ql_qve_collateral_t, sgx_ql_request_policy_t,
-    sgx_qv_path_type_t, sgx_report_t, sgx_target_info_t, time_t,
+    sgx_qv_path_type_t, sgx_report_t, sgx_target_info_t, time_t
 };
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
