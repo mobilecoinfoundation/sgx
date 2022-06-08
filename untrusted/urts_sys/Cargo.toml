@@ -11,7 +11,7 @@ default = []
 mc-sgx-urts-sys-types = { path = "../urts_sys_types" }
 
 [build-dependencies]
-bindgen = "0.59.2"
+bindgen = "0.60.1"
 cargo-emit = "0.2.1"
 
 [dev-dependencies]

@@ -1,0 +1,14 @@
+[package]
+name = "mc-sgx-dcap-sys-types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.60.1"
+
+[features]
+default = []
+generate = []
+verify = []

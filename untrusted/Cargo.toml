@@ -4,6 +4,8 @@ members = [
     "urts",
     "urts_sys",
     "urts_sys_types",
+    "dcap/sys",
+    "dcap/sys/types",
 ]
 exclude = [
     "test_enclave",
