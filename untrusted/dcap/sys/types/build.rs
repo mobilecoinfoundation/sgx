@@ -26,9 +26,8 @@ fn main() {
         .expect("Couldn't write bindings!");
 }
 
-fn include_verify_if_configured(builder: Builder) -> Builder {
-    #[allow(unused_mut)]
-    let mut builder = builder;
+#[allow(unused_mut)]
+fn include_verify_if_configured(mut builder: Builder) -> Builder {
     #[cfg(feature = "verify")]
     {
         builder = builder.header_contents("dcap_verify.h", "#include <sgx_dcap_quoteverify.h>");
@@ -36,9 +35,8 @@ fn include_verify_if_configured(builder: Builder) -> Builder {
     builder
 }
 
-fn include_generate_if_configured(builder: Builder) -> Builder {
-    #[allow(unused_mut)]
-    let mut builder = builder;
+#[allow(unused_mut)]
+fn include_generate_if_configured(mut builder: Builder) -> Builder {
     #[cfg(feature = "generate")]
     {
         builder = builder.header_contents("dcap_generate.h", "#include <sgx_dcap_ql_wrapper.h>");
