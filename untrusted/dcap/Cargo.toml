@@ -15,3 +15,4 @@ default = []
 # TODO rebase this on https://github.com/mobilecoinfoundation/sgx/pull/14 to get
 #   the features from the `mc-sgx-dcap-sys` crate
 generate = []
+verify = []

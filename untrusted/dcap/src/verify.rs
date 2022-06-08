@@ -1,5 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
+use crate::{Error, Quote};
+
 pub trait Verify {
     fn verify(&self) -> Result<(), Error>;
 }
@@ -13,7 +15,6 @@ impl Verify for Quote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate::Quote;
     use mc_sgx_dcap_sys::{
         quote3_error_t, sgx_qe_set_enclave_load_policy, sgx_ql_request_policy_t,
     };

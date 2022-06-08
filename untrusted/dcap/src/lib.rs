@@ -6,7 +6,7 @@ mod quote;
 
 #[cfg(feature = "generate")]
 mod generate;
-#[cfg(feature = "verify")]
+// #[cfg(feature = "verify")]
 mod verify;
 
 pub use error::Error;
@@ -14,5 +14,5 @@ pub use quote::Quote;
 
 #[cfg(feature = "generate")]
 pub use generate::Generate;
-#[cfg(feature = "verify")]
+// #[cfg(feature = "verify")]
 pub use verify::Verify;
