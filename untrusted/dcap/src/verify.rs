@@ -34,11 +34,20 @@ impl Verify for Quote {
 mod tests {
     use super::*;
 
+    static VALID_QUOTE: &[u8] = include_bytes!("../../test_enclave/data/collateral_expired.dat");
+
     #[test]
     fn verify_results_in_unsupported_format_when_empty_quote() {
         // QUOTE_MIN_SIZE is 1020, so just round to a power of 2
         let quote = Quote{ quote: vec![0; 1024] };
         let result = quote.verify();
         assert_eq!(result, Err(Error::SgxStatus(quote3_error_t::SGX_QL_QUOTE_FORMAT_UNSUPPORTED)));
+    }
+
+    #[test]
+    fn verify_results_succeeds_for_good_quote() {
+        let quote = Quote{ quote: VALID_QUOTE.to_vec() };
+        let result = quote.verify();
+        assert_eq!(result, Err(Error::CollateralExpired));
     }
 }
