@@ -28,11 +28,11 @@ impl Verify for Quote {
                             _ => Err(Error::CollateralExpired),
                         }
                     }
-                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED |
+                    x @ (sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED |
                     sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE |
                     sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED |
                     sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED |
-                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED => Err(Error::NonTerminal(quote3_error_t(quote_verification_result.0))),
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED) => Err(Error::NonTerminal(quote3_error_t(x.0))),
                     x => Err(Error::SgxStatus(quote3_error_t(x.0))),
                 }
             },
