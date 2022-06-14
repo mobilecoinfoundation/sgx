@@ -4,6 +4,7 @@ use mc_sgx_dcap_sys::{
     quote3_error_t, sgx_ql_qv_result_t, sgx_qv_verify_quote
 };
 use std::ptr;
+use std::time::{SystemTime, UNIX_EPOCH};
 use crate::{Error, Quote};
 
 pub trait Verify {
@@ -16,7 +17,8 @@ impl Verify for Quote {
         let quote_length = self.quote.len() as u32;
         let mut expiration_status = 1;
         let mut quote_verification_result = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED;
-        let result = unsafe { sgx_qv_verify_quote(quote, quote_length, ptr::null(),  1, &mut expiration_status, &mut quote_verification_result, ptr::null_mut(), 0, ptr::null_mut()) };
+        let time = SystemTime::now().duration_since(UNIX_EPOCH).expect("Failed computing current time").as_secs().try_into().expect("Couldn't convert u64 seconds to i64");
+        let result = unsafe { sgx_qv_verify_quote(quote, quote_length, ptr::null(), time, &mut expiration_status, &mut quote_verification_result, ptr::null_mut(), 0, ptr::null_mut()) };
         match result {
             quote3_error_t::SGX_QL_SUCCESS => {
                 match expiration_status {
@@ -34,7 +36,7 @@ impl Verify for Quote {
 mod tests {
     use super::*;
 
-    static VALID_QUOTE: &[u8] = include_bytes!("../../test_enclave/data/collateral_expired.dat");
+    static VALID_QUOTE: &[u8] = include_bytes!("../../test_enclave/data/quote.dat");
 
     #[test]
     fn verify_results_in_unsupported_format_when_empty_quote() {
@@ -48,6 +50,6 @@ mod tests {
     fn verify_results_succeeds_for_good_quote() {
         let quote = Quote{ quote: VALID_QUOTE.to_vec() };
         let result = quote.verify();
-        assert_eq!(result, Err(Error::CollateralExpired));
+        assert_eq!(result, Ok(()));
     }
 }
