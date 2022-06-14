@@ -21,10 +21,19 @@ impl Verify for Quote {
         let result = unsafe { sgx_qv_verify_quote(quote, quote_length, ptr::null(), time, &mut expiration_status, &mut quote_verification_result, ptr::null_mut(), 0, ptr::null_mut()) };
         match result {
             quote3_error_t::SGX_QL_SUCCESS => {
-                match expiration_status {
-                    0 => Ok(()),
-                    _ => Err(Error::CollateralExpired),
-
+                match quote_verification_result {
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OK => {
+                        match expiration_status {
+                            0 => Ok(()),
+                            _ => Err(Error::CollateralExpired),
+                        }
+                    }
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED |
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE |
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED |
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED |
+                    sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED => Err(Error::NonTerminal(quote3_error_t(quote_verification_result.0))),
+                    x => Err(Error::SgxStatus(quote3_error_t(x.0))),
                 }
             },
             x => Err(Error::SgxStatus(x)),
@@ -36,7 +45,7 @@ impl Verify for Quote {
 mod tests {
     use super::*;
 
-    static VALID_QUOTE: &[u8] = include_bytes!("../../test_enclave/data/sw_hardening_needed_quote.dat");
+    static SW_HARDENING_NEEDED: &[u8] = include_bytes!("../../test_enclave/data/sw_hardening_needed_quote.dat");
 
     #[test]
     fn verify_results_in_unsupported_format_when_empty_quote() {
@@ -48,8 +57,8 @@ mod tests {
 
     #[test]
     fn verify_results_succeeds_for_good_quote() {
-        let quote = Quote{ quote: VALID_QUOTE.to_vec() };
+        let quote = Quote{ quote: SW_HARDENING_NEEDED.to_vec() };
         let result = quote.verify();
-        assert_eq!(result, Ok(()));
+        assert_eq!(result, Err(Error::NonTerminal(quote3_error_t(sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED.0))));
     }
 }

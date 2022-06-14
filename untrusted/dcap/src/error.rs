@@ -8,6 +8,8 @@ pub enum Error {
     SgxStatus(quote3_error_t),
     /// Quote verification succeeded, but the collateral used has expired
     CollateralExpired,
+    /// A non terminal error for quote verification
+    NonTerminal(quote3_error_t),
 }
 
 impl From<mc_sgx_urts::Error> for Error {
