@@ -106,14 +106,36 @@ mod tests {
     #[case(quote3_error_t::SGX_QL_ERROR_UNEXPECTED, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE, 1)]
     #[case(quote3_error_t::SGX_QL_FILE_ACCESS_ERROR, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE, 1)]
     #[case(quote3_error_t::SGX_QL_INVALID_REPORT, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE, 0)]
-    fn call_result_fails(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
+    fn quote_verification_fails_at_call(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
        assert_eq!(Quote::map_verify_quote_result(call_result, quote_verification_result, expiration_status), Err(Error::SgxStatus(call_result)));
     }
 
     #[rstest]
     #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE, 1)]
-    fn quote_verification_is_terminal(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED, 1)]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_REVOKED, 0)]
+    fn quote_verification_result_is_terminal(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
         assert_eq!(Quote::map_verify_quote_result(call_result, quote_verification_result, expiration_status), Err(Error::SgxStatus(quote3_error_t(quote_verification_result.0))));
     }
 
+    #[rstest]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED, 1)]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED, 0)]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED, 0)]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE, 0)]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED, 0)]
+    fn quote_verification_result_is_non_terminal(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
+        assert_eq!(Quote::map_verify_quote_result(call_result, quote_verification_result, expiration_status), Err(Error::NonTerminal(quote3_error_t(quote_verification_result.0))));
+    }
+
+    #[rstest]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OK, 1)]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OK, 3_000_000)]
+    fn quote_verification_result_is_expired_status(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
+        assert_eq!(Quote::map_verify_quote_result(call_result, quote_verification_result, expiration_status), Err(Error::CollateralExpired));
+    }
+
+    fn quote_verification_result_is_good() {
+        assert_eq!(Quote::map_verify_quote_result(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OK, 0), Ok(()));
+    }
 }
