@@ -8,6 +8,7 @@ mc-sgx-dcap-sys = { path = "sys" }
 mc-sgx-urts = { path = "../urts" }
 
 [dev-dependencies]
+rstest = "0.13.0"
 test_enclave = { path = "../test_enclave" }
 
 [features]

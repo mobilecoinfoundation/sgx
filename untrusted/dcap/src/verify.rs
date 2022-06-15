@@ -10,7 +10,8 @@ use crate::{Error, Quote};
 /// The sgx_ql_qve_result_t has what are called terminal and non terminal values.
 /// They are described in
 /// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf,
-/// but not in the header.  We group them here to make it easier to re-use.
+/// but not in the header.  We group them with the QuoteVerificationResult to
+/// make it easier to re-use.
 enum QuoteVerificationResult {
     Success,
     Terminal(sgx_ql_qv_result_t),
@@ -43,7 +44,25 @@ impl Verify for Quote {
         let mut quote_verification_result = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED;
         let time = SystemTime::now().duration_since(UNIX_EPOCH).expect("Failed computing current time").as_secs().try_into().expect("Couldn't convert u64 seconds to i64");
         let result = unsafe { sgx_qv_verify_quote(quote, quote_length, ptr::null(), time, &mut expiration_status, &mut quote_verification_result, ptr::null_mut(), 0, ptr::null_mut()) };
-        match result {
+        Self::map_verify_quote_result(result, quote_verification_result, expiration_status)
+    }
+}
+
+impl Quote {
+    /// Returns the multiple `sgx_qv_verify_quote()` outputs into a consolidated
+    /// result.
+    ///
+    /// There are 3 values returned from `sgx_qv_verify_quote()` that need to be
+    /// analyzed in the correct order to determine the final result.
+    ///
+    /// # Arguments
+    /// - `call_result` The return value from the call to `sgx_qv_verify_quote()`.
+    /// - `quote_verification_result` the `p_quote_verification_result`
+    ///     parameter to `sgx_qv_verify_quote()`.
+    /// - `expiration_status` the `p_collateral_expiration_status` parameter
+    ///     to `sgx_qv_verify_quote()`.
+    fn map_verify_quote_result(call_result: quote3_error_t, quote_verification_result: sgx_ql_qv_result_t, expiration_status: u32) -> Result<(), Error> {
+        match call_result {
             quote3_error_t::SGX_QL_SUCCESS => {
                 match quote_verification_result.into() {
                     QuoteVerificationResult::Success => {
@@ -63,6 +82,7 @@ impl Verify for Quote {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
     use super::*;
 
     static SW_HARDENING_NEEDED: &[u8] = include_bytes!("../../test_enclave/data/sw_hardening_needed_quote.dat");
@@ -81,4 +101,19 @@ mod tests {
         let result = quote.verify();
         assert_eq!(result, Err(Error::NonTerminal(quote3_error_t(sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED.0))));
     }
+
+    #[rstest]
+    #[case(quote3_error_t::SGX_QL_ERROR_UNEXPECTED, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE, 1)]
+    #[case(quote3_error_t::SGX_QL_FILE_ACCESS_ERROR, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE, 1)]
+    #[case(quote3_error_t::SGX_QL_INVALID_REPORT, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE, 0)]
+    fn call_result_fails(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
+       assert_eq!(Quote::map_verify_quote_result(call_result, quote_verification_result, expiration_status), Err(Error::SgxStatus(call_result)));
+    }
+
+    #[rstest]
+    #[case(quote3_error_t::SGX_QL_SUCCESS, sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE, 1)]
+    fn quote_verification_is_terminal(#[case] call_result: quote3_error_t, #[case] quote_verification_result: sgx_ql_qv_result_t, #[case] expiration_status: u32) {
+        assert_eq!(Quote::map_verify_quote_result(call_result, quote_verification_result, expiration_status), Err(Error::SgxStatus(quote3_error_t(quote_verification_result.0))));
+    }
+
 }
