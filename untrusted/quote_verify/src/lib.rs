@@ -1,8 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
-use mbedtls::alloc::Box as MbedtlsBox;
-use mbedtls::hash::Type as HashType;
-use mbedtls::x509::Certificate;
+use mbedtls::{alloc::Box as MbedtlsBox, hash::Type as HashType, x509::Certificate};
 use pem::PemError;
 use sha2::{Digest, Sha256};
 
@@ -32,25 +30,13 @@ const ASN1_INTEGER: u8 = 2;
 // ASN.1 Tag for a sequence
 const ASN1_SEQUENCE: u8 = 48;
 
+// The byte size of the `type` and `length` fields of the ANS.1
+// type-length-value stream
+const ASN1_TYPE_LENGTH_SIZE: usize = 2;
+
 /// A quote for DCAP attestation
 pub struct Quote {
     bytes: Vec<u8>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Error {
-    /// Unable to load the Certificate with mbedtls
-    Certificate(mbedtls::Error),
-    /// Failure to parse the Pem files from the quote data
-    PemParsing(PemError),
-    /// Failure to verify a Signature
-    Signature(mbedtls::Error),
-}
-
-impl From<PemError> for Error {
-    fn from(src: PemError) -> Self {
-        Self::PemParsing(src)
-    }
 }
 
 impl Quote {
@@ -68,7 +54,7 @@ impl Quote {
 
     /// Verify the quoting enclave within the report.
     pub fn verify_quoting_enclave_report(&self) -> Result<(), Error> {
-        let signature = self.get_ans1_signature();
+        let signature = self.get_asn1_signature();
         let report = self.get_quoting_enclave_report();
         let hash = Sha256::digest(report);
         let mut cert = self.get_pck_certificate()?;
@@ -98,20 +84,35 @@ impl Quote {
     /// Returns the ASN.1 version of the signature.
     /// mbedtls wants an ASN.1 version of the signature, while the raw quote
     /// format has only the r and s values of the ECDSA signature
-    fn get_ans1_signature(&self) -> Vec<u8> {
+    fn get_asn1_signature(&self) -> Vec<u8> {
         let mut start = QUOTING_ENCLAVE_SIGNATURE_START;
         let r = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
         start += SIGNATURE_COMPONENT_SIZE;
         let s = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
 
-        // The `2`s are the tag byte + length byte
-        let length = 2 + r.len() + 2 + s.len();
-        let mut signature = vec![ASN1_SEQUENCE, length as u8];
+        let sequence_length = ASN1_TYPE_LENGTH_SIZE + r.len() + ASN1_TYPE_LENGTH_SIZE + s.len();
+        let mut signature = vec![ASN1_SEQUENCE, sequence_length as u8];
         for component in [r, s] {
             signature.extend([ASN1_INTEGER, component.len() as u8]);
             signature.extend(component);
         }
         signature
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+    /// Unable to load the Certificate with mbedtls
+    Certificate(mbedtls::Error),
+    /// Failure to parse the Pem files from the quote data
+    PemParsing(PemError),
+    /// Failure to verify a Signature
+    Signature(mbedtls::Error),
+}
+
+impl From<PemError> for Error {
+    fn from(src: PemError) -> Self {
+        Self::PemParsing(src)
     }
 }
 
