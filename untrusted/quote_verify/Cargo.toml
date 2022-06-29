@@ -1,0 +1,10 @@
+[package]
+name = "mc-sgx-quote-verify"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pem = "1.0.2"
+sha2 = "0.10.2"
+mbedtls = "0.8.1"
+hex = "0.4.3"
