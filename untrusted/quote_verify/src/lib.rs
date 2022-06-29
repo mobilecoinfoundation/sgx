@@ -30,7 +30,7 @@ const ASN1_INTEGER: u8 = 2;
 // ASN.1 Tag for a sequence
 const ASN1_SEQUENCE: u8 = 48;
 
-// The byte size of the `type` and `length` fields of the ANS.1
+// The byte size of the `type` and `length` fields of the ASN.1
 // type-length-value stream
 const ASN1_TYPE_LENGTH_SIZE: usize = 2;
 
@@ -54,7 +54,7 @@ impl Quote {
 
     /// Verify the quoting enclave within the report.
     pub fn verify_quoting_enclave_report(&self) -> Result<(), Error> {
-        let signature = self.get_asn1_signature();
+        let signature = self.get_der_signature();
         let report = self.get_quoting_enclave_report();
         let hash = Sha256::digest(report);
         let mut cert = self.get_pck_certificate()?;
@@ -81,10 +81,13 @@ impl Quote {
             [QUOTING_ENCLAVE_REPORT_START..QUOTING_ENCLAVE_REPORT_START + ENCLAVE_REPORT_SIZE]
     }
 
-    /// Returns the ASN.1 version of the signature.
-    /// mbedtls wants an ASN.1 version of the signature, while the raw quote
+    /// Returns the DER version of the signature.
+    /// mbedtls wants a DER version of the signature, while the raw quote
     /// format has only the r and s values of the ECDSA signature
-    fn get_asn1_signature(&self) -> Vec<u8> {
+    // TODO strict DER requires an extra 0 prefix on the r value when the r
+    //  value's most significant bit is set.  This is because `r` should be
+    //  unsigned, but the underlying ASN.1 of DER uses an integer [signed].
+    fn get_der_signature(&self) -> Vec<u8> {
         let mut start = QUOTING_ENCLAVE_SIGNATURE_START;
         let r = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
         start += SIGNATURE_COMPONENT_SIZE;
