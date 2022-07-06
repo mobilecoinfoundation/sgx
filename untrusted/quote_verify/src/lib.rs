@@ -40,6 +40,12 @@ pub struct Quote {
 }
 
 impl Quote {
+    pub(crate) fn verify_enclave_report_body(&self) -> Result<(), Error> {
+        Err(Error::Signature(mbedtls::Error::Other(3)))
+    }
+}
+
+impl Quote {
     /// Returns a [Quote] created from the provided `bytes`.
     ///
     /// # Arguments
@@ -164,5 +170,11 @@ mod tests {
             quote.verify_quoting_enclave_report(),
             Err(Error::PemParsing(_))
         ));
+    }
+
+    #[test]
+    fn verify_valid_enclave_report_body() {
+        let quote = Quote::from_bytes(HW_QUOTE);
+        assert!(quote.verify_enclave_report_body().is_ok());
     }
 }
