@@ -1,6 +1,9 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
 use mbedtls::{alloc::Box as MbedtlsBox, hash::Type as HashType, x509::Certificate};
+use mbedtls::bignum::Mpi;
+use mbedtls::ecp::EcPoint;
+use mbedtls::pk::{EcGroup, EcGroupId, Pk};
 use pem::PemError;
 use sha2::{Digest, Sha256};
 
@@ -40,12 +43,6 @@ pub struct Quote {
 }
 
 impl Quote {
-    pub(crate) fn verify_enclave_report_body(&self) -> Result<(), Error> {
-        Err(Error::Signature(mbedtls::Error::Other(3)))
-    }
-}
-
-impl Quote {
     /// Returns a [Quote] created from the provided `bytes`.
     ///
     /// # Arguments
@@ -58,9 +55,23 @@ impl Quote {
         }
     }
 
-    /// Verify the quoting enclave within the report.
+    /// Verify the enclave report body within the quote.
+    pub fn verify_enclave_report_body(&self) -> Result<(), Error> {
+        let x = Mpi::from_binary(&self.bytes[0x1f4..0x214]).unwrap();
+        let y = Mpi::from_binary(&self.bytes[0x214..0x234]).unwrap();
+        let point = EcPoint::from_components(x, y).unwrap();
+        let secp256r1 = EcGroup::new(EcGroupId::SecP256R1).unwrap();
+        let mut key = Pk::public_from_ec_components(secp256r1.clone(), point).unwrap();
+        let report = &self.bytes[..48 + 384];
+        let hash = Sha256::digest(report);
+        let signature = self.get_asn1_signature(48 + 384);
+        key.verify(HashType::Sha256, &hash, &signature)
+            .map_err(Error::Signature)
+    }
+
+    /// Verify the quoting enclave report within the quote.
     pub fn verify_quoting_enclave_report(&self) -> Result<(), Error> {
-        let signature = self.get_asn1_signature();
+        let signature = self.get_asn1_signature(QUOTING_ENCLAVE_SIGNATURE_START);
         let report = self.get_quoting_enclave_report();
         let hash = Sha256::digest(report);
         let mut cert = self.get_pck_certificate()?;
@@ -90,8 +101,8 @@ impl Quote {
     /// Returns the ASN.1 version of the signature.
     /// mbedtls wants an ASN.1 version of the signature, while the raw quote
     /// format has only the r and s values of the ECDSA signature
-    fn get_asn1_signature(&self) -> Vec<u8> {
-        let mut start = QUOTING_ENCLAVE_SIGNATURE_START;
+    fn get_asn1_signature(&self, offset: usize) -> Vec<u8> {
+        let mut start = offset;
         let r = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
         start += SIGNATURE_COMPONENT_SIZE;
         let s = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
@@ -175,6 +186,6 @@ mod tests {
     #[test]
     fn verify_valid_enclave_report_body() {
         let quote = Quote::from_bytes(HW_QUOTE);
-        assert!(quote.verify_enclave_report_body().is_ok());
+        assert_eq!(quote.verify_enclave_report_body(),.is_ok());
     }
 }
