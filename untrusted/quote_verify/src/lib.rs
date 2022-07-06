@@ -7,7 +7,7 @@ use mbedtls::pk::{EcGroup, EcGroupId, Pk};
 use pem::PemError;
 use sha2::{Digest, Sha256};
 
-// THe size of an enclave report (body). Table 5 of
+// The size of an enclave report (body). Table 5 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const ENCLAVE_REPORT_SIZE: usize = 384;
 
@@ -27,6 +27,17 @@ const QUOTING_ENCLAVE_REPORT_START: usize = 0x234;
 // the Quote Signature Data Structure. Table 4 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const QUOTING_ENCLAVE_SIGNATURE_START: usize = QUOTING_ENCLAVE_REPORT_START + ENCLAVE_REPORT_SIZE;
+
+// The starting byte of the signature for the *ISV Enclave Report Signature* of
+// the Quote Signature Data Structure. Table 4 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const ISV_ENCLAVE_SIGNATURE_START: usize = 0x234;
+
+// The starting byte of the key for the *ECDSA Attestation Key* of
+// the Quote Signature Data Structure. Table 4 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// TODO 64 needs to go to a define
+const ATTESTATION_KEY_START: usize = ISV_ENCLAVE_SIGNATURE_START + 64;
 
 // ASN.1 Tag for an integer
 const ASN1_INTEGER: u8 = 2;
@@ -57,14 +68,14 @@ impl Quote {
 
     /// Verify the enclave report body within the quote.
     pub fn verify_enclave_report_body(&self) -> Result<(), Error> {
-        let x = Mpi::from_binary(&self.bytes[0x1f4..0x214]).unwrap();
-        let y = Mpi::from_binary(&self.bytes[0x214..0x234]).unwrap();
+        let x = Mpi::from_binary(&self.bytes[ATTESTATION_KEY_START..ATTESTATION_KEY_START + 32]).unwrap();
+        let y = Mpi::from_binary(&self.bytes[ATTESTATION_KEY_START + 32..ATTESTATION_KEY_START + 64]).unwrap();
         let point = EcPoint::from_components(x, y).unwrap();
         let secp256r1 = EcGroup::new(EcGroupId::SecP256R1).unwrap();
         let mut key = Pk::public_from_ec_components(secp256r1.clone(), point).unwrap();
         let report = &self.bytes[..48 + 384];
         let hash = Sha256::digest(report);
-        let signature = self.get_asn1_signature(48 + 384);
+        let signature = self.get_asn1_signature(ISV_ENCLAVE_SIGNATURE_START);
         key.verify(HashType::Sha256, &hash, &signature)
             .map_err(Error::Signature)
     }
@@ -186,6 +197,6 @@ mod tests {
     #[test]
     fn verify_valid_enclave_report_body() {
         let quote = Quote::from_bytes(HW_QUOTE);
-        assert_eq!(quote.verify_enclave_report_body(),.is_ok());
+        assert!(quote.verify_enclave_report_body().is_ok());
     }
 }
