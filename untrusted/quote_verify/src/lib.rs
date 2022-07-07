@@ -10,6 +10,7 @@ use mbedtls::{
 };
 use pem::PemError;
 use sha2::{Digest, Sha256};
+use std::mem::size_of;
 
 // The size of a quote header. Table 3 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
@@ -61,6 +62,28 @@ const QUOTING_ENCLAVE_REPORT_START: usize = ATTESTATION_KEY_START + KEY_SIZE;
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const QUOTING_ENCLAVE_SIGNATURE_START: usize = QUOTING_ENCLAVE_REPORT_START + ENCLAVE_REPORT_SIZE;
 
+// The starting byte of the signature for the quote. *QE Report Signature* of
+// the Quote Signature Data Structure. Table 4 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const QUOTING_ENCLAVE_REPORT_DATA_START: usize = QUOTING_ENCLAVE_REPORT_START + 320;
+
+// The starting byte of the quoting enclave authentication data size for the
+// quote.
+// *Size* from Table 8 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// which comes from the *QE Authentication Data* of the Quote Signature Data
+// Structure in Table 4.
+const QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START: usize =
+    QUOTING_ENCLAVE_SIGNATURE_START + SIGNATURE_SIZE;
+
+// The starting byte of the quoting enclave authentication data for the quote.
+// *Data* from Table 8 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// which comes from the *QE Authentication Data* of the Quote Signature Data
+// Structure in Table 4.
+const QUOTING_ENCLAVE_AUTHENTICATION_DATA_START: usize =
+    QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START + 2;
+
 // ASN.1 Tag for an integer
 const ASN1_INTEGER: u8 = 2;
 // ASN.1 Tag for a sequence
@@ -74,6 +97,8 @@ const ASN1_TYPE_LENGTH_SIZE: usize = 2;
 pub struct Quote {
     bytes: Vec<u8>,
 }
+
+impl Quote {}
 
 impl Quote {
     /// Returns a [Quote] created from the provided `bytes`.
@@ -101,6 +126,40 @@ impl Quote {
         let mut certificate = self.get_pck_certificate()?;
         let key = certificate.public_key_mut();
         self.verify_signature(bytes, QUOTING_ENCLAVE_SIGNATURE_START, key)
+    }
+
+    /// Verify the attestation key in the quote is valid.
+    pub fn verify_attestation_key(&self) -> Result<(), Error> {
+        let mut hasher = Sha256::new();
+
+        let key = &self.bytes[ATTESTATION_KEY_START..ATTESTATION_KEY_START + KEY_SIZE];
+        hasher.update(key);
+
+        let authentication_data = self.get_qe_authentication_data();
+        hasher.update(authentication_data);
+
+        let hash = hasher.finalize();
+        let report_data = &self.bytes
+            [QUOTING_ENCLAVE_REPORT_DATA_START..QUOTING_ENCLAVE_REPORT_DATA_START + hash.len()];
+
+        if report_data == hash.as_slice() {
+            Ok(())
+        } else {
+            Err(Error::AttestationKey)
+        }
+    }
+
+    fn get_qe_authentication_data(&self) -> &[u8] {
+        let size_bytes = &self.bytes[QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START
+            ..QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START + size_of::<u16>()];
+        let data_length = u16::from_le_bytes(
+            size_bytes
+                .try_into()
+                .expect("The data length should be 2 bytes"),
+        ) as usize;
+
+        &self.bytes[QUOTING_ENCLAVE_AUTHENTICATION_DATA_START
+            ..QUOTING_ENCLAVE_AUTHENTICATION_DATA_START + data_length]
     }
 
     /// Gets the quote header and enclave report body.
@@ -185,14 +244,19 @@ impl Quote {
 pub enum Error {
     /// Unable to load the Certificate with mbedtls
     Certificate(mbedtls::Error),
+
     /// Failure to parse the Pem files from the quote data
     PemParsing(PemError),
+
     /// Failure to verify a Signature
     Signature(mbedtls::Error),
+
     /// A failure to convert a binary key into an mbedtls version.
     /// This is unlikely to happen as it should only happen if there is an
     /// error in the FFI or if there is a failure to malloc.
     Key(mbedtls::Error),
+
+    AttestationKey,
 }
 
 impl From<PemError> for Error {
@@ -265,5 +329,18 @@ mod tests {
             quote.verify_enclave_report_body(),
             Err(Error::Signature(mbedtls::Error::EcpVerifyFailed))
         );
+    }
+
+    #[test]
+    fn verify_valid_attestation_key() {
+        let quote = Quote::from_bytes(HW_QUOTE);
+        assert!(quote.verify_attestation_key().is_ok());
+    }
+
+    #[test]
+    fn invalid_attestation_key() {
+        let mut quote = Quote::from_bytes(HW_QUOTE);
+        quote.bytes[ATTESTATION_KEY_START] = 1;
+        assert_eq!(quote.verify_attestation_key(), Err(Error::AttestationKey));
     }
 }
