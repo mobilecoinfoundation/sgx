@@ -111,29 +111,13 @@ impl Quote {
     /// Get the public signing key for the enclave report body (and header)
     fn get_pub_key(&self) -> Result<Pk, mbedtls::Error> {
         let mut start = ATTESTATION_KEY_START;
-
-        // `from_binary()` is a wrapper around `mbedtls_mpi_read_binary()`, it
-        // only fails when input parameters are null or malloc fails, as such
-        // it's unlikely to fail
-        // https://github.com/Mbed-TLS/mbedtls/blob/3304f253d7aa4b5b18e772c455b2113f7af29ca5/library/bignum.c#L821
         let x = Mpi::from_binary(&self.bytes[start..start + KEY_COMPONENT_SIZE])?;
         start += KEY_COMPONENT_SIZE;
         let y = Mpi::from_binary(&self.bytes[start..start + KEY_COMPONENT_SIZE])?;
-
-        // `from_components()` is a wrapper around `mbedtls_mpi_lset()`, it
-        // only fails when input parameters are null or malloc fails, as such
-        // it's unlikely to fail.
-        // https://github.com/Mbed-TLS/mbedtls/blob/3304f253d7aa4b5b18e772c455b2113f7af29ca5/library/bignum.c#L276:5
         let point = EcPoint::from_components(x, y)?;
 
-        // `new()` is a wrapper around `ecp_group_load()` which always returns 0
-        // https://github.com/Mbed-TLS/mbedtls/blob/f5b7082f6e8af72868966b6ea99eae228f33a3a3/library/ecp_curves.c#L4535
         let secp256r1 = EcGroup::new(EcGroupId::SecP256R1)?;
 
-        // `public_from_ec_components()` is a wrapper around `mbedtls_pk_setup()`,
-        // it only fails when input parameters are null or malloc fails, as such
-        // it's unlikely to fail.
-        // https://github.com/Mbed-TLS/mbedtls/blob/826762e31510a707b2ad04dedcdf59b4dc7733ef/library/pk.c#L136
         Pk::public_from_ec_components(secp256r1, point)
     }
 
