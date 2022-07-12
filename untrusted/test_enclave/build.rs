@@ -3,11 +3,17 @@
 
 use bindgen;
 use cargo_emit::rerun_if_changed;
-use std::{env, path::{Path, PathBuf}, process::Command};
 use cc::Build;
-use rsa::{RsaPrivateKey, BigUint, pkcs1::EncodeRsaPrivateKey};
 use rand;
-use rsa::pkcs1::LineEnding;
+use rsa::{
+    pkcs1::{EncodeRsaPrivateKey, LineEnding},
+    BigUint, RsaPrivateKey,
+};
+use std::{
+    env,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 /// Edger generated C files.  This is only the C files.
 struct EdgerFiles {
@@ -15,7 +21,7 @@ struct EdgerFiles {
     trusted: PathBuf,
 
     /// The full path to the untrusted C file, <path/to/basename>_u.c
-    untrusted: PathBuf
+    untrusted: PathBuf,
 }
 
 const DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
@@ -57,7 +63,9 @@ fn out_dir() -> PathBuf {
 /// The root dir of this crate. Will be the value of `CARGO_MANIFEST_DIR`
 /// See https://doc.rust-lang.org/cargo/reference/environment-variables.html
 fn root_dir() -> PathBuf {
-    env::var("CARGO_MANIFEST_DIR").expect("Missing env.CARGO_MANIFEST_DIR").into()
+    env::var("CARGO_MANIFEST_DIR")
+        .expect("Missing env.CARGO_MANIFEST_DIR")
+        .into()
 }
 
 /// The ld linker to use.  This has to be an ld linker as lld will fail
@@ -76,22 +84,27 @@ fn ld_linker() -> String {
 /// # Returns
 /// The full path to resultant C files for the enclave definition
 fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
-    rerun_if_changed!(edl_file.as_ref().to_str().expect("Invalid UTF-8 in edl path"));
+    rerun_if_changed!(edl_file
+        .as_ref()
+        .to_str()
+        .expect("Invalid UTF-8 in edl path"));
 
     let mut command = Command::new(&format!("{}/bin/x64/sgx_edger8r", sgx_library_path()));
     let out_dir = out_dir();
-    command.current_dir(&out_dir).arg(edl_file.as_ref().as_os_str());
+    command
+        .current_dir(&out_dir)
+        .arg(edl_file.as_ref().as_os_str());
     let status = command.status().expect("Failed to run edger8r");
     match status.code().unwrap() {
         0 => (),
-        code => panic!("edger8r exited with code {}", code)
+        code => panic!("edger8r exited with code {}", code),
     }
 
     let basename = edl_file.as_ref().file_stem().unwrap().to_str().unwrap();
     let trusted = out_dir.join(format!("{}_t.c", basename));
     let untrusted = out_dir.join(format!("{}_u.c", basename));
 
-    EdgerFiles{ trusted, untrusted }
+    EdgerFiles { trusted, untrusted }
 }
 
 /// Create enclave binary.  The binary is a shared library.
@@ -104,13 +117,16 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
 /// The full path to resultant binary file.  This binary will be signed and
 /// ready for use in `sgx_create_enclave()`.
 fn build_enclave_binary<P>(files: P) -> PathBuf
-    where
-        P: IntoIterator,
-        P: Clone,
-        P::Item: AsRef<Path>, {
-
+where
+    P: IntoIterator,
+    P: Clone,
+    P::Item: AsRef<Path>,
+{
     for file in files.clone() {
-        rerun_if_changed!(file.as_ref().to_str().expect("Invalid UTF-8 in enclave C file"));
+        rerun_if_changed!(file
+            .as_ref()
+            .to_str()
+            .expect("Invalid UTF-8 in enclave C file"));
     }
 
     // This `Build` builds a static library.  If we don't omit the
@@ -120,7 +136,8 @@ fn build_enclave_binary<P>(files: P) -> PathBuf
     // If one happens to link this in with the current crate, prepare for
     // memory seg faults as the trusted (enclave) implementations will
     // be directly linked in.
-    Build::new().files(files)
+    Build::new()
+        .files(files)
         .include(format!("{}/include", sgx_library_path()))
         .include(format!("{}/include/tlibc", sgx_library_path()))
         .cargo_metadata(false)
@@ -154,9 +171,16 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let mut command = Command::new(ld_linker());
     command
         .arg("-o")
-        .arg(dynamic_enclave.to_str().expect("Invalid UTF-8 in static enclave path"))
+        .arg(
+            dynamic_enclave
+                .to_str()
+                .expect("Invalid UTF-8 in static enclave path"),
+        )
         .args(&["-z", "relro", "-z", "now", "-z", "noexecstack"])
-        .arg(&format!("-L{}/lib64/cve_2020_0551_load", sgx_library_path()))
+        .arg(&format!(
+            "-L{}/lib64/cve_2020_0551_load",
+            sgx_library_path()
+        ))
         .arg(&format!("-L{}/lib64", sgx_library_path()))
         .arg("--no-undefined")
         .arg("--nostdlib")
@@ -174,10 +198,12 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
         .arg("--gc-sections")
         .arg(&format!("--version-script={}", ENCLAVE_LINKER_SCRIPT));
 
-    let status = command.status().expect("Failed to run the linker for dynamic enclave");
+    let status = command
+        .status()
+        .expect("Failed to run the linker for dynamic enclave");
     match status.code().unwrap() {
         0 => (),
-        code => panic!("Linker exited with code {}", code)
+        code => panic!("Linker exited with code {}", code),
     }
     dynamic_enclave
 }
@@ -211,7 +237,7 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
     let status = command.status().expect("Failed to execute enclave signer");
     match status.code().unwrap() {
         0 => (),
-        code => panic!("sgx_sign exited with code {}", code)
+        code => panic!("sgx_sign exited with code {}", code),
     }
 
     signed_binary
@@ -222,14 +248,16 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 /// built signing key and only generate one as needed.
 fn get_signing_key() -> PathBuf {
     let key_file = out_dir().join("signing_key.pem");
-    if !key_file.exists(){
+    if !key_file.exists() {
         // The 3072 bit size and exponent of 3 are a restriction of `sgx_sign`
         let bit_size = 3072;
         let exponent = BigUint::from(3_u8);
 
         let mut rng = rand::thread_rng();
-        let key = RsaPrivateKey::new_with_exp(&mut rng, bit_size, &exponent).expect("Failed to generate private key for enclave signing.");
-        key.write_pkcs1_pem_file(&key_file, LineEnding::default()).expect("Failed to write out private signing key for enclave signing.");
+        let key = RsaPrivateKey::new_with_exp(&mut rng, bit_size, &exponent)
+            .expect("Failed to generate private key for enclave signing.");
+        key.write_pkcs1_pem_file(&key_file, LineEnding::default())
+            .expect("Failed to write out private signing key for enclave signing.");
     }
     key_file
 }
@@ -247,7 +275,8 @@ fn get_signing_key() -> PathBuf {
 /// # Returns
 /// The full path to resultant untrusted library.
 fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
-    Build::new().file(untrusted_file)
+    Build::new()
+        .file(untrusted_file)
         .include(format!("{}/include", sgx_library_path()))
         .include(format!("{}/include/tlibc", sgx_library_path()))
         .compile("untrusted");

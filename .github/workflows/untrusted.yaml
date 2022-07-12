@@ -3,7 +3,7 @@ name: rust
 on:
   pull_request:
     paths:
-      - 'trusted/**'
+      - 'untrusted/**'
     branches:
       - 'main'
       - 'develop'
@@ -11,7 +11,7 @@ on:
 
 defaults:
   run:
-    working-directory: "trusted"
+    working-directory: "untrusted"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -38,4 +38,3 @@ jobs:
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo test --release 
-
