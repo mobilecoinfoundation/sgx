@@ -1,41 +1,47 @@
-name: rust
-
+name: Lint
 on:
   pull_request:
-    paths:
-      - 'trusted/**'
+    paths-ignore:
+      - README.md
     branches:
       - 'main'
       - 'develop'
       - 'feature/**'
-
-defaults:
-  run:
-    working-directory: "trusted"
 
 env:
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  build:
+  rustfmt:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
+    strategy:
+      matrix: { dir: ['core', 'trusted', 'untrusted'] }
     steps:
       - uses: actions/checkout@v3
       # actions-rs/toolchain does not support the newer toml file format
       # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-      - run: cargo build --release 
-  test:
+        working-directory: ${{ matrix.dir }}
+      # actions-rs/cargo does not support the `working-directory` argument,
+      # see https://github.com/actions-rs/cargo/issues/6
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --manifest-path ${{ matrix.dir }}/Cargo.toml --all -- --check
+  clippy:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
+    strategy:
+      matrix: { dir: ['trusted', 'core', 'untrusted'] }
     steps:
       - uses: actions/checkout@v3
       # actions-rs/toolchain does not support the newer toml file format
       # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-      - run: cargo test --release 
-
+        working-directory: ${{ matrix.dir }}
+      - run: cargo clippy --all --all-features -- -D warnings
+        working-directory: ${{ matrix.dir }}
