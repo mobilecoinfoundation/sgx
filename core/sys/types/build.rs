@@ -30,6 +30,7 @@ fn main() {
         .blocklist_function("*")
         .allowlist_type("_status_t")
         .parse_callbacks(Box::new(Callbacks))
+        .ctypes_prefix("core::ffi")
         .generate()
         .expect("Unable to generate bindings");
 
