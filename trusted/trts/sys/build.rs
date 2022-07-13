@@ -5,25 +5,21 @@
 extern crate bindgen;
 use cargo_emit::{rustc_link_lib, rustc_link_search};
 use std::{env, path::PathBuf};
-
-static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
+use mc_sgx_core_build;
 
 #[cfg(feature = "hw")]
 const SGX_SUFFIX: &str = "";
 #[cfg(not(feature = "hw"))]
 const SGX_SUFFIX: &str = "_sim";
 
-fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
-}
-
 fn main() {
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     rustc_link_lib!(&format!("sgx_trts{}", SGX_SUFFIX));
-    rustc_link_search!(&format!("{}/lib64", sgx_library_path()));
+    rustc_link_search!(&format!("{}/lib64", &sgx_library_path));
 
     let bindings = bindgen::Builder::default()
         .header_contents("trts.h", "#include <sgx_trts.h>")
-        .clang_arg(&format!("-I{}/include", sgx_library_path()))
+        .clang_arg(&format!("-I{}/include", &sgx_library_path))
         .blocklist_type("*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .ctypes_prefix("core::ffi")
