@@ -201,10 +201,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-core-sys"
-version = "0.1.0"
-
-[[package]]
 name = "mc-sgx-core-sys-types"
 version = "0.1.0"
 dependencies = [
