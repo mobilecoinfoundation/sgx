@@ -7,11 +7,10 @@ edition = "2021"
 sw = []
 default = ["sw"]
 
-[dependencies]
+[dev-dependencies]
+test_enclave = { path = "../../../test_enclave" }
 
 [build-dependencies]
 bindgen = "0.60.1"
 cargo-emit = "0.2.1"
-
-[dev-dependencies]
-test_enclave = { path = "../../../test_enclave" }
+mc-sgx-core-build = { path = "../../../../core/build" }

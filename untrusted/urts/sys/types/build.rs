@@ -4,8 +4,6 @@
 use bindgen::{callbacks::ParseCallbacks, Builder};
 use std::{env, path::PathBuf};
 
-static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
-
 #[derive(Debug)]
 struct Callbacks;
 
@@ -19,14 +17,11 @@ impl ParseCallbacks for Callbacks {
     }
 }
 
-fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
-}
-
 fn main() {
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     let bindings = Builder::default()
         .header_contents("urts_types.h", "#include <sgx_urts.h>")
-        .clang_arg(&format!("-I{}/include", sgx_library_path()))
+        .clang_arg(&format!("-I{}/include", sgx_library_path))
         .blocklist_function("*")
         .allowlist_type("sgx_enclave_id_t")
         .allowlist_type("sgx_launch_token_t")

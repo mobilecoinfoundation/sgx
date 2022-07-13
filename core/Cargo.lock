@@ -201,10 +201,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-core-build"
+version = "0.1.0"
+
+[[package]]
 name = "mc-sgx-core-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "mc-sgx-core-build",
 ]
 
 [[package]]

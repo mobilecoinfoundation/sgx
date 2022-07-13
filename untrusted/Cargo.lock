@@ -463,10 +463,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-core-build"
+version = "0.1.0"
+
+[[package]]
 name = "mc-sgx-core-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen 0.60.1",
+ "mc-sgx-core-build",
 ]
 
 [[package]]
@@ -493,6 +498,7 @@ version = "0.1.0"
 dependencies = [
  "bindgen 0.60.1",
  "cargo-emit",
+ "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
  "mc-sgx-urts-sys-types",
  "test_enclave",
@@ -504,6 +510,7 @@ version = "0.1.0"
 dependencies = [
  "bindgen 0.60.1",
  "cargo-emit",
+ "mc-sgx-core-build",
  "test_enclave",
 ]
 
@@ -857,6 +864,7 @@ dependencies = [
  "bindgen 0.60.1",
  "cargo-emit",
  "cc",
+ "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
  "mc-sgx-urts-sys-types",
  "rand",

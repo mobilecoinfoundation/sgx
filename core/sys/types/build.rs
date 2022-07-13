@@ -2,9 +2,6 @@
 //! Builds the FFI type bindings for the common SGX SDK types
 
 use bindgen::{callbacks::ParseCallbacks, Builder};
-use std::{env, path::PathBuf};
-
-static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
 #[derive(Debug)]
 struct Callbacks;
@@ -18,17 +15,14 @@ impl ParseCallbacks for Callbacks {
     }
 }
 
-fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
-}
-
 fn main() {
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     let bindings = Builder::default()
         .header_contents(
             "core_types.h",
             "#include <sgx_error.h>\n#include <sgx_report.h>",
         )
-        .clang_arg(&format!("-I{}/include", sgx_library_path()))
+        .clang_arg(&format!("-I{}/include", sgx_library_path))
         .newtype_enum("_status_t")
         .blocklist_function("*")
         .allowlist_type("_status_t")
@@ -38,7 +32,7 @@ fn main() {
         .generate()
         .expect("Unable to generate bindings");
 
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_path = mc_sgx_core_build::build_output_path();
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
