@@ -1,6 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! FFI functions for the SGX SDK trusted crypto library (tcrypto).
 
+#![cfg_attr(not(test), no_std)]
 #![feature(core_ffi_c, c_size_t)]
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 

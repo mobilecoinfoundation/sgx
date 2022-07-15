@@ -23,6 +23,7 @@ fn main() {
         .allowlist_function("sgx_.*ecdsa.*")
         .allowlist_function("sgx_.*rsa.*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .ctypes_prefix("core::ffi")
         .generate()
         .expect("Unable to generate bindings");
 
