@@ -5,9 +5,6 @@ This crate provides common logic to build and link against the Intel SGX SDK
 ## Table of Contents
 
 - [License](#license)
-- [Build Instructions](#build-instructions)
-- [Intel SGX SDK](#intel-sgx-sdk)
-- [Features](#features)
 - [References](#references)
 
 ## License
