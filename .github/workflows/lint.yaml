@@ -17,7 +17,8 @@ jobs:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
     strategy:
-      matrix: { dir: ['core', 'trusted', 'untrusted'] }
+      matrix:
+        dir: ['core', 'trusted', 'untrusted']
     steps:
       - uses: actions/checkout@v3
       # actions-rs/toolchain does not support the newer toml file format
@@ -35,7 +36,8 @@ jobs:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
     strategy:
-      matrix: { dir: ['trusted', 'core', 'untrusted'] }
+      matrix:
+        dir: ['core', 'trusted', 'untrusted']
     steps:
       - uses: actions/checkout@v3
       # actions-rs/toolchain does not support the newer toml file format
