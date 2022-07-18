@@ -1,24 +1,60 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
-use mbedtls::{alloc::Box as MbedtlsBox, hash::Type as HashType, x509::Certificate};
+use mbedtls::{
+    alloc::Box as MbedtlsBox,
+    bignum::Mpi,
+    ecp::EcPoint,
+    hash::Type as HashType,
+    pk::{EcGroup, EcGroupId, Pk},
+    x509::Certificate,
+};
 use pem::PemError;
 use sha2::{Digest, Sha256};
 
-// THe size of an enclave report (body). Table 5 of
+// The size of a quote header. Table 3 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const QUOTE_HEADER_SIZE: usize = 48;
+
+// The size of an enclave report (body). Table 5 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const ENCLAVE_REPORT_SIZE: usize = 384;
+
+// Size of the full ECDSA signature.
+// Table 6 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const SIGNATURE_SIZE: usize = 64;
 
 // Size of one of the components of the ECDSA signature.
 // Table 6 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const SIGNATURE_COMPONENT_SIZE: usize = 32;
 
+// Size of the full ECDSA key.
+// Table 7 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const KEY_SIZE: usize = 64;
+
+// Size of one of the components of the ECDSA key.
+// Table 7 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const KEY_COMPONENT_SIZE: usize = 32;
+
+// The starting byte of the signature for the *ISV Enclave Report Signature* of
+// the Quote Signature Data Structure. Table 4 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// Note: the 4 is the for the *Quote Signature Data Len* from table 2.  The
+// variable length is _after_ the signature.
+const ISV_ENCLAVE_SIGNATURE_START: usize = QUOTE_HEADER_SIZE + ENCLAVE_REPORT_SIZE + 4;
+
+// The starting byte of the key for the *ECDSA Attestation Key* of
+// the Quote Signature Data Structure. Table 4 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const ATTESTATION_KEY_START: usize = ISV_ENCLAVE_SIGNATURE_START + SIGNATURE_SIZE;
+
 // The starting byte of the quote report.  The *QE Report* member of the Quote
 // Signature Data Structure.  Table 4 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-// TODO as more of the quote structure is brought in, derive the start by summation
-//  of previous type/member sizes.
-const QUOTING_ENCLAVE_REPORT_START: usize = 0x234;
+const QUOTING_ENCLAVE_REPORT_START: usize = ATTESTATION_KEY_START + KEY_SIZE;
 
 // The starting byte of the signature for the quote. *QE Report Signature* of
 // the Quote Signature Data Structure. Table 4 of
@@ -52,15 +88,37 @@ impl Quote {
         }
     }
 
-    /// Verify the quoting enclave within the report.
+    /// Verify the enclave report body within the quote.
+    pub fn verify_enclave_report_body(&self) -> Result<(), Error> {
+        let bytes = self.get_header_and_enclave_report_body();
+        let mut key = self.get_pub_key().map_err(Error::Key)?;
+        self.verify_signature(bytes, ISV_ENCLAVE_SIGNATURE_START, &mut key)
+    }
+
+    /// Verify the quoting enclave report within the quote.
     pub fn verify_quoting_enclave_report(&self) -> Result<(), Error> {
-        let signature = self.get_der_signature();
-        let report = self.get_quoting_enclave_report();
-        let hash = Sha256::digest(report);
-        let mut cert = self.get_pck_certificate()?;
-        cert.public_key_mut()
-            .verify(HashType::Sha256, &hash, &signature)
-            .map_err(Error::Signature)
+        let bytes = self.get_quoting_enclave_report();
+        let mut certificate = self.get_pck_certificate()?;
+        let key = certificate.public_key_mut();
+        self.verify_signature(bytes, QUOTING_ENCLAVE_SIGNATURE_START, key)
+    }
+
+    /// Gets the quote header and enclave report body.
+    fn get_header_and_enclave_report_body(&self) -> &[u8] {
+        &self.bytes[..QUOTE_HEADER_SIZE + ENCLAVE_REPORT_SIZE]
+    }
+
+    /// Get the public signing key for the enclave report body (and header)
+    fn get_pub_key(&self) -> Result<Pk, mbedtls::Error> {
+        let mut start = ATTESTATION_KEY_START;
+        let x = Mpi::from_binary(&self.bytes[start..start + KEY_COMPONENT_SIZE])?;
+        start += KEY_COMPONENT_SIZE;
+        let y = Mpi::from_binary(&self.bytes[start..start + KEY_COMPONENT_SIZE])?;
+        let point = EcPoint::from_components(x, y)?;
+
+        let secp256r1 = EcGroup::new(EcGroupId::SecP256R1)?;
+
+        Pk::public_from_ec_components(secp256r1, point)
     }
 
     /// Returns the PCK certificate that was used for signing the quoting
@@ -87,8 +145,8 @@ impl Quote {
     // TODO strict DER requires an extra 0 prefix on the r value when the r
     //  value's most significant bit is set.  This is because `r` should be
     //  unsigned, but the underlying ASN.1 of DER uses an integer [signed].
-    fn get_der_signature(&self) -> Vec<u8> {
-        let mut start = QUOTING_ENCLAVE_SIGNATURE_START;
+    fn get_der_signature(&self, offset: usize) -> Vec<u8> {
+        let mut start = offset;
         let r = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
         start += SIGNATURE_COMPONENT_SIZE;
         let s = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
@@ -101,6 +159,26 @@ impl Quote {
         }
         signature
     }
+
+    /// Returns `Ok(())` when the signature of `bytes` matches for `key`.
+    ///
+    /// # Arguments
+    /// - `bytes` The bytes to verify the signature for.  This is the raw bytes
+    ///     *not* a message digest.
+    /// - `signature_offset` The byte offset to the signature in the underlying
+    ///     quote structure.
+    /// - `key` The key that was used to sign the `bytes`.
+    fn verify_signature(
+        &self,
+        bytes: &[u8],
+        signature_offset: usize,
+        key: &mut Pk,
+    ) -> Result<(), Error> {
+        let signature = self.get_der_signature(signature_offset);
+        let hash = Sha256::digest(bytes);
+        key.verify(HashType::Sha256, &hash, &signature)
+            .map_err(Error::Signature)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -111,6 +189,10 @@ pub enum Error {
     PemParsing(PemError),
     /// Failure to verify a Signature
     Signature(mbedtls::Error),
+    /// A failure to convert a binary key into an mbedtls version.
+    /// This is unlikely to happen as it should only happen if there is an
+    /// error in the FFI or if there is a failure to malloc.
+    Key(mbedtls::Error),
 }
 
 impl From<PemError> for Error {
@@ -167,5 +249,21 @@ mod tests {
             quote.verify_quoting_enclave_report(),
             Err(Error::PemParsing(_))
         ));
+    }
+
+    #[test]
+    fn verify_valid_enclave_report_body() {
+        let quote = Quote::from_bytes(HW_QUOTE);
+        assert!(quote.verify_enclave_report_body().is_ok());
+    }
+
+    #[test]
+    fn failed_signature_for_enclave_report_body() {
+        let mut quote = Quote::from_bytes(HW_QUOTE);
+        quote.bytes[ISV_ENCLAVE_SIGNATURE_START] = 1;
+        assert_eq!(
+            quote.verify_enclave_report_body(),
+            Err(Error::Signature(mbedtls::Error::EcpVerifyFailed))
+        );
     }
 }
