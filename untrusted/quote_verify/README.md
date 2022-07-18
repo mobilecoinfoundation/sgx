@@ -16,6 +16,7 @@ Verification of a remote attestation DCAP quote is a multi-step process:
 * [Verify the signature chain](#signature-chain)
 * [Verify Certificate Revocation Lists (CRLs)](#revocation-lists)
 * [Verify Quoting Enclave (QE)](#quoting-enclave)
+* [Verify Attestation Key](#attestation-key)
 * [Verify the Enclave report](#enclave-report)
 * [Verify Trusted Computing Base (TCB)](#trusted-computing-base)
 
@@ -49,9 +50,19 @@ The Quoting Enclave(QE) is verified by a signature from the Provisioning
 Certificate Key (PCK) from the [signature chain](#signature-chain).
 
 The signature is available as the _QE Report Signature_ of the _ECDSA 256-bit
-Quote Signature Data Structure_, see [Table4][1]. The signature is the result
+Quote Signature Data Structure_, see [Table 4][1]. The signature is the result
 the SHA256 message digest over the _QE Report_ of the _ECDSA 256-bit Quote
-Signature Data Structure_, see [Table4][1].
+Signature Data Structure_, see [Table 4][1].
+
+## Attestation Key
+
+The _Report Data_ ([Table 5][1]) of the _QE Report_ ([Table 4][1])
+contains a SHA256 hash of the Attestation Key and the _Data_
+element ([Table 8][1]) of the _QE Authentication Data_ ([Table 4][1]).
+
+Recomputing the hash and comparing to the hash value stored in the Quoting
+Enclave proves the integrity of the attestation key, as well as the _QE
+Authentication Data_.
 
 ## Enclave Report
 
@@ -59,7 +70,6 @@ The Enclave Report is verified by a signature from the Quoting Enclave.
 
 The signing key is available as the _ECDSA Attestation Key_ from the
 _ECDSA 256-bit Quote Signature Data Structure_, see [Table4][1].
-> **TODO**: need to find out how to verify the integrity of this key
 
 The signature is available as the _ISV Enclave Report Signature_ from the _ECDSA
 256-bit Quote Signature Data Structure_, see [Table4][1]. The signature is the

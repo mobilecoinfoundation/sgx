@@ -1,5 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
+use displaydoc::Display;
 use mbedtls::{
     alloc::Box as MbedtlsBox,
     bignum::Mpi,
@@ -10,6 +11,7 @@ use mbedtls::{
 };
 use pem::PemError;
 use sha2::{Digest, Sha256};
+use std::mem::size_of;
 
 // The size of a quote header. Table 3 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
@@ -18,6 +20,11 @@ const QUOTE_HEADER_SIZE: usize = 48;
 // The size of an enclave report (body). Table 5 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const ENCLAVE_REPORT_SIZE: usize = 384;
+
+// The size of the report data in an enclave report. *Report Data* of
+// the Enclave Report Body. Table 5 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const ENCLAVE_REPORT_DATA_SIZE: usize = 64;
 
 // Size of the full ECDSA signature.
 // Table 6 of
@@ -61,6 +68,33 @@ const QUOTING_ENCLAVE_REPORT_START: usize = ATTESTATION_KEY_START + KEY_SIZE;
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const QUOTING_ENCLAVE_SIGNATURE_START: usize = QUOTING_ENCLAVE_REPORT_START + ENCLAVE_REPORT_SIZE;
 
+// The starting byte of the report data from the quote report. *Report Data* of
+// the Enclave Report Body. Table 5 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const QUOTING_ENCLAVE_REPORT_DATA_START: usize = QUOTING_ENCLAVE_REPORT_START + 320;
+
+// The size of the message digest in the quoting enclave report data.  See
+// description of *QE Report* in table 4 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+const QUOTING_ENCLAVE_REPORT_DATA_DIGEST_SIZE: usize = 32;
+
+// The starting byte of the quoting enclave authentication data size for the
+// quote.
+// *Size* from Table 8 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// which comes from the *QE Authentication Data* of the Quote Signature Data
+// Structure in Table 4.
+const QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START: usize =
+    QUOTING_ENCLAVE_SIGNATURE_START + SIGNATURE_SIZE;
+
+// The starting byte of the quoting enclave authentication data for the quote.
+// *Data* from Table 8 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// which comes from the *QE Authentication Data* of the Quote Signature Data
+// Structure in Table 4.
+const QUOTING_ENCLAVE_AUTHENTICATION_DATA_START: usize =
+    QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START + 2;
+
 // ASN.1 Tag for an integer
 const ASN1_INTEGER: u8 = 2;
 // ASN.1 Tag for a sequence
@@ -101,6 +135,46 @@ impl Quote {
         let mut certificate = self.get_pck_certificate()?;
         let key = certificate.public_key_mut();
         self.verify_signature(bytes, QUOTING_ENCLAVE_SIGNATURE_START, key)
+    }
+
+    /// Verify the attestation key in the quote is valid.
+    pub fn verify_attestation_key(&self) -> Result<(), Error> {
+        let mut hasher = Sha256::new();
+
+        let key = &self.bytes[ATTESTATION_KEY_START..ATTESTATION_KEY_START + KEY_SIZE];
+        hasher.update(key);
+
+        let authentication_data = self.get_qe_authentication_data();
+        hasher.update(authentication_data);
+
+        let hash = hasher.finalize();
+        let start = QUOTING_ENCLAVE_REPORT_DATA_START;
+        let end = start + QUOTING_ENCLAVE_REPORT_DATA_DIGEST_SIZE;
+        let report_data = &self.bytes[start..end];
+
+        let start = end;
+        let end = QUOTING_ENCLAVE_REPORT_DATA_START + ENCLAVE_REPORT_DATA_SIZE;
+        let zero_pad_after = self.bytes[start..end]
+            == [0; (ENCLAVE_REPORT_DATA_SIZE - QUOTING_ENCLAVE_REPORT_DATA_DIGEST_SIZE)];
+
+        if report_data == hash.as_slice() && zero_pad_after {
+            Ok(())
+        } else {
+            Err(Error::AttestationKey)
+        }
+    }
+
+    fn get_qe_authentication_data(&self) -> &[u8] {
+        let size_bytes = &self.bytes[QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START
+            ..QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START + size_of::<u16>()];
+        let data_length = u16::from_le_bytes(
+            size_bytes
+                .try_into()
+                .expect("The data length should be 2 bytes"),
+        ) as usize;
+
+        &self.bytes[QUOTING_ENCLAVE_AUTHENTICATION_DATA_START
+            ..QUOTING_ENCLAVE_AUTHENTICATION_DATA_START + data_length]
     }
 
     /// Gets the quote header and enclave report body.
@@ -181,18 +255,25 @@ impl Quote {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Display, Debug, PartialEq)]
+/// Error from verifying a Quote
 pub enum Error {
     /// Unable to load the Certificate with mbedtls
     Certificate(mbedtls::Error),
+
     /// Failure to parse the Pem files from the quote data
     PemParsing(PemError),
+
     /// Failure to verify a Signature
     Signature(mbedtls::Error),
-    /// A failure to convert a binary key into an mbedtls version.
-    /// This is unlikely to happen as it should only happen if there is an
-    /// error in the FFI or if there is a failure to malloc.
+
+    /** A failure to convert a binary key into an mbedtls version.
+    This is unlikely to happen as it should only happen if there is an
+    error in the FFI or if there is a failure to malloc. */
     Key(mbedtls::Error),
+
+    /// Invalid attestation key in quote
+    AttestationKey,
 }
 
 impl From<PemError> for Error {
@@ -265,5 +346,33 @@ mod tests {
             quote.verify_enclave_report_body(),
             Err(Error::Signature(mbedtls::Error::EcpVerifyFailed))
         );
+    }
+
+    #[test]
+    fn verify_valid_attestation_key() {
+        let quote = Quote::from_bytes(HW_QUOTE);
+        assert!(quote.verify_attestation_key().is_ok());
+    }
+
+    #[test]
+    fn invalid_attestation_key() {
+        let mut quote = Quote::from_bytes(HW_QUOTE);
+        quote.bytes[ATTESTATION_KEY_START] = 1;
+        assert_eq!(quote.verify_attestation_key(), Err(Error::AttestationKey));
+    }
+
+    #[test]
+    fn no_trailing_zeros_after_quote_report_data_digest() {
+        let mut quote = Quote::from_bytes(HW_QUOTE);
+        quote.bytes[QUOTING_ENCLAVE_REPORT_DATA_START + QUOTING_ENCLAVE_REPORT_DATA_DIGEST_SIZE] =
+            1;
+        assert_eq!(quote.verify_attestation_key(), Err(Error::AttestationKey));
+    }
+
+    #[test]
+    fn no_trailing_zeros_at_end_of_quote_report_data_digest() {
+        let mut quote = Quote::from_bytes(HW_QUOTE);
+        quote.bytes[QUOTING_ENCLAVE_REPORT_DATA_START + (ENCLAVE_REPORT_DATA_SIZE - 1)] = 1;
+        assert_eq!(quote.verify_attestation_key(), Err(Error::AttestationKey));
     }
 }
