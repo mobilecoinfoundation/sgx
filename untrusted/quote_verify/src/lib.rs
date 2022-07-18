@@ -11,6 +11,7 @@ use mbedtls::{
 use pem::PemError;
 use sha2::{Digest, Sha256};
 use std::mem::size_of;
+use displaydoc::Display;
 
 // The size of a quote header. Table 3 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
@@ -240,7 +241,8 @@ impl Quote {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Display, Debug, PartialEq)]
+/// Error from verifying a Quote
 pub enum Error {
     /// Unable to load the Certificate with mbedtls
     Certificate(mbedtls::Error),
@@ -251,11 +253,12 @@ pub enum Error {
     /// Failure to verify a Signature
     Signature(mbedtls::Error),
 
-    /// A failure to convert a binary key into an mbedtls version.
-    /// This is unlikely to happen as it should only happen if there is an
-    /// error in the FFI or if there is a failure to malloc.
+    /** A failure to convert a binary key into an mbedtls version.
+        This is unlikely to happen as it should only happen if there is an
+        error in the FFI or if there is a failure to malloc. */
     Key(mbedtls::Error),
 
+    /// Invalid attestation key in quote
     AttestationKey,
 }
 
