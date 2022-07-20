@@ -114,8 +114,7 @@ impl Quote {
     ///
     /// # Arguments
     ///
-    /// * `bytes` the bytes of the quote as defined in
-    ///     https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+    /// * `bytes` the bytes of the quote as defined in https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Quote {
             bytes: bytes.to_vec(),
@@ -239,9 +238,9 @@ impl Quote {
     ///
     /// # Arguments
     /// - `bytes` The bytes to verify the signature for.  This is the raw bytes
-    ///     *not* a message digest.
+    ///   *not* a message digest.
     /// - `signature_offset` The byte offset to the signature in the underlying
-    ///     quote structure.
+    ///   quote structure.
     /// - `key` The key that was used to sign the `bytes`.
     fn verify_signature(
         &self,
