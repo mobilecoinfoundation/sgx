@@ -1,0 +1,14 @@
+[package]
+name = "mc-sgx-urts"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mc-sgx-urts-sys = { path = "sys", default-features = false }
+
+[features]
+hw = ["mc-sgx-urts-sys/hw"]
+default = []
+
+[dev-dependencies]
+test_enclave = { path = "../test_enclave" }

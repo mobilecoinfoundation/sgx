@@ -202,7 +202,8 @@ impl Quote {
         //TODO this should only be looking at the `Certification Data`
         // of the `QE Certification Data`, Table 9 of
         // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-        // However the pem crate walks over the other data nicely for initial development
+        // However the pem crate walks over the other data nicely for initial
+        // development
         let pem = pem::parse(self.bytes.as_slice())?;
         Certificate::from_pem(&pem.contents).map_err(Error::Certificate)
     }
