@@ -28,6 +28,16 @@ jobs:
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo build --release 
-  # No tests for now.  
-  # `cargo test` needs std, panic is no_std
-  # Also trts needs built with the custom target triple to link 
+  # Only test crypto for now.  
+  # - panic is no_std, `cargo test` needs std
+  # - trts needs built with the custom target triple to link
+  test:
+    runs-on: [self-hosted, Linux, large]
+    container: mobilecoin/rust-sgx-base:latest
+    steps:
+      - uses: actions/checkout@v3
+      # actions-rs/toolchain does not support the newer toml file format
+      # see https://github.com/actions-rs/toolchain/issues/126
+      - name: Setup rust toolchain
+        run: rustup show
+      - run: cargo test --release -p mc-sgx-crypto-sys
