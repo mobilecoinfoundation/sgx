@@ -40,6 +40,7 @@ fn main() {
         // Copy for, which will result in E0133.
         .no_debug("_sgx_dh_msg3_body_t")
         .parse_callbacks(Box::new(Callbacks))
+        .use_core()
         .ctypes_prefix("core::ffi")
         .generate()
         .expect("Unable to generate bindings");

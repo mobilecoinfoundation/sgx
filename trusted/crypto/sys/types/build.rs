@@ -39,6 +39,7 @@ fn main() {
         .allowlist_type("sgx_generic_ecresult_t")
         .parse_callbacks(Box::new(Callbacks))
         .ctypes_prefix("core::ffi")
+        .use_core()
         .generate()
         .expect("Unable to generate bindings");
 

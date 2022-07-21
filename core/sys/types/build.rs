@@ -53,6 +53,7 @@ fn main() {
         .newtype_enum("_status_t")
         .parse_callbacks(Box::new(Callbacks))
         .ctypes_prefix("core::ffi")
+        .use_core()
         .allowlist_type("sgx_key_128bit_t");
 
     for t in ALLOWED_UNDERLYING_TYPES.iter() {
