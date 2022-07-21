@@ -27,7 +27,7 @@ jobs:
       # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-      - run: cargo build --release 
+      - run: cargo build --release --locked
   test:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
@@ -37,4 +37,4 @@ jobs:
       # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-      - run: cargo test --release 
+      - run: cargo test --release --locked
