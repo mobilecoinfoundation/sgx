@@ -2,7 +2,6 @@
 //! Builds the FFI type bindings for the common SGX SDK types
 
 use bindgen::{callbacks::ParseCallbacks, Builder};
-use once_cell::sync::Lazy;
 
 // Types that don't have an SGX qualifier.
 //
@@ -17,25 +16,23 @@ use once_cell::sync::Lazy;
 //
 // To keep the noise out of the bindings, we use the underlying type and tell
 // bindgen to map directly to `sgx_<name>` version.
-static ALLOWED_UNDERLYING_TYPES: Lazy<Vec<&str>> = Lazy::new(|| {
-    vec![
-        "_status_t",
-        "_target_info_t",
-        "_attributes_t",
-        "_report_t",
-        "_key_request_t",
-    ]
-});
+const ALLOWED_UNDERLYING_TYPES: &[&str] = &[
+    "_status_t",
+    "_target_info_t",
+    "_attributes_t",
+    "_report_t",
+    "_key_request_t",
+];
 
 #[derive(Debug)]
 struct Callbacks;
 
 impl ParseCallbacks for Callbacks {
     fn item_name(&self, name: &str) -> Option<String> {
-        if ALLOWED_UNDERLYING_TYPES.contains(&name) {
-            Some(format!("sgx{}", name))
-        } else if name.starts_with("_sgx") {
+        if name.starts_with("_sgx") {
             Some(name[1..].to_owned())
+        } else if name.starts_with('_') {
+            Some(format!("sgx{}", name))
         } else {
             None
         }
