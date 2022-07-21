@@ -1,7 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 #![doc = include_str!("README.md")]
 
-use bindgen;
+use bindgen::Builder;
 use cargo_emit::rerun_if_changed;
 use cc::Build;
 use rand;
@@ -24,16 +24,10 @@ struct EdgerFiles {
     untrusted: PathBuf,
 }
 
-const DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 const EDGER_FILE: &str = "src/enclave.edl";
 const ENCLAVE_FILE: &str = "src/enclave.c";
 const ENCLAVE_LINKER_SCRIPT: &str = "src/enclave.lds";
 const ENCLAVE_CONFIG: &str = "src/config.xml";
-
-#[cfg(feature = "hw")]
-const SGX_SUFFIX: &str = "";
-#[cfg(not(feature = "hw"))]
-const SGX_SUFFIX: &str = "_sim";
 
 fn main() {
     let root_dir = root_dir();
@@ -45,19 +39,6 @@ fn main() {
     let mut untrusted_header = edger_files.untrusted.clone();
     untrusted_header.set_extension("h");
     build_untrusted_bindings(untrusted_header);
-}
-
-/// Provide the base path for the Intel SGX SDK.  Will use the environment
-/// variable `SGX_SDK`.  If this isn't set it will default to
-/// `/opt/intel/sgxsdk`.
-fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
-}
-
-/// The value of the environment variable `OUT_DIR`, this must be set.
-/// See https://doc.rust-lang.org/cargo/reference/environment-variables.html
-fn out_dir() -> PathBuf {
-    env::var("OUT_DIR").expect("Missing env.OUT_DIR").into()
 }
 
 /// The root dir of this crate. Will be the value of `CARGO_MANIFEST_DIR`
@@ -89,8 +70,9 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
         .to_str()
         .expect("Invalid UTF-8 in edl path"));
 
-    let mut command = Command::new(&format!("{}/bin/x64/sgx_edger8r", sgx_library_path()));
-    let out_dir = out_dir();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let mut command = Command::new(&format!("{}/bin/x64/sgx_edger8r", sgx_library_path));
+    let out_dir = mc_sgx_core_build::build_output_path();
     command
         .current_dir(&out_dir)
         .arg(edl_file.as_ref().as_os_str());
@@ -129,6 +111,8 @@ where
             .expect("Invalid UTF-8 in enclave C file"));
     }
 
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+
     // This `Build` builds a static library.  If we don't omit the
     // `cargo_metadata` then this static library will be linked into
     // the consuming crate. The enclave binary is meant to be a stand alone,
@@ -138,12 +122,12 @@ where
     // be directly linked in.
     Build::new()
         .files(files)
-        .include(format!("{}/include", sgx_library_path()))
-        .include(format!("{}/include/tlibc", sgx_library_path()))
+        .include(format!("{}/include", sgx_library_path))
+        .include(format!("{}/include/tlibc", sgx_library_path))
         .cargo_metadata(false)
         .compile("enclave");
 
-    let static_enclave = out_dir().join("libenclave.a");
+    let static_enclave = mc_sgx_core_build::build_output_path().join("libenclave.a");
     let dynamic_enclave = build_dynamic_enclave_binary(static_enclave);
     sign_enclave_binary(dynamic_enclave)
 }
@@ -165,9 +149,11 @@ where
 fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let mut dynamic_enclave = PathBuf::from(static_enclave.as_ref());
     dynamic_enclave.set_extension("so");
-    let trts = format!("-lsgx_trts{}", SGX_SUFFIX);
-    let tservice = format!("-lsgx_tservice{}", SGX_SUFFIX);
+    let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
+    let trts = format!("-lsgx_trts{}", sgx_suffix);
+    let tservice = format!("-lsgx_tservice{}", sgx_suffix);
 
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     let mut command = Command::new(ld_linker());
     command
         .arg("-o")
@@ -177,11 +163,8 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
                 .expect("Invalid UTF-8 in static enclave path"),
         )
         .args(&["-z", "relro", "-z", "now", "-z", "noexecstack"])
-        .arg(&format!(
-            "-L{}/lib64/cve_2020_0551_load",
-            sgx_library_path()
-        ))
-        .arg(&format!("-L{}/lib64", sgx_library_path()))
+        .arg(&format!("-L{}/lib64/cve_2020_0551_load", sgx_library_path))
+        .arg(&format!("-L{}/lib64", sgx_library_path))
         .arg("--no-undefined")
         .arg("--nostdlib")
         .arg("--start-group")
@@ -223,7 +206,8 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 
     let signing_key = get_signing_key();
 
-    let mut command = Command::new(format!("{}/bin/x64/sgx_sign", sgx_library_path()));
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let mut command = Command::new(format!("{}/bin/x64/sgx_sign", sgx_library_path));
     command
         .arg("sign")
         .arg("-enclave")
@@ -247,7 +231,7 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 /// Due to the time to create a key file, this will favor returning an already
 /// built signing key and only generate one as needed.
 fn get_signing_key() -> PathBuf {
-    let key_file = out_dir().join("signing_key.pem");
+    let key_file = mc_sgx_core_build::build_output_path().join("signing_key.pem");
     if !key_file.exists() {
         // The 3072 bit size and exponent of 3 are a restriction of `sgx_sign`
         let bit_size = 3072;
@@ -275,13 +259,14 @@ fn get_signing_key() -> PathBuf {
 /// # Returns
 /// The full path to resultant untrusted library.
 fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     Build::new()
         .file(untrusted_file)
-        .include(format!("{}/include", sgx_library_path()))
-        .include(format!("{}/include/tlibc", sgx_library_path()))
+        .include(format!("{}/include", sgx_library_path))
+        .include(format!("{}/include/tlibc", sgx_library_path))
         .compile("untrusted");
 
-    let mut untrusted_object = out_dir();
+    let mut untrusted_object = mc_sgx_core_build::build_output_path();
     untrusted_object.set_file_name("untrusted.a");
     untrusted_object
 }
@@ -296,9 +281,10 @@ fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
 ///
 /// * `header` - The untrusted header file generated from `edger8r`
 fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
-    let bindings = bindgen::Builder::default()
+    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let bindings = Builder::default()
         .header(header.as_ref().to_str().unwrap())
-        .clang_arg(format!("-I{}/include", sgx_library_path()))
+        .clang_arg(format!("-I{}/include", sgx_library_path))
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .blocklist_type("*")
         // limit to only the functions needed
@@ -307,6 +293,6 @@ fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
         .expect("Unable to generate bindings");
 
     bindings
-        .write_to_file(out_dir().join("bindings.rs"))
+        .write_to_file(mc_sgx_core_build::build_output_path().join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }
