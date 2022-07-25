@@ -118,17 +118,19 @@ impl Quote {
         let (_, pem) = pem::parse_x509_pem(ROOT_CERT_PEM)?;
         let root_cert = pem.parse_x509()?;
 
-        let pems =
-            Pem::iter_from_buffer(&self.bytes[QUOTING_ENCLAVE_CERTIFICATION_DATA_START..])
-                .collect::<Result<Vec<_>, _>>()?;
+        let pems = Pem::iter_from_buffer(&self.bytes[QUOTING_ENCLAVE_CERTIFICATION_DATA_START..])
+            .collect::<Result<Vec<_>, _>>()?;
 
         // Certs have a lifetime dependent on `pems` so must create them once
         // the pems are held in place.
-        let mut certs = pems.iter().map(|p|{
-            p.parse_x509()
-        }).collect::<Result<Vec<_>, _>>()?;
+        let mut certs = pems
+            .iter()
+            .map(|p| p.parse_x509())
+            .collect::<Result<Vec<_>, _>>()?;
 
-        // Certs are in order from leaf -> .. -> root.  We need to start
+        // Per Table 9 *Certification Data* (type 5) from
+        // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+        // certs are in order from leaf -> .. -> root.  We need to start
         // verifying from the root.
         certs.reverse();
 
