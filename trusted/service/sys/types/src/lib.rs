@@ -2,7 +2,6 @@
 //! FFI types for the SGX SDK trusted service library (tservice).
 
 #![no_std]
-#![feature(core_ffi_c)]
 // Nesting to work around clippy warnings, see
 // https://github.com/rust-lang/rust-bindgen/issues/1470
 #[allow(

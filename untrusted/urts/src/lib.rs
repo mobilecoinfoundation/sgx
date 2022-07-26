@@ -7,7 +7,7 @@ use mc_sgx_urts_sys::{
 };
 use std::{ops::Deref, os::raw::c_int, ptr};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     // An error provided from the SGX SDK
     SgxStatus(sgx_status_t),
@@ -19,7 +19,7 @@ pub enum Error {
 /// Avoid storing the de-referenced instance of the enclave.  The de-referenced
 /// value of the enclave will result in failures to the SGX SDK after the
 /// enclave is dropped.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Enclave {
     // The enclave ID, assigned by the SGX interface
     id: sgx_enclave_id_t,

@@ -207,7 +207,7 @@ impl Quote {
     }
 }
 
-#[derive(Display, Debug, PartialEq)]
+#[derive(Display, Debug, PartialEq, Eq)]
 /// Error from verifying a Quote
 pub enum Error {
     /// Unable to load the signing Certificate
