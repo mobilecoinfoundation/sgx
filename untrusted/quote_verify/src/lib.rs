@@ -136,7 +136,7 @@ impl Quote {
 
         let mut key = root_cert.public_key();
         for cert in certs.iter() {
-            cert.verify_signature(Some(&key))?;
+            cert.verify_signature(Some(key))?;
             key = cert.public_key();
         }
         Ok(())
