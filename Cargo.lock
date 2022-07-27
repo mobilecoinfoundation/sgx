@@ -526,7 +526,7 @@ name = "mc-sgx-core-build"
 version = "0.1.0"
 
 [[package]]
-name = "mc-sgx-core-sys-types"
+name = "mc-sgx-core-ffi-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
@@ -534,19 +534,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-crypto-sys"
+name = "mc-sgx-crypto-ffi"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-sys-types",
- "mc-sgx-crypto-sys-types",
+ "mc-sgx-core-ffi-types",
+ "mc-sgx-crypto-ffi-types",
  "sha2",
 ]
 
 [[package]]
-name = "mc-sgx-crypto-sys-types"
+name = "mc-sgx-crypto-ffi-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
@@ -570,57 +570,57 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-service-sys"
+name = "mc-sgx-service-ffi"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-sys-types",
- "mc-sgx-service-sys-types",
+ "mc-sgx-core-ffi-types",
+ "mc-sgx-service-ffi-types",
 ]
 
 [[package]]
-name = "mc-sgx-service-sys-types"
+name = "mc-sgx-service-ffi-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "mc-sgx-core-build",
- "mc-sgx-core-sys-types",
+ "mc-sgx-core-ffi-types",
 ]
 
 [[package]]
-name = "mc-sgx-trts-sys"
+name = "mc-sgx-trts-ffi"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-sys-types",
+ "mc-sgx-core-ffi-types",
 ]
 
 [[package]]
 name = "mc-sgx-urts"
 version = "0.1.0"
 dependencies = [
- "mc-sgx-urts-sys",
+ "mc-sgx-urts-ffi",
  "test_enclave",
 ]
 
 [[package]]
-name = "mc-sgx-urts-sys"
+name = "mc-sgx-urts-ffi"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-sys-types",
- "mc-sgx-urts-sys-types",
+ "mc-sgx-core-ffi-types",
+ "mc-sgx-urts-ffi-types",
  "test_enclave",
 ]
 
 [[package]]
-name = "mc-sgx-urts-sys-types"
+name = "mc-sgx-urts-ffi-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
@@ -1064,8 +1064,8 @@ dependencies = [
  "cargo-emit",
  "cc",
  "mc-sgx-core-build",
- "mc-sgx-core-sys-types",
- "mc-sgx-urts-sys-types",
+ "mc-sgx-core-ffi-types",
+ "mc-sgx-urts-ffi-types",
  "rand",
  "rsa",
 ]

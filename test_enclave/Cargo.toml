@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-urts-sys-types = { path = "../urts/sys/types" }
-mc-sgx-core-sys-types = { path = "../core/sys/types" }
+mc-sgx-urts-ffi-types = { path = "../urts/ffi/types" }
+mc-sgx-core-ffi-types = { path = "../core/ffi/types" }
 
 [features]
 hw = []

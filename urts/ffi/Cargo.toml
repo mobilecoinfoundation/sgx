@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-urts-sys"
+name = "mc-sgx-urts-ffi"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,8 +8,8 @@ hw = []
 default = []
 
 [dependencies]
-mc-sgx-urts-sys-types = { path = "types" }
-mc-sgx-core-sys-types = { path = "../../core/sys/types" }
+mc-sgx-urts-ffi-types = { path = "types" }
+mc-sgx-core-ffi-types = { path = "../../core/ffi/types" }
 
 [build-dependencies]
 bindgen = "0.60.1"
