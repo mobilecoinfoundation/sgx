@@ -5,4 +5,4 @@ edition = "2021"
 
 [build-dependencies]
 bindgen = "0.60.1"
-mc-sgx-core-build = { path = "../../../../core/build" }
+mc-sgx-core-build = { path = "../../../core/build" }

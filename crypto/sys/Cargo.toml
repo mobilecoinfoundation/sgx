@@ -1,21 +1,16 @@
 [package]
-name = "test_enclave"
+name = "mc-sgx-crypto-sys"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-urts-sys-types = { path = "../urts/sys/types" }
 mc-sgx-core-sys-types = { path = "../../core/sys/types" }
+mc-sgx-crypto-sys-types = { path = "types" }
 
-[features]
-hw = []
-default = []
+[dev-dependencies]
+sha2 = "0.10.2"
 
 [build-dependencies]
-cargo-emit = "0.2.1"
-cc = "1.0.73"
 bindgen = "0.60.1"
-rsa = "0.6.1"
-rand = "0.8.5"
-
+cargo-emit = "0.2.1"
 mc-sgx-core-build = { path = "../../core/build" }

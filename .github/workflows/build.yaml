@@ -2,16 +2,10 @@ name: rust
 
 on:
   pull_request:
-    paths:
-      - 'trusted/**'
     branches:
       - 'main'
       - 'develop'
       - 'feature/**'
-
-defaults:
-  run:
-    working-directory: "trusted"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -23,21 +17,14 @@ jobs:
     container: mobilecoin/rust-sgx-base:latest
     steps:
       - uses: actions/checkout@v3
-      # actions-rs/toolchain does not support the newer toml file format
-      # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo build --release --locked
-  # Only test crypto and service for now.  
-  # - panic is no_std, `cargo test` needs std
-  # - trts needs built with the custom target triple to link
   test:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
     steps:
       - uses: actions/checkout@v3
-      # actions-rs/toolchain does not support the newer toml file format
-      # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-      - run: cargo test --release --locked -p mc-sgx-crypto-sys -p mc-sgx-service-sys
+      - run: cargo test --release --locked

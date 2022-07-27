@@ -1,8 +1,21 @@
 [workspace]
 resolver = "2"
 members = [
-    "sys/types",
-    "build",
+    "core/sys/types",
+    "core/build",
+    "crypto/sys/types",
+    "crypto/sys",
+    "panic/abort",
+    "quote_verify",
+    "service/sys",
+    "service/sys/types",
+    "trts/sys",
+    "urts",
+    "urts/sys",
+    "urts/sys/types",
+]
+exclude = [
+    "test_enclave",
 ]
 
 [profile.dev]
