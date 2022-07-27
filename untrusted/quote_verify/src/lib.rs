@@ -1,17 +1,20 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
 use displaydoc::Display;
-use mbedtls::{
-    alloc::Box as MbedtlsBox,
-    bignum::Mpi,
-    ecp::EcPoint,
-    hash::Type as HashType,
-    pk::{EcGroup, EcGroupId, Pk},
-    x509::Certificate,
+use p256::{
+    ecdsa::{signature::Verifier, Error as ecdsaError, Signature, VerifyingKey},
+    pkcs8::{spki::Error as spkiError, DecodePublicKey},
+    EncodedPoint,
 };
-use pem::PemError;
 use sha2::{Digest, Sha256};
 use std::mem::size_of;
+use x509_parser::{
+    error::{PEMError, X509Error},
+    pem::{self, Pem},
+};
+
+/// The root signing CA
+const ROOT_CERT_PEM: &[u8] = include_bytes!("../data/DCAPCACert.pem");
 
 // The size of a quote header. Table 3 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
@@ -31,20 +34,10 @@ const ENCLAVE_REPORT_DATA_SIZE: usize = 64;
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const SIGNATURE_SIZE: usize = 64;
 
-// Size of one of the components of the ECDSA signature.
-// Table 6 of
-// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-const SIGNATURE_COMPONENT_SIZE: usize = 32;
-
 // Size of the full ECDSA key.
 // Table 7 of
 // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
 const KEY_SIZE: usize = 64;
-
-// Size of one of the components of the ECDSA key.
-// Table 7 of
-// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-const KEY_COMPONENT_SIZE: usize = 32;
 
 // The starting byte of the signature for the *ISV Enclave Report Signature* of
 // the Quote Signature Data Structure. Table 4 of
@@ -95,14 +88,14 @@ const QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START: usize =
 const QUOTING_ENCLAVE_AUTHENTICATION_DATA_START: usize =
     QUOTING_ENCLAVE_AUTHENTICATION_DATA_SIZE_START + 2;
 
-// ASN.1 Tag for an integer
-const ASN1_INTEGER: u8 = 2;
-// ASN.1 Tag for a sequence
-const ASN1_SEQUENCE: u8 = 48;
-
-// The byte size of the `type` and `length` fields of the ASN.1
-// type-length-value stream
-const ASN1_TYPE_LENGTH_SIZE: usize = 2;
+// TODO Should be looking up the certification data instead of hardcoding
+//  offset, To be fixed with #25
+// The starting byte of the certification data for the quote.
+// *Certification Data* from Table 9 of
+// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// which comes from the *QE Certification Data* of the Quote Signature Data
+// Structure in Table 4.
+const QUOTING_ENCLAVE_CERTIFICATION_DATA_START: usize = 0x41C;
 
 /// A quote for DCAP attestation
 pub struct Quote {
@@ -121,19 +114,48 @@ impl Quote {
         }
     }
 
+    pub fn verify_certificate_chain(&self) -> Result<(), Error> {
+        let (_, pem) = pem::parse_x509_pem(ROOT_CERT_PEM)?;
+        let root_cert = pem.parse_x509()?;
+
+        let pems = Pem::iter_from_buffer(&self.bytes[QUOTING_ENCLAVE_CERTIFICATION_DATA_START..])
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Certs have a lifetime dependent on `pems` so must create them once
+        // the pems are held in place.
+        let mut certs = pems
+            .iter()
+            .map(|p| p.parse_x509())
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Per Table 9 *Certification Data* (type 5) from
+        // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+        // certs are in order from leaf -> .. -> root.  We need to start
+        // verifying from the root.
+        certs.reverse();
+
+        let mut key = root_cert.public_key();
+        for cert in certs.iter() {
+            cert.verify_signature(Some(key))?;
+            key = cert.public_key();
+        }
+        Ok(())
+    }
+
     /// Verify the enclave report body within the quote.
     pub fn verify_enclave_report_body(&self) -> Result<(), Error> {
         let bytes = self.get_header_and_enclave_report_body();
-        let mut key = self.get_pub_key().map_err(Error::Key)?;
-        self.verify_signature(bytes, ISV_ENCLAVE_SIGNATURE_START, &mut key)
+        let key = self.get_attestation_key()?;
+        self.verify_signature(bytes, ISV_ENCLAVE_SIGNATURE_START, &key)
     }
 
     /// Verify the quoting enclave report within the quote.
     pub fn verify_quoting_enclave_report(&self) -> Result<(), Error> {
         let bytes = self.get_quoting_enclave_report();
-        let mut certificate = self.get_pck_certificate()?;
-        let key = certificate.public_key_mut();
-        self.verify_signature(bytes, QUOTING_ENCLAVE_SIGNATURE_START, key)
+        let pem = self.get_pck_pem()?;
+        let cert = pem.parse_x509()?;
+        let key = VerifyingKey::from_public_key_der(cert.public_key().raw)?;
+        self.verify_signature(bytes, QUOTING_ENCLAVE_SIGNATURE_START, &key)
     }
 
     /// Verify the attestation key in the quote is valid.
@@ -181,57 +203,27 @@ impl Quote {
         &self.bytes[..QUOTE_HEADER_SIZE + ENCLAVE_REPORT_SIZE]
     }
 
-    /// Get the public signing key for the enclave report body (and header)
-    fn get_pub_key(&self) -> Result<Pk, mbedtls::Error> {
-        let mut start = ATTESTATION_KEY_START;
-        let x = Mpi::from_binary(&self.bytes[start..start + KEY_COMPONENT_SIZE])?;
-        start += KEY_COMPONENT_SIZE;
-        let y = Mpi::from_binary(&self.bytes[start..start + KEY_COMPONENT_SIZE])?;
-        let point = EcPoint::from_components(x, y)?;
-
-        let secp256r1 = EcGroup::new(EcGroupId::SecP256R1)?;
-
-        Pk::public_from_ec_components(secp256r1, point)
+    /// Get the signature verifying key for the enclave report body (and header)
+    fn get_attestation_key(&self) -> Result<VerifyingKey, Error> {
+        let point = EncodedPoint::from_untagged_bytes(
+            self.bytes[ATTESTATION_KEY_START..ATTESTATION_KEY_START + KEY_SIZE].into(),
+        );
+        VerifyingKey::from_encoded_point(&point).map_err(|e| Error::Key(e.to_string()))
     }
 
-    /// Returns the PCK certificate that was used for signing the quoting
-    /// enclave report.
-    /// Note: This certificate is assumed to be valid.
-    fn get_pck_certificate(&self) -> Result<MbedtlsBox<Certificate>, Error> {
-        //TODO this should only be looking at the `Certification Data`
-        // of the `QE Certification Data`, Table 9 of
-        // https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-        // However the pem crate walks over the other data nicely for initial
-        // development
-        let pem = pem::parse(self.bytes.as_slice())?;
-        Certificate::from_pem(&pem.contents).map_err(Error::Certificate)
+    /// Returns the Pem version of the PCK certificate that was used for signing
+    /// the quoting enclave report.
+    /// Note: The certificate is assumed to be valid.
+    fn get_pck_pem(&self) -> Result<Pem, Error> {
+        let (_, pem) =
+            pem::parse_x509_pem(&self.bytes[QUOTING_ENCLAVE_CERTIFICATION_DATA_START..])?;
+        Ok(pem)
     }
 
     /// Returns the quoting enclave report from the overall quote.
     fn get_quoting_enclave_report(&self) -> &[u8] {
         &self.bytes
             [QUOTING_ENCLAVE_REPORT_START..QUOTING_ENCLAVE_REPORT_START + ENCLAVE_REPORT_SIZE]
-    }
-
-    /// Returns the DER version of the signature.
-    /// mbedtls wants a DER version of the signature, while the raw quote
-    /// format has only the r and s values of the ECDSA signature
-    // TODO strict DER requires an extra 0 prefix on the r value when the r
-    //  value's most significant bit is set.  This is because `r` should be
-    //  unsigned, but the underlying ASN.1 of DER uses an integer [signed].
-    fn get_der_signature(&self, offset: usize) -> Vec<u8> {
-        let mut start = offset;
-        let r = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
-        start += SIGNATURE_COMPONENT_SIZE;
-        let s = &self.bytes[start..start + SIGNATURE_COMPONENT_SIZE];
-
-        let sequence_length = ASN1_TYPE_LENGTH_SIZE + r.len() + ASN1_TYPE_LENGTH_SIZE + s.len();
-        let mut signature = vec![ASN1_SEQUENCE, sequence_length as u8];
-        for component in [r, s] {
-            signature.extend([ASN1_INTEGER, component.len() as u8]);
-            signature.extend(component);
-        }
-        signature
     }
 
     /// Returns `Ok(())` when the signature of `bytes` matches for `key`.
@@ -246,39 +238,66 @@ impl Quote {
         &self,
         bytes: &[u8],
         signature_offset: usize,
-        key: &mut Pk,
+        key: &VerifyingKey,
     ) -> Result<(), Error> {
-        let signature = self.get_der_signature(signature_offset);
-        let hash = Sha256::digest(bytes);
-        key.verify(HashType::Sha256, &hash, &signature)
-            .map_err(Error::Signature)
+        let signature =
+            Signature::try_from(&self.bytes[signature_offset..signature_offset + SIGNATURE_SIZE])?;
+        Ok(key.verify(bytes, &signature)?)
     }
 }
 
-#[derive(Display, Debug, PartialEq)]
+#[derive(Display, Debug, PartialEq, Eq)]
 /// Error from verifying a Quote
 pub enum Error {
-    /// Unable to load the Certificate with mbedtls
-    Certificate(mbedtls::Error),
+    /// Unable to validate certificate used in signing
+    Certificate(String),
 
     /// Failure to parse the Pem files from the quote data
-    PemParsing(PemError),
+    PemParsing(String),
 
     /// Failure to verify a Signature
-    Signature(mbedtls::Error),
+    Signature(String),
 
-    /** A failure to convert a binary key into an mbedtls version.
-    This is unlikely to happen as it should only happen if there is an
-    error in the FFI or if there is a failure to malloc. */
-    Key(mbedtls::Error),
+    /// A failure to convert a binary key into an elliptical_curve version.
+    Key(String),
 
     /// Invalid attestation key in quote
     AttestationKey,
 }
 
-impl From<PemError> for Error {
-    fn from(src: PemError) -> Self {
-        Self::PemParsing(src)
+impl From<ecdsaError> for Error {
+    fn from(src: ecdsaError) -> Self {
+        Self::Signature(src.to_string())
+    }
+}
+
+impl From<spkiError> for Error {
+    fn from(src: spkiError) -> Self {
+        Self::Signature(src.to_string())
+    }
+}
+
+impl From<X509Error> for Error {
+    fn from(src: X509Error) -> Self {
+        Self::Certificate(src.to_string())
+    }
+}
+
+impl From<x509_parser::nom::Err<X509Error>> for Error {
+    fn from(src: x509_parser::nom::Err<X509Error>) -> Self {
+        Self::PemParsing(src.to_string())
+    }
+}
+
+impl From<x509_parser::nom::Err<PEMError>> for Error {
+    fn from(src: x509_parser::nom::Err<PEMError>) -> Self {
+        Self::PemParsing(src.to_string())
+    }
+}
+
+impl From<PEMError> for Error {
+    fn from(src: PEMError) -> Self {
+        Self::PemParsing(src.to_string())
     }
 }
 
@@ -287,6 +306,34 @@ mod tests {
     use super::*;
 
     const HW_QUOTE: &[u8] = include_bytes!("../tests/data/hw_quote.dat");
+
+    /// Returns the PEM Certificate of the `der` contents.
+    ///
+    /// #Arguments:
+    /// * `der` - The der version of a certificate to convert to PEM format
+    fn pem_certificate(der: &[u8]) -> String {
+        let encoded = base64::encode(der);
+        let pem_certificate = format!(
+            "-----BEGIN CERTIFICATE-----\n{}\n-----END CERTIFICATE-----\n",
+            encoded
+        );
+        pem_certificate
+    }
+
+    /// Returns the PEMs in `chain` as individual Strings per pem.
+    /// # Arguments:
+    /// * `chain` - Contiguous bytes representing a cert chain as PEMs.
+    fn extract_pems(chain: &[u8]) -> Vec<String> {
+        let pems = Pem::iter_from_buffer(chain)
+            .map(|p| {
+                let pem = p.unwrap();
+                pem_certificate(&pem.contents)
+            })
+            .collect::<Vec<_>>();
+
+        pems
+    }
+
     #[test]
     fn verify_valid_quote_report() {
         let quote = Quote::from_bytes(HW_QUOTE);
@@ -298,34 +345,30 @@ mod tests {
         let mut bad_quote = HW_QUOTE.to_vec();
         bad_quote[QUOTING_ENCLAVE_REPORT_START + 1] = 0;
         let quote = Quote::from_bytes(&bad_quote);
-        assert_eq!(
+        assert!(matches!(
             quote.verify_quoting_enclave_report(),
-            Err(Error::Signature(mbedtls::Error::EcpVerifyFailed))
-        );
+            Err(Error::Signature(_))
+        ));
     }
 
     #[test]
     fn failure_to_parse_pem_certificates() {
-        // TODO Once more of the quote parsing logic comes in remove hard coded
-        //  value of 0x41c, based on current quote data file.
-        let quote = Quote::from_bytes(&HW_QUOTE[..0x41c]);
-        assert_eq!(
+        let quote = Quote::from_bytes(&HW_QUOTE[..QUOTING_ENCLAVE_CERTIFICATION_DATA_START]);
+        assert!(matches!(
             quote.verify_quoting_enclave_report(),
-            Err(Error::PemParsing(PemError::MalformedFraming))
-        );
+            Err(Error::PemParsing(_))
+        ));
     }
 
     #[test]
     fn failure_to_load_certificate() {
         let mut bad_cert = HW_QUOTE.to_vec();
         // TODO Once more of the quote parsing logic comes in remove hard coded
-        //  value of 0x440, based on current quote data file.
+        //  value of 0x440, based on current quote data file. To be fixed with
+        //  #25
         bad_cert[0x440] = 0;
         let quote = Quote::from_bytes(&bad_cert);
 
-        // Since the pem is utilized for parsing the certificates out of the
-        // quote data, it fails before `Certificate::from_pem()` gets a chance
-        // to fail
         assert!(matches!(
             quote.verify_quoting_enclave_report(),
             Err(Error::PemParsing(_))
@@ -342,10 +385,24 @@ mod tests {
     fn failed_signature_for_enclave_report_body() {
         let mut quote = Quote::from_bytes(HW_QUOTE);
         quote.bytes[ISV_ENCLAVE_SIGNATURE_START] = 1;
-        assert_eq!(
+        assert!(matches!(
             quote.verify_enclave_report_body(),
-            Err(Error::Signature(mbedtls::Error::EcpVerifyFailed))
-        );
+            Err(Error::Signature(_))
+        ));
+    }
+
+    #[test]
+    fn failed_to_load_attestation_key_for_enclave_report() {
+        let mut identity = [0; KEY_SIZE];
+        let mut quote = Quote::from_bytes(HW_QUOTE);
+
+        quote.bytes[ATTESTATION_KEY_START..ATTESTATION_KEY_START + KEY_SIZE]
+            .swap_with_slice(&mut identity);
+
+        assert!(matches!(
+            quote.verify_enclave_report_body(),
+            Err(Error::Key(_))
+        ));
     }
 
     #[test]
@@ -374,5 +431,78 @@ mod tests {
         let mut quote = Quote::from_bytes(HW_QUOTE);
         quote.bytes[QUOTING_ENCLAVE_REPORT_DATA_START + (ENCLAVE_REPORT_DATA_SIZE - 1)] = 1;
         assert_eq!(quote.verify_attestation_key(), Err(Error::AttestationKey));
+    }
+
+    #[test]
+    fn verify_valid_certificate_chain() {
+        let quote = Quote::from_bytes(HW_QUOTE);
+        assert!(quote.verify_certificate_chain().is_ok());
+    }
+
+    #[test]
+    fn invalid_certificate_chain_fails() {
+        let mut hw_quote = HW_QUOTE.to_vec();
+        let pem_contents = hw_quote
+            .drain(QUOTING_ENCLAVE_CERTIFICATION_DATA_START..)
+            .collect::<Vec<_>>();
+        let pems = extract_pems(pem_contents.as_slice());
+
+        hw_quote.extend(pems[0].as_bytes());
+        // Skipping the intermediate cert to force a signing chain error
+        hw_quote.extend(pems[2].as_bytes());
+
+        let quote = Quote::from_bytes(hw_quote.as_slice());
+        assert!(matches!(
+            quote.verify_certificate_chain(),
+            Err(Error::Certificate(_))
+        ));
+    }
+
+    #[test]
+    fn bad_pem_file_in_cert_chain() {
+        let mut hw_quote = HW_QUOTE.to_vec();
+        let pem_contents = hw_quote
+            .drain(QUOTING_ENCLAVE_CERTIFICATION_DATA_START..)
+            .collect::<Vec<_>>();
+        let mut pems = extract_pems(pem_contents.as_slice());
+
+        // 'A' isn't significant, just a value inserted in the middle that
+        // should force an error state
+        let middle = pems[1].len() / 2;
+        pems[1].insert(middle, 'A');
+
+        hw_quote.extend(pems.join("").as_bytes());
+
+        let quote = Quote::from_bytes(hw_quote.as_slice());
+        assert!(matches!(
+            quote.verify_certificate_chain(),
+            Err(Error::PemParsing(_))
+        ));
+    }
+
+    #[test]
+    fn bad_der_representation_in_cert_chain() {
+        let mut hw_quote = HW_QUOTE.to_vec();
+
+        let pem_contents = hw_quote
+            .drain(QUOTING_ENCLAVE_CERTIFICATION_DATA_START..)
+            .collect::<Vec<_>>();
+        let mut pems = extract_pems(pem_contents.as_slice());
+
+        let (_, pem) = pem::parse_x509_pem(pems[2].as_bytes()).unwrap();
+        let mut der_contents = pem.contents.clone();
+
+        // '3' isn't significant, just a value inserted in the middle that
+        // should force an error state
+        der_contents.insert(der_contents.len() / 2, b'3');
+        pems[2] = pem_certificate(&der_contents);
+
+        hw_quote.extend(pems.join("").as_bytes());
+
+        let quote = Quote::from_bytes(hw_quote.as_slice());
+        assert!(matches!(
+            quote.verify_certificate_chain(),
+            Err(Error::PemParsing(_))
+        ));
     }
 }
