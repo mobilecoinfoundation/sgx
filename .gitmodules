@@ -1,3 +1,0 @@
-[submodule "vendor/linux-sgx"]
-	path = vendor/linux-sgx
-	url = https://github.com/intel/linux-sgx.git
