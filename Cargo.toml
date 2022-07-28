@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "core/ffi/types",
     "core/build",
+    "core/source",
     "crypto/ffi/types",
     "crypto/ffi",
     "panic/abort",

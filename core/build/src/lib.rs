@@ -42,7 +42,3 @@ pub fn sgx_library_suffix() -> &'static str {
         _ => "_sim",
     }
 }
-
-pub fn build_vendored_libraries() {
-    // do somehting
-}

@@ -1,14 +1,14 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+// Copyright (c) 2022 The MobileCoin Foundation
+//! Builds the linux SGX SDK
+
+use std::path::PathBuf;
+
+struct Build {
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Build {
+    pub fn build() {
+        ../
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
     }
 }

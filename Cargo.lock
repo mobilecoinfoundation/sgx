@@ -537,6 +537,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-core-source"
+version = "0.1.0"
+
+[[package]]
 name = "mc-sgx-crypto-ffi"
 version = "0.1.0"
 dependencies = [
@@ -544,6 +548,7 @@ dependencies = [
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-ffi-types",
+ "mc-sgx-core-source",
  "mc-sgx-crypto-ffi-types",
  "sha2",
 ]
