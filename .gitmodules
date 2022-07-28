@@ -1,0 +1,3 @@
+[submodule "core/source/vendored/linux-sgx"]
+	path = core/source/vendored/linux-sgx
+	url = https://github.com/intel/linux-sgx.git
