@@ -7,7 +7,7 @@ use cargo_emit::{rustc_link_lib, rustc_link_search};
 fn main() {
     #[cfg(feature = "vendored")]
     {
-        mc_sgx_core_build::build_vendored_libraries();
+        mc_sgx_core_source::Build::build();
     }
 
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();

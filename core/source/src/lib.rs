@@ -1,23 +1,24 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Builds the linux SGX SDK
 
-use std::path::PathBuf;
 use std::process::Command;
 
 const SOURCE_PATH: &str = "../vendored/linux-sgx";
 
-struct Build {
+pub struct Build {
 }
 
 impl Build {
     pub fn build() {
-        let command = Command::new("make").current_dir(SOURCE_PATH).arg("preparation");
+        let mut command = Command::new("make");
+        command.current_dir(SOURCE_PATH).arg("preparation");
         Self::run_command(command);
-        let command = Command::new("make").current_dir(SOURCE_PATH).arg("sdk_install_pkg");
+        let mut command = Command::new("make");
+        command.current_dir(SOURCE_PATH).arg("sdk_install_pkg");
         Self::run_command(command);
     }
 
-    fn run_command(command: &mut Command) {
+    fn run_command(mut command: Command) {
         let status = command.status();
         match status {
             Ok(status) => {
@@ -26,7 +27,7 @@ impl Build {
                 }
                 panic!("Exit code {}", status);
             }
-            Err(fail) => panic!("Failed with: {}", failed),
+            Err(fail) => panic!("Failed with: {}", fail),
         }
     }
 }
