@@ -28,3 +28,41 @@ jobs:
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo test --release --locked
+  build_vendored:
+    # The Large runner is used here due to minimize SGX SDK compile time
+    runs-on: [self-hosted, Linux, large]
+    container: mobilecoin/rust-sgx-base:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup rust toolchain
+        run: rustup show
+      - name: Install SGX SDK tools
+        # packages taken from
+        # https://github.com/intel/linux-sgx#build-the-intelr-sgx-sdk-and-intelr-sgx-psw-package
+        run: apt-get update && apt-get -y install 
+          build-essential 
+          ocaml 
+          ocamlbuild 
+          automake 
+          autoconf 
+          libtool 
+          wget 
+          python-is-python3 
+          libssl-dev 
+          git 
+          cmake 
+          perl 
+          libssl-dev 
+          libcurl4-openssl-dev 
+          protobuf-compiler 
+          libprotobuf-dev 
+          debhelper 
+          cmake 
+          reprepro 
+          unzip 
+          lsb-release
+      - name: Install mitigation binutils
+        run: wget https://download.01.org/intel-sgx/sgx-linux/2.17/as.ld.objdump.r4.tar.gz -P /tmp/binutils && 
+          tar -xzf /tmp/binutils/as.ld.objdump.r4.tar.gz --directory /tmp/binutils/ external/toolset/ubuntu20.04 && 
+          cp /tmp/binutils/external/toolset/ubuntu20.04/* /usr/local/bin/
+      - run: cargo build --release --locked --features vendored
