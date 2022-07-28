@@ -4,14 +4,24 @@
 
 use std::{env, path::PathBuf};
 
+#[cfg(feature = "vendored")]
+mod find_vendored;
+
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
+static VENDORED_SGX_SDK_PATH: &str = "../vendored/linux/installer/common/sdk/output/package";
 
 /// Return the SGX library path.
 ///
-/// Will first attempt to look at the environment variable `SGX_SDK`, if that
-/// isn't present then `/opt/intel/sgxsdk` will be used.
+/// When `vendored` feature is on this will provide the
+///
+/// Otherwise will first attempt to look at the environment variable `SGX_SDK`,
+/// if that isn't present then `/opt/intel/sgxsdk` will be used.
 pub fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
+    if #[cfg(feature = "vendored")] {
+        VENDORED_SGX_SDK_PATH.into()
+    } else {
+        env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
+    }
 }
 
 /// Return the build output path.
@@ -31,4 +41,8 @@ pub fn sgx_library_suffix() -> &'static str {
         Ok(_) => "",
         _ => "_sim",
     }
+}
+
+pub fn build_vendored_libraries() {
+    // do somehting
 }
