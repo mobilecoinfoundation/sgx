@@ -16,30 +16,16 @@ jobs:
   rustfmt:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
-    strategy:
-      matrix:
-        dir: ['core', 'trusted', 'untrusted']
     steps:
       - uses: actions/checkout@v3
-      # actions-rs/toolchain does not support the newer toml file format
-      # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-        working-directory: ${{ matrix.dir }}
       - run: cargo fmt --all -- --check
-        working-directory: ${{ matrix.dir }}
   clippy:
     runs-on: [self-hosted, Linux, small]
     container: mobilecoin/rust-sgx-base:latest
-    strategy:
-      matrix:
-        dir: ['core', 'trusted', 'untrusted']
     steps:
       - uses: actions/checkout@v3
-      # actions-rs/toolchain does not support the newer toml file format
-      # see https://github.com/actions-rs/toolchain/issues/126
       - name: Setup rust toolchain
         run: rustup show
-        working-directory: ${{ matrix.dir }}
       - run: cargo clippy --all --all-features --locked -- -D warnings
-        working-directory: ${{ matrix.dir }}

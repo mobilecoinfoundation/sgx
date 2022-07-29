@@ -10,5 +10,10 @@ keywords = ["no-std", "sgx", "mobilecoin", "panic-handler"]
 categories = ["hardware-support", "api-bindings"]
 readme = "README.md"
 
+[lib]
+# Testing needs panic handlers for the host.  Disabling since this is panic
+# handling for the enclave target
+test = false
+
 [badges]
 maintenance = { status = "actively-developed" }
