@@ -7,3 +7,4 @@ links = "sgx"
 [build-dependencies]
 cargo-emit = "0.2.1"
 fs_extra = "1.2.0"
+git2 = "0.15.0"

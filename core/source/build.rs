@@ -22,10 +22,19 @@ fn out_dir() -> PathBuf {
 
 fn main(){
     let out_dir = out_dir();
-    copy_sdk_to_build_dir(&sdk_source_dir(), &out_dir);
+    // copy_sdk_to_build_dir(&sdk_source_dir(), &out_dir);
     let build_dir = out_dir.join("linux-sgx");
+    clone_sdk(&build_dir);
     build_sdk(&build_dir);
     write_out_sgx_sdk_path(&build_dir);
+}
+
+fn clone_sdk(build_dir: &PathBuf) {
+    let mut repo = git2::Repository::clone("https://github.com/intel/linux-sgx.git", build_dir).unwrap();
+    repo.set_head("refs/tags/sgx_2.17").unwrap();
+    repo.checkout_head(None).unwrap();
+    // builder.branch("sgx_2.17");
+    // builder.clone("https://github.com/intel/linux-sgx.git", build_dir).unwrap();
 }
 
 fn copy_sdk_to_build_dir<P: AsRef<Path>>(sdk_source_dir: &P, out_dir: &P) {
