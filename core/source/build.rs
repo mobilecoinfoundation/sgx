@@ -12,26 +12,38 @@ pub struct Build {
 }
 
 fn source_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join(SOURCE_PATH)
+    Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join(SOURCE_PATH)
+}
+
+fn build_dir() -> PathBuf {
+    Path::new(&env::var("OUT_DIR").unwrap()).join("linux-sgx")
 }
 
 fn main(){
+    let _src_dir = source_dir();
+    let build_dir = build_dir();
+    //copy_src_to_build();
+    // build_sdk(build_dir);
+    build_sdk(&build_dir);
+
+    write_out_sgx_sdk_path(&build_dir);
+}
+
+fn build_sdk<P: AsRef<Path>>(build_dir: &P) {
     let mut command = Command::new("make");
-    command.current_dir(source_dir()).arg("preparation");
+    command.current_dir(build_dir).arg("preparation");
     run_command(command);
     let mut command = Command::new("make");
     //TODO not fond of the unlimited "-j" here, but on my machine build
     // times went from 8min down to 2min.  The unlimited "-j" can really
     // bog down the machine
-    command.current_dir(source_dir()).arg("sdk_install_pkg").arg("-j");
+    command.current_dir(build_dir).arg("sdk_install_pkg").arg("-j");
     run_command(command);
-
-    write_out_sgx_sdk_path();
 }
 
-fn write_out_sgx_sdk_path() {
+fn write_out_sgx_sdk_path<P: AsRef<Path>>(build_dir: &P) {
+    let sgx_sdk_path = build_dir.as_ref().join("linux/installer/common/sdk/output/package");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let sgx_sdk_path = source_dir().join("linux/installer/common/sdk/output/package");
     fs::write(out_dir.join("sgx_sdk_path.txt"), sgx_sdk_path.to_str().unwrap()).unwrap();
 }
 
