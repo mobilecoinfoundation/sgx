@@ -1,0 +1,19 @@
+[package]
+name = "mc-sgx-capable-ffi"
+version = "0.1.0"
+edition = "2021"
+authors = ["MobileCoin"]
+rust-version = "1.62.1"
+readme = "README.md"
+license = "Apache-2.0"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+description = '''
+This crate exposes FFI bindings for the SGX SDK's `libsgx_capable` libraries.
+'''
+
+[dependencies]
+mc-sgx-capable-ffi-types = { path = "types" }
+mc-sgx-capable-ffi-sys = { path = "sys" }
+
+[build-dependencies]
+bindgen = ""
