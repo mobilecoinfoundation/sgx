@@ -4,17 +4,6 @@
 use std::{env, fs};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use cargo_emit::warning;
-use fs_extra::dir::CopyOptions;
-
-const SOURCE_PATH: &str = "vendored/linux-sgx";
-
-pub struct Build {
-}
-
-fn sdk_source_dir() -> PathBuf {
-    Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join(SOURCE_PATH)
-}
 
 fn out_dir() -> PathBuf {
     Path::new(&env::var("OUT_DIR").unwrap()).into()
@@ -22,7 +11,6 @@ fn out_dir() -> PathBuf {
 
 fn main(){
     let out_dir = out_dir();
-    // copy_sdk_to_build_dir(&sdk_source_dir(), &out_dir);
     let build_dir = out_dir.join("linux-sgx");
     clone_sdk(&build_dir);
     build_sdk(&build_dir);
@@ -33,14 +21,6 @@ fn clone_sdk(build_dir: &PathBuf) {
     let mut repo = git2::Repository::clone("https://github.com/intel/linux-sgx.git", build_dir).unwrap();
     repo.set_head("refs/tags/sgx_2.17").unwrap();
     repo.checkout_head(None).unwrap();
-    // builder.branch("sgx_2.17");
-    // builder.clone("https://github.com/intel/linux-sgx.git", build_dir).unwrap();
-}
-
-fn copy_sdk_to_build_dir<P: AsRef<Path>>(sdk_source_dir: &P, out_dir: &P) {
-    let mut copy_options = CopyOptions::new();
-    copy_options.overwrite = true;
-    fs_extra::dir::copy(sdk_source_dir, out_dir, &copy_options).unwrap();
 }
 
 fn build_sdk<P: AsRef<Path>>(sdk_source_dir: &P) {
@@ -61,17 +41,15 @@ fn write_out_sgx_sdk_path<P: AsRef<Path>>(sdk_build_dir: &P) {
     fs::write(out_dir.join("sgx_sdk_path.txt"), sgx_sdk_path.to_str().unwrap()).unwrap();
 }
 
-// fn run_command(mut command: Command) {
-fn run_command(command: Command) {
-    warning!("Fake build: {:?}", command);
-    // let status = command.status();
-    // match status {
-    //     Ok(status) => {
-    //         if status.success() {
-    //             return
-    //         }
-    //         panic!("Exit code {}", status);
-    //         }
-    //         Err(fail) => panic!("Failed with: {}", fail),
-    //     }
+fn run_command(mut command: Command) {
+    let status = command.status();
+    match status {
+        Ok(status) => {
+            if status.success() {
+                return
+            }
+            panic!("Exit code {}", status);
+            }
+            Err(fail) => panic!("Failed with: {}", fail),
+        }
 }
