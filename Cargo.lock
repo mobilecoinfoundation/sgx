@@ -526,6 +526,7 @@ name = "mc-sgx-capable-ffi-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
 ]
 
 [[package]]
