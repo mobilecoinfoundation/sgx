@@ -3,6 +3,7 @@
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use cargo_emit::warning;
 
 const SOURCE_PATH: &str = "vendored/linux-sgx";
 
@@ -23,17 +24,21 @@ fn main(){
     // bog down the machine
     command.current_dir(source_dir()).arg("sdk_install_pkg").arg("-j");
     run_command(command);
+
+    println!("cargo:SGX_SDK={}/{}", SOURCE_PATH, "linux/installer/common/sdk/output/package")
 }
 
-fn run_command(mut command: Command) {
-let status = command.status();
-match status {
-    Ok(status) => {
-        if status.success() {
-            return
-        }
-        panic!("Exit code {}", status);
-        }
-        Err(fail) => panic!("Failed with: {}", fail),
-    }
+// fn run_command(mut command: Command) {
+fn run_command(command: Command) {
+    warning!("Fake build: {:?}", command);
+    // let status = command.status();
+    // match status {
+    //     Ok(status) => {
+    //         if status.success() {
+    //             return
+    //         }
+    //         panic!("Exit code {}", status);
+    //         }
+    //         Err(fail) => panic!("Failed with: {}", fail),
+    //     }
 }

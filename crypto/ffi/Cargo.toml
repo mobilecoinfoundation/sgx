@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-vendored = ['mc-sgx-core-source']
+vendored = ['mc-sgx-core-build/vendored']
 
 [dependencies]
 mc-sgx-core-ffi-types = { path = "../../core/ffi/types" }
@@ -17,4 +17,3 @@ sha2 = "0.10.2"
 bindgen = "0.60.1"
 cargo-emit = "0.2.1"
 mc-sgx-core-build = { path = "../../core/build" }
-mc-sgx-core-source = { path = "../../core/source" , optional = true }

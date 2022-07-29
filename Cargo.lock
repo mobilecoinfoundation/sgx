@@ -526,6 +526,7 @@ name = "mc-sgx-core-build"
 version = "0.1.0"
 dependencies = [
  "cfg-if",
+ "mc-sgx-core-source",
 ]
 
 [[package]]
@@ -539,6 +540,9 @@ dependencies = [
 [[package]]
 name = "mc-sgx-core-source"
 version = "0.1.0"
+dependencies = [
+ "cargo-emit",
+]
 
 [[package]]
 name = "mc-sgx-crypto-ffi"
@@ -548,7 +552,6 @@ dependencies = [
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-ffi-types",
- "mc-sgx-core-source",
  "mc-sgx-crypto-ffi-types",
  "sha2",
 ]

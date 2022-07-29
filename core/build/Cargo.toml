@@ -3,5 +3,9 @@ name = "mc-sgx-core-build"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+vendored = ['mc-sgx-core-source']
+
 [dependencies]
 cfg-if = "1.0.0"
+mc-sgx-core-source = { path = "../source" , optional = true }
