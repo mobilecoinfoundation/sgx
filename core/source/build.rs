@@ -20,12 +20,11 @@ fn build_dir() -> PathBuf {
 }
 
 fn main(){
-    let _src_dir = source_dir();
     let build_dir = build_dir();
-    //copy_src_to_build();
-    // build_sdk(build_dir);
-    build_sdk(&build_dir);
 
+    warning!("The source dir {:?} and the build dir {:?}", source_dir(), build_dir);
+    fs_extra::dir::copy(source_dir(), &build_dir, &Default::default()).unwrap();
+    build_sdk(&build_dir);
     write_out_sgx_sdk_path(&build_dir);
 }
 
