@@ -3,7 +3,6 @@
 #![doc = include_str!("../README.md")]
 
 use std::{env, path::PathBuf};
-use cargo_emit::warning;
 
 /// Return the SGX library path.
 ///
@@ -15,7 +14,6 @@ use cargo_emit::warning;
 pub fn sgx_library_path() -> String {
     cfg_if::cfg_if! {
         if #[cfg(feature = "vendored")] {
-            warning!("The library path is {}", mc_sgx_core_source::sgx_library_path());
             mc_sgx_core_source::sgx_library_path()
         } else {
             env::var("SGX_SDK").unwrap_or_else(|_| "/opt/intel/sgxsdk".into())
