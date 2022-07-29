@@ -22,10 +22,10 @@ fn out_dir() -> PathBuf {
 
 fn main(){
     let out_dir = out_dir();
-
     copy_sdk_to_build_dir(&sdk_source_dir(), &out_dir);
-    build_sdk(&out_dir);
-    write_out_sgx_sdk_path(&out_dir);
+    let build_dir = out_dir.join("linux-sgx");
+    build_sdk(&build_dir);
+    write_out_sgx_sdk_path(&build_dir);
 }
 
 fn copy_sdk_to_build_dir<P: AsRef<Path>>(sdk_source_dir: &P, out_dir: &P) {
