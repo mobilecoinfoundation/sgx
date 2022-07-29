@@ -525,6 +525,7 @@ dependencies = [
 name = "mc-sgx-core-build"
 version = "0.1.0"
 dependencies = [
+ "cargo-emit",
  "cfg-if",
  "mc-sgx-core-source",
 ]

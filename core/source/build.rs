@@ -1,6 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Builds the linux SGX SDK
 
+use std::{env, fs};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use cargo_emit::warning;
@@ -25,7 +26,12 @@ fn main(){
     command.current_dir(source_dir()).arg("sdk_install_pkg").arg("-j");
     run_command(command);
 
-    println!("cargo:SGX_SDK={}/{}", SOURCE_PATH, "linux/installer/common/sdk/output/package")
+    write_out_sgx_sdk_path();
+}
+
+fn write_out_sgx_sdk_path() {
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    fs::write(out_dir.join("sgx_sdk_path.txt"), "what it is").unwrap();
 }
 
 // fn run_command(mut command: Command) {
