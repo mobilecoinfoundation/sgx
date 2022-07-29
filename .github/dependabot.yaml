@@ -1,6 +1,16 @@
 version: 2
 updates:
 - package-ecosystem: cargo
+  directory: "/core"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+- package-ecosystem: cargo
+  directory: "/untrusted"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+- package-ecosystem: cargo
   directory: "/trusted"
   schedule:
     interval: daily

@@ -1,0 +1,21 @@
+[package]
+name = "test_enclave"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mc-sgx-urts-ffi-types = { path = "../urts/ffi/types" }
+mc-sgx-core-ffi-types = { path = "../core/ffi/types" }
+
+[features]
+hw = []
+default = []
+
+[build-dependencies]
+cargo-emit = "0.2.1"
+cc = "1.0.73"
+bindgen = "0.60.1"
+rsa = "0.6.1"
+rand = "0.8.5"
+
+mc-sgx-core-build = { path = "../core/build" }

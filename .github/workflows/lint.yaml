@@ -1,0 +1,46 @@
+name: Lint
+on:
+  pull_request:
+    paths-ignore:
+      - README.md
+    branches:
+      - 'main'
+      - 'develop'
+      - 'feature/**'
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  rustfmt:
+    runs-on: [self-hosted, Linux, small]
+    container: mobilecoin/rust-sgx-base:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup rust toolchain
+        run: rustup show
+      - run: cargo fmt --all -- --check
+  clippy:
+    runs-on: [self-hosted, Linux, small]
+    container: mobilecoin/rust-sgx-base:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup rust toolchain
+        run: rustup show
+      - run: cargo clippy --all --all-features --locked -- -D warnings
+  nono:
+    runs-on: [self-hosted, Linux, small]
+    container: mobilecoin/rust-sgx-base:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup rust toolchain
+        run: rustup show
+      - name: install nono
+        run: cargo install cargo-nono
+      # `mc-sgx-quote-verify` should be `no_std`, but it isn't yet.  See #34
+      - run: |
+          cargo metadata --no-deps --format-version=1 | \
+            jq -r '.packages[].name' | \
+            grep -v -e mc-sgx-core-build -e mc-sgx-quote-verify -e mc-sgx-urts | \
+            xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'

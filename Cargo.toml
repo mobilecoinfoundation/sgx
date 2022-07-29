@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+    "core/ffi/types",
+    "core/build",
+    "crypto/ffi/types",
+    "crypto/ffi",
+    "panic/abort",
+    "quote_verify",
+    "service/ffi",
+    "service/ffi/types",
+    "trts/ffi",
+    "urts",
+    "urts/ffi",
+    "urts/ffi/types",
+]
+exclude = [
+    "test_enclave",
+]
+
+[profile.dev]
+opt-level = 0
+rpath = true
+lto = true
+
+[profile.release]
+opt-level = 3
+rpath = false
+lto = true
+debug-assertions = false
+overflow-checks = false
+
+# Skip the need for LD_LIBRARY_PATH in `cargo test`
+[profile.test]
+rpath = true
+
