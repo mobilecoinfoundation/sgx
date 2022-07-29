@@ -31,7 +31,8 @@ fn main(){
 
 fn write_out_sgx_sdk_path() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    fs::write(out_dir.join("sgx_sdk_path.txt"), "what it is").unwrap();
+    let sgx_sdk_path = source_dir().join("linux/installer/common/sdk/output/package");
+    fs::write(out_dir.join("sgx_sdk_path.txt"), sgx_sdk_path.to_str().unwrap()).unwrap();
 }
 
 // fn run_command(mut command: Command) {
