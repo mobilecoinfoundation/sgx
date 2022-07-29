@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-urts-sys = { path = "sys", default-features = false }
+mc-sgx-urts-ffi = { path = "ffi", default-features = false }
 
 [features]
-hw = ["mc-sgx-urts-sys/hw"]
+hw = ["mc-sgx-urts-ffi/hw"]
 default = []
 
 [dev-dependencies]

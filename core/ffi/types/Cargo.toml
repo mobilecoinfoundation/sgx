@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-core-sys-types"
+name = "mc-sgx-core-ffi-types"
 version = "0.1.0"
 edition = "2021"
 
