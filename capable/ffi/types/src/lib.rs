@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2020 MobileCoin Inc.
+// Copyright (c) 2022 MobileCoin Inc.
 
 //! FFI type bindings for the types used by libsgx_capable.{so,a}.
 

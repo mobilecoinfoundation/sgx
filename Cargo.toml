@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "capable/ffi/sys",
     "capable/ffi/types",
     "core/ffi/types",
     "core/build",
