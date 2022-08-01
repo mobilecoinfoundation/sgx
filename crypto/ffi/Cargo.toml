@@ -3,6 +3,9 @@ name = "mc-sgx-crypto-ffi"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+vendored = ['mc-sgx-core-build/vendored']
+
 [dependencies]
 mc-sgx-core-ffi-types = { path = "../../core/ffi/types" }
 mc-sgx-crypto-ffi-types = { path = "types" }

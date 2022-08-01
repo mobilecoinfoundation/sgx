@@ -4,14 +4,21 @@
 
 use std::{env, path::PathBuf};
 
-static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
-
 /// Return the SGX library path.
 ///
-/// Will first attempt to look at the environment variable `SGX_SDK`, if that
-/// isn't present then `/opt/intel/sgxsdk` will be used.
+/// When `vendored` feature is on this will provide the path from the
+/// vendored build.
+///
+/// Otherwise will first attempt to look at the environment variable `SGX_SDK`,
+/// if that isn't present then `/opt/intel/sgxsdk` will be used.
 pub fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "vendored")] {
+            mc_sgx_core_source::sgx_library_path()
+        } else {
+            env::var("SGX_SDK").unwrap_or_else(|_| "/opt/intel/sgxsdk".into())
+        }
+    }
 }
 
 /// Return the build output path.

@@ -1,6 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Builds the FFI function bindings for trts (trusted runtime system) of the
-//! Intel SGX SDK
+//! Builds the FFI function bindings for crypto of the Intel SGX SDK
 
 use bindgen::Builder;
 use cargo_emit::{rustc_link_lib, rustc_link_search};

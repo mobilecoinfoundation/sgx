@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
     "core/ffi/types",
-    "core/build",
     "crypto/ffi/types",
     "crypto/ffi",
     "panic/abort",
@@ -14,7 +13,12 @@ members = [
     "urts/ffi",
     "urts/ffi/types",
 ]
+
 exclude = [
+    # Exclude build and source so they aren't built by default, only when
+    # specifically required
+    "core/build",
+    "core/source",
     "test_enclave",
 ]
 
