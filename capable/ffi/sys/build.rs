@@ -26,7 +26,6 @@ impl ParseCallbacks for Callbacks {
     }
 
     fn item_name(&self, name: &str) -> Option<String> {
-        cargo_emit::warning!("Processing {}", name);
         if name.starts_with("_sgx_") {
             Some(name[1..].to_owned())
         } else if name.starts_with('_') {
@@ -39,15 +38,18 @@ impl ParseCallbacks for Callbacks {
     }
 }
 
-fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
-}
-
 fn main() {
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let sdk_path = env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into());
+    cargo_emit::rerun_if_env_changed!("SGX_SDK");
+
+    let include_arg = format!("-I{}/include", sdk_path);
+    cargo_emit::rerun_if_changed!("{}", include_arg);
+
+    let out_path = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR was not set"));
+
     Builder::default()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}/include", sgx_library_path()))
+        .clang_arg(&include_arg)
         .derive_copy(true)
         .derive_debug(true)
         .derive_default(true)
@@ -69,4 +71,6 @@ fn main() {
         .expect("Unable to generate bindings")
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+
+    cargo_emit::rustc_link_lib!("sgx_capable");
 }
