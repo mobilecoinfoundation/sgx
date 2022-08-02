@@ -2,3 +2,6 @@
 name = "mc-sgx-core-build"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+bindgen = "0.60.1"
