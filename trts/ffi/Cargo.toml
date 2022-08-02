@@ -2,6 +2,7 @@
 name = "mc-sgx-trts-ffi"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 
 [lib]
 # test false due to needing an enclave to fully link
