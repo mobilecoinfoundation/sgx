@@ -542,6 +542,9 @@ dependencies = [
 [[package]]
 name = "mc-sgx-core-build"
 version = "0.1.0"
+dependencies = [
+ "bindgen",
+]
 
 [[package]]
 name = "mc-sgx-core-ffi-types"
