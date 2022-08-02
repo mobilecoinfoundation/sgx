@@ -72,5 +72,5 @@ fn main() {
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
-    cargo_emit::rustc_link_lib!("sgx_capable");
+    cargo_emit::rustc_link_lib!("static=sgx_capable");
 }
