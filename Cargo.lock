@@ -522,6 +522,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-capable-ffi-sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-capable-ffi-types",
+ "mc-sgx-core-ffi-types",
+]
+
+[[package]]
+name = "mc-sgx-capable-ffi-types"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+]
+
+[[package]]
 name = "mc-sgx-core-build"
 version = "0.1.0"
 
