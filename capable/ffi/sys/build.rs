@@ -72,5 +72,7 @@ fn main() {
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
+    let lib_path = format!("{}/lib64", sdk_path);
+    cargo_emit::rustc_link_search!(lib_path);
     cargo_emit::rustc_link_lib!("static=sgx_capable");
 }

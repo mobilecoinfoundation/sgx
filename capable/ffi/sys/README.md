@@ -8,7 +8,9 @@
 [![CodeCov Status][codecov-image]][codecov-link]
 [![dependency status][deps-image]][deps-link]
 
-This crate contains the FFI linkage for the `libsgx_capable.so` library.
+This crate contains a rust FFI for the `libsgx_capable.a` library.
+
+This crate requires the Intel SGX SDK be installed at `/opt/intel/sgxsdk`, or the `SGX_SDK` environment variable be set.
 
 [//]: # (badges)
 

@@ -8,7 +8,7 @@ use bindgen::{
 };
 use std::{env, path::PathBuf};
 
-static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
+const DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
 #[derive(Debug)]
 struct Callbacks;
