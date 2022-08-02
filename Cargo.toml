@@ -12,6 +12,8 @@ members = [
     "tservice/sys",
     "tservice/sys/types",
     "trts/sys",
+    "tstdc/sys",
+    "tstdc/sys/types",
     "urts",
     "urts/sys",
     "urts/sys/types",
