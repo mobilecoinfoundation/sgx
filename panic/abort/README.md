@@ -21,8 +21,6 @@ goal for all crates in this repository is to handle the intricate linkage
 requirements of the Intel SGX SDK automagically, but that is not in place yet,
 so users of this crate will need to link it themselves for now.
 
-[//]: # (badges)
-
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-panic-abort?style=for-the-badge
 [crate-link]: https://crates.io/crates/mc-sgx-panic-abort
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-panic-abort/latest?style=for-the-badge
