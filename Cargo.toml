@@ -1,18 +1,18 @@
 [workspace]
 resolver = "2"
 members = [
-    "core/ffi/types",
+    "core/sys/types",
     "core/build",
-    "crypto/ffi/types",
-    "crypto/ffi",
+    "crypto/sys/types",
+    "crypto/sys",
     "panic/abort",
     "quote_verify",
-    "service/ffi",
-    "service/ffi/types",
-    "trts/ffi",
+    "service/sys",
+    "service/sys/types",
+    "trts/sys",
     "urts",
-    "urts/ffi",
-    "urts/ffi/types",
+    "urts/sys",
+    "urts/sys/types",
 ]
 exclude = [
     "test_enclave",

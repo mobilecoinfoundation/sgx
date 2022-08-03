@@ -12,7 +12,7 @@
 )]
 
 mod bindings {
-    use mc_sgx_core_ffi_types::{
+    use mc_sgx_core_sys_types::{
         sgx_attributes_t, sgx_config_id_t, sgx_config_svn_t, sgx_isv_svn_t, sgx_isvext_prod_id_t,
         sgx_isvfamily_id_t, sgx_key_request_t, sgx_mac_t, sgx_misc_select_t, sgx_prod_id_t,
         sgx_report_body_t, sgx_report_t, sgx_target_info_t,
