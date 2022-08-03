@@ -44,3 +44,12 @@ jobs:
             jq -r '.packages[].name' | \
             grep -v -e mc-sgx-core-build -e mc-sgx-quote-verify -e mc-sgx-urts | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
+  markdown-lint:
+    runs-on: [self-hosted, Linux, small]
+    container: mobilecoin/builder-install:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install markdown lint
+        run: npm install -g markdownlint-cli@0.32.1
+      - run: markdownlint .
+
