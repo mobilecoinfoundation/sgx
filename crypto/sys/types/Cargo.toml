@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-crypto-ffi-types"
+name = "mc-sgx-crypto-sys-types"
 version = "0.1.0"
 edition = "2021"
 

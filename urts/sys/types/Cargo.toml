@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-urts-ffi-types"
+name = "mc-sgx-urts-sys-types"
 version = "0.1.0"
 edition = "2021"
 
