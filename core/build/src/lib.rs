@@ -7,12 +7,17 @@ use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
+/// Normalizes a type encountered by bindgen
+///
 /// Provides a default [bindgen::callbacks::ParserCallbacks::item_name]
 /// implementation that works with most SGX types.
+/// The type should come back in the form of `sgx_<main_text_from_c_interface>`
+///
+/// Returns `None` if the type is already normalized
 ///
 /// # Arguments
 /// * `name` - The name of the type to determine the bindgen name of.
-pub fn sgx_item_name(name: &str) -> Option<String> {
+pub fn sgx_normalize_item_name(name: &str) -> Option<String> {
     if name.starts_with("_sgx") {
         Some(name[1..].to_owned())
     } else if name.starts_with('_') {
@@ -45,11 +50,11 @@ pub fn sgx_builder() -> Builder {
 ///
 /// This provides a default implementation for most of the SGX libraries
 #[derive(Debug)]
-pub struct SGXParseCallbacks;
+pub struct SgxParseCallbacks;
 
-impl ParseCallbacks for SGXParseCallbacks {
+impl ParseCallbacks for SgxParseCallbacks {
     fn item_name(&self, name: &str) -> Option<String> {
-        sgx_item_name(name)
+        sgx_normalize_item_name(name)
     }
 }
 
