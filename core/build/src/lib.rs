@@ -2,9 +2,61 @@
 
 #![doc = include_str!("../README.md")]
 
+use bindgen::{callbacks::ParseCallbacks, Builder, EnumVariation};
 use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
+
+/// Normalizes a type encountered by bindgen
+///
+/// Provides a default [bindgen::callbacks::ParserCallbacks::item_name]
+/// implementation that works with most SGX types.
+/// The type should come back in the form of `sgx_<main_text_from_c_interface>`
+///
+/// Returns `None` if the type is already normalized
+///
+/// # Arguments
+/// * `name` - The name of the type to determine the bindgen name of.
+pub fn sgx_normalize_item_name(name: &str) -> Option<String> {
+    if name.starts_with("_sgx") {
+        Some(name[1..].to_owned())
+    } else if name.starts_with('_') {
+        Some(format!("sgx{}", name))
+    } else {
+        None
+    }
+}
+
+/// Returns a builder configured with the defaults for using bindgen with the
+/// SGX libraries.
+pub fn sgx_builder() -> Builder {
+    Builder::default()
+        .derive_copy(true)
+        .derive_debug(true)
+        .derive_default(true)
+        .derive_eq(true)
+        .derive_hash(true)
+        .derive_ord(true)
+        .derive_partialeq(true)
+        .derive_partialord(true)
+        .default_enum_style(EnumVariation::Consts)
+        .prepend_enum_name(false)
+        .use_core()
+        .ctypes_prefix("core::ffi")
+        .allowlist_recursively(false)
+}
+
+/// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
+///
+/// This provides a default implementation for most of the SGX libraries
+#[derive(Debug)]
+pub struct SgxParseCallbacks;
+
+impl ParseCallbacks for SgxParseCallbacks {
+    fn item_name(&self, name: &str) -> Option<String> {
+        sgx_normalize_item_name(name)
+    }
+}
 
 /// Return the SGX library path.
 ///
