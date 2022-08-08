@@ -44,6 +44,7 @@ pub fn sgx_builder() -> Builder {
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
+        .parse_callbacks(Box::new(SgxParseCallbacks))
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]

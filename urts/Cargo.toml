@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 mc-sgx-urts-sys = { path = "sys", default-features = false }
+mc-sgx-core-sys-types = { path = "../core/sys/types" }
+mc-sgx-urts-sys-types = { path = "sys/types" }
 
 [features]
 hw = ["mc-sgx-urts-sys/hw"]
