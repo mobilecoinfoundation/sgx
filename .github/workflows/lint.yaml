@@ -52,4 +52,4 @@ jobs:
       - uses: xt0rted/markdownlint-problem-matcher@v1
       - name: Install markdown lint
         run: npm install -g markdownlint-cli@0.32.1
-      - run: markdownlint --disable 'MD013' --ignore-path 'target/**' "**/*.md"
+      - run: markdownlint --disable 'MD013' "**/*.md"
