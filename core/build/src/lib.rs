@@ -76,12 +76,12 @@ pub fn build_output_path() -> PathBuf {
 ///
 /// Some SGX libraries have a suffix for example `sgx_trts.a` versus
 /// `sgx_trts_sim.a`.  This will result the suffix based on the presence of the
-/// feature `hw`.
+/// feature `sim`.
 pub fn sgx_library_suffix() -> &'static str {
     // See https://doc.rust-lang.org/cargo/reference/features.html#build-scripts
     // for description of `CARGO_FEATURE_<name>`
-    match env::var("CARGO_FEATURE_HW") {
-        Ok(_) => "",
-        _ => "_sim",
+    match env::var("CARGO_FEATURE_SIM") {
+        Ok(_) => "_sim",
+        _ => "",
     }
 }

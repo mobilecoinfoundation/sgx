@@ -9,7 +9,7 @@ test = false
 
 [features]
 default = []
-hw = []
+sim = []
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../../core/sys/types" }
