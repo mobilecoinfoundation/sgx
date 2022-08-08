@@ -45,6 +45,9 @@ fn main() {
     let include_arg = format!("-I{}/include", sdk_path);
     cargo_emit::rerun_if_changed!("{}", include_arg);
 
+    // As of INTEL-SA-00615, 32-on-64bit enclaves are insecure, so we don't support them.
+    let link_path = format!("{}/lib64", sdk_path);
+
     let out_path = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR was not set"));
 
     Builder::default()
@@ -72,7 +75,6 @@ fn main() {
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
-    let lib_path = format!("{}/lib64", sdk_path);
-    cargo_emit::rustc_link_search!(lib_path);
+    cargo_emit::rustc_link_search!("{}", link_path);
     cargo_emit::rustc_link_lib!("static=sgx_capable");
 }

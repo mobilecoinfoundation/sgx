@@ -1,6 +1,6 @@
 # MobileCoin's Rust FFI for the Intel SGX SDK
 
-[![mc-sgx-capable-ffi-types][crate-image]][crate-link]
+[![mc-sgx-capable-sys-types][crate-image]][crate-link]
 ![License][license-image]
 [![Project Chat][chat-image]][chat-link]
 
@@ -12,14 +12,14 @@ This crate contains the FFI type definitions which are used by the `sgx_capable`
 
 [//]: # (badges)
 
-[crate-image]: https://img.shields.io/crates/v/mc-sgx-capable-ffi-types.svg?style=for-the-badge
+[crate-image]: https://img.shields.io/crates/v/mc-sgx-capable-sys-types.svg?style=for-the-badge
 [crate-link]: https://crates.io/crates/aead
-[license-image]: https://img.shields.io/crates/l/mc-sgx-capable-ffi-types?style=for-the-badge
+[license-image]: https://img.shields.io/crates/l/mc-sgx-capable-sys-types?style=for-the-badge
 [chat-image]: https://img.shields.io/discord/MOBILECOIN?style=for-the-badge
 [chat-link]: https://mobilecoin.chat
-[docs-image]: https://img.shields.io/docsrs/mc-sgx-capable-ffi-types?style=for-the-badge
-[docs-link]: https://docs.rs/crate/mc-sgx-capable-ffi-types
+[docs-image]: https://img.shields.io/docsrs/mc-sgx-capable-sys-types?style=for-the-badge
+[docs-link]: https://docs.rs/crate/mc-sgx-capable-sys-types
 [codecov-image]: https://img.shields.io/codecov/c/github/mobilecoinfoundation/sgx/develop?style=for-the-badge
 [codecov-link]: https://codecov.io/gh/mobilecoinfoundation/sgx
-[deps-image]: https://deps.rs/crate/mc-sgx-capable-ffi-types/status.svg?style=for-the-badge
-[deps-link]: https://deps.rs/crate/mc-sgx-capable-ffi-types
+[deps-image]: https://deps.rs/crate/mc-sgx-capable-sys-types/status.svg?style=for-the-badge
+[deps-link]: https://deps.rs/crate/mc-sgx-capable-sys-types

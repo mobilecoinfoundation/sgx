@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-capable-ffi-sys"
+name = "mc-sgx-capable-sys"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
@@ -13,8 +13,8 @@ This crate contains the FFI linkage for the `libsgx_capable.so` library.
 '''
 
 [dependencies]
-mc-sgx-capable-ffi-types = { path = "../types", version = "0.1.0" }
-mc-sgx-core-ffi-types = { path = "../../../core/ffi/types", version = "0.1.0" }
+mc-sgx-capable-sys-types = { path = "types", version = "0.1.0" }
+mc-sgx-core-ffi-types = { path = "../../core/ffi/types", version = "0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"

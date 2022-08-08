@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-capable-ffi-types"
+name = "mc-sgx-capable-sys-types"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
