@@ -528,7 +528,7 @@ dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-capable-sys-types",
- "mc-sgx-core-ffi-types",
+ "mc-sgx-core-sys-types",
 ]
 
 [[package]]
