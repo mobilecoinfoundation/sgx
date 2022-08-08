@@ -1,7 +1,10 @@
 [package]
-name = "mc-sgx-crypto-sys-types"
+name = "mc-sgx-tservice-sys-types"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+mc-sgx-core-sys-types = { path = "../../../core/sys/types" }
 
 [build-dependencies]
 bindgen = "0.60.1"

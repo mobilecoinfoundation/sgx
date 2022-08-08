@@ -19,7 +19,7 @@ fn main() {
         .clang_arg(&format!("-I{}/include", sgx_library_path))
         .blocklist_type("*")
         .allowlist_function("sgx_.*")
-        // Need to block all of the crypto functions they come from the crypto
+        // Need to block all of the tcrypto functions they come from the tcrypto
         // crate
         .blocklist_function("sgx_sha.*")
         .blocklist_function("sgx_rijndael.*")

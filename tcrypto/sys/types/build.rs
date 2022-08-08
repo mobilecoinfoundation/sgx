@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Builds the FFI type bindings for the crypto functions, (aes, rsa, etc.),
-//! of the Intel SGX SDK
+//! Builds the FFI type bindings for the trusted crypto functions, (aes, rsa,
+//! etc.), of the Intel SGX SDK
 
 use bindgen::{callbacks::ParseCallbacks, Builder};
 
@@ -20,7 +20,7 @@ impl ParseCallbacks for Callbacks {
 fn main() {
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     let bindings = Builder::default()
-        .header_contents("crypto_types.h", "#include <sgx_tcrypto.h>")
+        .header_contents("tcrypto_types.h", "#include <sgx_tcrypto.h>")
         .clang_arg(&format!("-I{}/include", sgx_library_path))
         .blocklist_function("*")
         .newtype_enum("sgx_generic_ecresult_t")

@@ -1,5 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Builds the FFI function bindings for trts (trusted runtime system) of the
+//! Builds the FFI function bindings for trusted crypto (tcrypto) of the
 //! Intel SGX SDK
 
 use bindgen::Builder;
@@ -11,7 +11,7 @@ fn main() {
     rustc_link_search!(&format!("{}/lib64", sgx_library_path));
 
     let bindings = Builder::default()
-        .header_contents("crypto.h", "#include <sgx_tcrypto.h>")
+        .header_contents("tcrypto.h", "#include <sgx_tcrypto.h>")
         .clang_arg(&format!("-I{}/include", sgx_library_path))
         .blocklist_type("*")
         .allowlist_function("sgx_sha.*")
