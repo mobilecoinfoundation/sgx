@@ -1,5 +1,5 @@
 [package]
-name = "mc-sgx-trts-ffi"
+name = "mc-sgx-trts-sys"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,7 +12,7 @@ default = []
 hw = []
 
 [dependencies]
-mc-sgx-core-ffi-types = { path = "../../core/ffi/types" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types" }
 
 [build-dependencies]
 bindgen = "0.60.1"

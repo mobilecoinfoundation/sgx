@@ -1,11 +1,11 @@
 [package]
-name = "mc-sgx-crypto-ffi"
+name = "mc-sgx-crypto-sys"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-core-ffi-types = { path = "../../core/ffi/types" }
-mc-sgx-crypto-ffi-types = { path = "types" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types" }
+mc-sgx-crypto-sys-types = { path = "types" }
 
 [dev-dependencies]
 sha2 = "0.10.2"
