@@ -14,9 +14,11 @@ const SERVICE_TYPES: &[&str] = &[
     "_sgx_dh_session_role_t",
     "_sgx_dh_session_t",
     "_sgx_report2_mac_struct_t",
+    "_sgx_report2_t",
     "_tee_cpu_svn_t",
     "_tee_measurement_t",
     "_tee_report_data_t",
+    "_tee_attributes_t",
     "_tee_report_type_t",
     "tee_mac_t",
 ];
