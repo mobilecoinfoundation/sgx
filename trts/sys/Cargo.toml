@@ -2,6 +2,15 @@
 name = "mc-sgx-trts-sys"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.62.1"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+authors = ["MobileCoin"]
+description = '''
+This crate contains the FFI linkage for the `sgx_trts` library.
+'''
+links = "sgx_trts"
 
 [lib]
 # test false due to needing an enclave to fully link
