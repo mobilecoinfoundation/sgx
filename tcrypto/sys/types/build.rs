@@ -3,6 +3,7 @@
 //! etc.), of the Intel SGX SDK
 
 const CRYPTO_TYPES: &[&str] = &[
+    "_rsa_params_t",
     "_sgx_ec256_dh_shared_t",
     "_sgx_ec256_private_t",
     "_sgx_ec256_public_t",
@@ -18,7 +19,10 @@ const CRYPTO_TYPES: &[&str] = &[
     "sgx_cmac_state_handle_t",
     "sgx_ec256_shared_point_t",
     "sgx_ecc_state_handle_t",
+    "sgx_generic_ecresult_t",
     "sgx_hmac_state_handle_t",
+    "sgx_hmac_256bit_key_t",
+    "sgx_hmac_256bit_tag_t",
     "sgx_rsa3072_signature_t",
     "sgx_rsa_key_type_t",
     "sgx_rsa_result_t",
