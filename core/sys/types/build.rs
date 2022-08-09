@@ -1,8 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Builds the FFI type bindings for the common SGX SDK types
 
-use mc_sgx_core_build::SgxParseCallbacks;
-
 // The types to generate bindings for.
 //
 // To keep the noise out of the bindings, we use the underlying type and tell
@@ -45,8 +43,7 @@ fn main() {
             "#include <sgx_error.h>\n#include <sgx_report.h>",
         )
         .clang_arg(&format!("-I{}/include", sgx_library_path))
-        .newtype_enum("_status_t")
-        .parse_callbacks(Box::new(SgxParseCallbacks));
+        .newtype_enum("_status_t");
 
     for t in CORE_TYPES.iter() {
         builder = builder.allowlist_type(t)

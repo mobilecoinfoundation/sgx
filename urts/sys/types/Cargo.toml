@@ -7,6 +7,9 @@ edition = "2021"
 sw = []
 default = ["sw"]
 
+[dependencies]
+mc-sgx-core-sys-types = { path = "../../../core/sys/types" }
+
 [dev-dependencies]
 test_enclave = { path = "../../../test_enclave" }
 

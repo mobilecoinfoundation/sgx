@@ -624,7 +624,9 @@ dependencies = [
 name = "mc-sgx-urts"
 version = "0.1.0"
 dependencies = [
+ "mc-sgx-core-sys-types",
  "mc-sgx-urts-sys",
+ "mc-sgx-urts-sys-types",
  "test_enclave",
 ]
 
@@ -647,6 +649,7 @@ dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
  "test_enclave",
 ]
 
