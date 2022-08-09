@@ -7,7 +7,7 @@ use cargo_emit::{rustc_link_lib, rustc_link_search};
 
 fn main() {
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
-    rustc_link_lib!("sgx_tstdc");
+    rustc_link_lib!("static=sgx_tstdc");
     rustc_link_search!(&format!("{}/lib64", sgx_library_path));
 
     let out_path = mc_sgx_core_build::build_output_path();
