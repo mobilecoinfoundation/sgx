@@ -39,6 +39,8 @@ pub fn sgx_builder() -> Builder {
         .derive_ord(true)
         .derive_partialeq(true)
         .derive_partialord(true)
+        // Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
+        .generate_comments(false)
         .default_enum_style(EnumVariation::Consts)
         .prepend_enum_name(false)
         .use_core()
