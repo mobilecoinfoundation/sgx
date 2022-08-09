@@ -1,6 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
+    "capable/sys",
+    "capable/sys/types",
     "core/sys/types",
     "core/build",
     "crypto/sys/types",
@@ -33,4 +35,3 @@ overflow-checks = false
 # Skip the need for LD_LIBRARY_PATH in `cargo test`
 [profile.test]
 rpath = true
-

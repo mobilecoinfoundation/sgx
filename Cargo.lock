@@ -522,6 +522,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-capable-sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-capable-sys-types",
+ "mc-sgx-core-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-capable-sys-types"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+]
+
+[[package]]
 name = "mc-sgx-core-build"
 version = "0.1.0"
 dependencies = [
