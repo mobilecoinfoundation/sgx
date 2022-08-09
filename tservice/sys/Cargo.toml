@@ -1,10 +1,10 @@
 [package]
-name = "mc-sgx-service-sys"
+name = "mc-sgx-tservice-sys"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-service-sys-types = { path = "types" }
+mc-sgx-tservice-sys-types = { path = "types" }
 mc-sgx-core-sys-types = { path = "../../core/sys/types" }
 
 [build-dependencies]

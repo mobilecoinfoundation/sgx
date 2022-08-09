@@ -8,7 +8,7 @@
 pub use core::ffi::c_size_t as size_t;
 pub use mc_sgx_core_sys_types::sgx_status_t;
 
-pub use mc_sgx_crypto_sys_types::{
+pub use mc_sgx_tcrypto_sys_types::{
     sgx_aes_ctr_128bit_key_t, sgx_aes_gcm_128bit_key_t, sgx_aes_gcm_128bit_tag_t,
     sgx_aes_state_handle_t, sgx_cmac_128bit_key_t, sgx_cmac_128bit_tag_t, sgx_cmac_state_handle_t,
     sgx_ec256_dh_shared_t, sgx_ec256_private_t, sgx_ec256_public_t, sgx_ec256_signature_t,
