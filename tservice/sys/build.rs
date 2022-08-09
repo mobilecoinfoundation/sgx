@@ -2,39 +2,58 @@
 //! Builds the FFI function bindings for tservice, (trusted service) of the
 //! Intel Intel SGX SDK
 
-use bindgen::Builder;
 use cargo_emit::{rustc_link_lib, rustc_link_search};
+
+const SERVICE_FUNCTIONS: &[&str] = &[
+    "sgx_create_report",
+    "sgx_self_report",
+    "sgx_get_key",
+    "sgx_aligned_free",
+    "sgx_aligned_malloc",
+    "sgx_get_aligned_ptr",
+    "sgx_verify_report",
+    "sgx_verify_report2",
+    "sgx_derive_target_from_report",
+    "sgx_dh_init_session",
+    "sgx_dh_responder_gen_msg1",
+    "sgx_dh_responder_proc_msg2",
+    "sgx_LAv1_initiator_proc_msg1",
+    "sgx_LAv1_initiator_proc_msg3",
+    "sgx_LAv2_initiator_proc_msg1",
+    "sgx_LAv2_initiator_proc_msg3",
+    "sgx_self_target",
+    "sgx_seal_data",
+    "sgx_seal_data_ex",
+    "sgx_unseal_data",
+    "sgx_mac_aadata",
+    "sgx_mac_aadata_ex",
+    "sgx_unmac_aadata",
+    "sgx_seal_data_iv",
+    "sgx_unseal_data_helper",
+    "sgx_calc_sealed_data_size",
+    "sgx_get_add_mac_txt_len",
+    "sgx_get_encrypt_txt_len",
+];
 
 fn main() {
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
-    rustc_link_lib!(&format!("sgx_tservice{}", sgx_suffix));
+    rustc_link_lib!(&format!("static=sgx_tservice{}", sgx_suffix));
     rustc_link_search!(&format!("{}/lib64", sgx_library_path));
 
-    let bindings = Builder::default()
-        .header_contents(
-            "tservice.h",
-            "#include <sgx_tseal.h>\n#include <sgx_dh.h>\n#include <sgx_utils.h>",
-        )
+    let mut builder = mc_sgx_core_build::sgx_builder()
+        .header("wrapper.h")
         .clang_arg(&format!("-I{}/include", sgx_library_path))
-        .blocklist_type("*")
-        .allowlist_function("sgx_.*")
-        // Need to block all of the tcrypto functions they come from the tcrypto
-        // crate
-        .blocklist_function("sgx_sha.*")
-        .blocklist_function("sgx_rijndael.*")
-        .blocklist_function("sgx_cmac.*")
-        .blocklist_function("sgx_hmac.*")
-        .blocklist_function("sgx_aes.*")
-        .blocklist_function("sgx_ecc.*")
-        .blocklist_function("sgx_.*ecdsa.*")
-        .blocklist_function("sgx_.*rsa.*")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .generate()
-        .expect("Unable to generate bindings");
+        .blocklist_type("*");
+
+    for f in SERVICE_FUNCTIONS {
+        builder = builder.allowlist_function(f);
+    }
 
     let out_path = mc_sgx_core_build::build_output_path();
-    bindings
+    builder
+        .generate()
+        .expect("Unable to generate bindings")
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }

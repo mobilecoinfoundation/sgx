@@ -18,7 +18,7 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 /// # Arguments
 /// * `name` - The name of the type to determine the bindgen name of.
 pub fn sgx_normalize_item_name(name: &str) -> Option<String> {
-    if name.starts_with("_sgx") {
+    if name.starts_with("_sgx") || name.starts_with("_tee") {
         Some(name[1..].to_owned())
     } else if name.starts_with('_') {
         Some(format!("sgx{}", name))
@@ -44,6 +44,7 @@ pub fn sgx_builder() -> Builder {
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
+        .parse_callbacks(Box::new(SgxParseCallbacks))
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
