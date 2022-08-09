@@ -7,6 +7,7 @@ const URTS_TYPES: &[&str] = &[
     "sgx_enclave_id_t",
     "sgx_launch_token_t",
     "_sgx_misc_attribute_t",
+    "_sgx_kss_config_t",
 ];
 
 fn main() {
