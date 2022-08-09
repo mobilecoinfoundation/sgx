@@ -3,6 +3,7 @@
 //! SGX SDK
 
 const SERVICE_TYPES: &[&str] = &[
+    "align_req_t",
     "_aes_gcm_data_t",
     "_sealed_data_t",
     "_sgx_dh_msg1_t",
