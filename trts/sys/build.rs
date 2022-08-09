@@ -14,6 +14,7 @@ fn main() {
     let bindings = Builder::default()
         .header_contents("trts.h", "#include <sgx_trts.h>")
         .clang_arg(&format!("-I{}/include", &sgx_library_path))
+        .allowlist_recursively(false)
         .blocklist_type("*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .ctypes_prefix("core::ffi")
