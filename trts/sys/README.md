@@ -31,9 +31,8 @@ installed. When unset the location will default to `/opt/intel/sgxsdk`
 
 ## Features
 
-When no features are present the SGX software simulation libraries will be
-linked in. When the `hw` feature is present the hardware SGX libraries will be
-linked in.
+When no features are present the SGX hardware libraries will be linked in. When
+the `sim` feature is present the simulation SGX libraries will be linked in.
 
 ## References
 

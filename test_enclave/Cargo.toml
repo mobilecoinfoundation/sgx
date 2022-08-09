@@ -8,8 +8,8 @@ mc-sgx-urts-sys-types = { path = "../urts/sys/types" }
 mc-sgx-core-sys-types = { path = "../core/sys/types" }
 
 [features]
-hw = []
 default = []
+sim = []
 
 [build-dependencies]
 cargo-emit = "0.2.1"
