@@ -5,7 +5,6 @@
 use cargo_emit::{rustc_link_lib, rustc_link_search};
 
 const TRTS_FUNCTIONS: &[&str] = &[
-    "sgx_accept_forward",
     "sgx_is_enclave_crashed",
     "sgx_is_outside_enclave",
     "sgx_is_within_enclave",
