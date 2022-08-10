@@ -1,25 +1,21 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Builds the FFI type bindings for the dcap quote library of the Intel SGX SDK
+//! Builds the FFI type bindings for the dcap quoteverify library of the Intel
+//! SGX SDK
 
 use bindgen::callbacks::ParseCallbacks;
 
-const DCAP_QL_TYPES: &[&str] = &[
-    "_quote3_error_t",
-    "_sgx_pce_error_t",
-    "_sgx_pce_info_t",
-    "_sgx_prod_type_t",
-    "_sgx_ql_config_t",
-    "_sgx_ql_config_version_t",
-    "_sgx_ql_log_level_t",
-    "_sgx_ql_qe3_id_t",
+const DCAP_QUOTEVERIFY_TYPES: &[&str] = &[
+    "sgx_qv_path_type_t",
+    "_sgx_ql_qv_result_t",
+    "_sgx_ql_qv_supplemental_t",
+    "_pck_cert_flag_enum_t",
+    "_sgx_ql_att_key_id_param_t",
+    "_sgx_ql_att_id_list_t",
     "_sgx_ql_qe_report_info_t",
-    "_sgx_ql_qve_collateral_param_t",
-    "_sgx_ql_qve_collateral_t",
-    "_sgx_ql_qve_collateral_t",
-    "_sgx_ql_request_policy",
-    "sgx_ql_logging_callback_t",
-    "sgx_ql_path_type_t",
-    "sgx_quote3_error_t",
+    "_quote_nonce",
+    "_sgx_ql_att_key_id_list_header_t",
+    "_sgx_att_key_id_ext_t",
+    "_sgx_ql_att_key_id_t",
 ];
 
 /// ParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
@@ -28,10 +24,9 @@ pub struct Callbacks;
 
 impl ParseCallbacks for Callbacks {
     fn item_name(&self, name: &str) -> Option<String> {
-        // The `_sgx_ql_request_policy` is an outlier name missing the trailing
-        // `_t`
-        if name == "_sgx_ql_request_policy" {
-            Some("sgx_ql_request_policy_t".to_owned())
+        // The `_quote_nonce` is an outlier name missing the trailing `_t`
+        if name == "_quote_nonce" {
+            Some("sgx_quote_nonce_t".to_owned())
         } else {
             mc_sgx_core_build::normalize_item_name(name)
         }
@@ -44,7 +39,7 @@ fn main() {
         .blocklist_function("*")
         .parse_callbacks(Box::new(Callbacks));
 
-    for t in DCAP_QL_TYPES {
+    for t in DCAP_QUOTEVERIFY_TYPES {
         builder = builder.allowlist_type(t);
     }
 

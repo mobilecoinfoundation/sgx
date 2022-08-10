@@ -18,7 +18,7 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 /// ```C
 /// void some_function(foo_bar arg);
 /// ```
-const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3"];
+const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3", "_pck"];
 
 /// Normalizes a type encountered by bindgen
 ///
