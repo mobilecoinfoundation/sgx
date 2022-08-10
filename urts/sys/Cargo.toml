@@ -1,21 +1,28 @@
 [package]
 name = "mc-sgx-urts-sys"
 version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["external-ffi-bindings", "hardware-support"]
+description = "FFI bindings for `sgx_urts`."
 edition = "2021"
+keywords = ["ffi", "sgx"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.62.1"
 
 [features]
 sim = []
 default = []
 
 [dependencies]
-mc-sgx-urts-sys-types = { path = "types" }
-mc-sgx-core-sys-types = { path = "../../core/sys/types" }
+mc-sgx-urts-sys-types = { path = "types", version = "=0.1.0" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"
 cargo-emit = "0.2.1"
-
-mc-sgx-core-build = { path = "../../core/build" }
+mc-sgx-core-build = { path = "../../core/build", version = "=0.1.0" }
 
 [dev-dependencies]
-test_enclave = { path = "../../test_enclave" }
+test_enclave = { path = "../../test_enclave", version = "=0.1.0" }
