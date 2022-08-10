@@ -1,11 +1,19 @@
 [package]
 name = "mc-sgx-tcrypto-sys"
 version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["external-ffi-bindings", "hardware-support", "no-std"]
+description = "FFI bindings for `sgx_tcrypto`."
 edition = "2021"
+keywords = ["crypto", "ffi", "sgx", "no-std"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.62.1"
 
 [dependencies]
-mc-sgx-core-sys-types = { path = "../../core/sys/types" }
-mc-sgx-tcrypto-sys-types = { path = "types" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
+mc-sgx-tcrypto-sys-types = { path = "types", version = "=0.1.0" }
 
 [dev-dependencies]
 sha2 = "0.10.2"

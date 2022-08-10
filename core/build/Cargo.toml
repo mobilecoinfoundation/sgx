@@ -1,7 +1,15 @@
 [package]
 name = "mc-sgx-core-build"
 version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["development-tools"]
+description = "Build Helpers for SGX FFI Crates"
 edition = "2021"
+keywords = ["build", "ffi", "sgx"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.62.1"
 
 [dependencies]
 bindgen = "0.60.1"
