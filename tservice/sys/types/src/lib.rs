@@ -5,7 +5,7 @@
 #![feature(c_size_t)]
 // Nesting to work around clippy warnings, see
 // https://github.com/rust-lang/rust-bindgen/issues/1470
-#[allow(
+#![allow(
     clippy::missing_safety_doc,
     non_camel_case_types,
     non_snake_case,

@@ -1,0 +1,20 @@
+[package]
+name = "mc-sgx-dcap-ql-sys-types"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.62.1"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+
+authors = ["MobileCoin"]
+description = '''
+This crate contains the FFI type definitions which are used by the `libsgx_dcap_ql.so` library.
+'''
+
+[dependencies]
+mc-sgx-core-sys-types = { path = "../../../core/sys/types" }
+
+[build-dependencies]
+bindgen = "0.60.1"
+mc-sgx-core-build = { path = "../../../core/build" }

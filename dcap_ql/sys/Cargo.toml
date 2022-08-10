@@ -1,0 +1,23 @@
+[package]
+name = "mc-sgx-dcap-ql-sys"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.62.1"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+
+authors = ["MobileCoin"]
+description = '''
+This crate contains the FFI linkage for the `libsgx_dcap_ql.so` library.
+'''
+links = "sgx_dcap_ql"
+
+[dependencies]
+mc-sgx-dcap-ql-sys-types = { path = "types" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types" }
+
+[build-dependencies]
+bindgen = "0.60.1"
+cargo-emit = "0.2.1"
+mc-sgx-core-build = { path = "../../core/build" }

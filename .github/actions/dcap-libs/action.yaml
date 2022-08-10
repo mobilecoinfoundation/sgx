@@ -1,0 +1,14 @@
+name: Install DCAP libraries
+description: Installs the DCAP libraries into the environment
+
+runs:
+  using: composite
+  steps:
+    - name: Installing DCAP libraries
+      shell: bash
+      run:
+        source /etc/lsb-release &&
+        echo "deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu $DISTRIB_CODENAME main" | tee /etc/apt/sources.list.d/intel-sgx.list &&
+        wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - &&
+        apt-get update &&
+        apt-get install -y libsgx-dcap-ql-dev

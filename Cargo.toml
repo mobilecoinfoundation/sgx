@@ -5,6 +5,8 @@ members = [
     "capable/sys/types",
     "core/sys/types",
     "core/build",
+    "dcap_ql/sys",
+    "dcap_ql/sys/types",
     "panic/abort",
     "quote_verify",
     "tcrypto/sys",
