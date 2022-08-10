@@ -35,7 +35,7 @@ pub fn normalize_item_name(name: &str) -> Option<String> {
         .iter()
         .any(|prefix| name.starts_with(prefix))
     {
-        Some(name[1..].to_owned())
+        name.strip_prefix("_").map(str::to_string)
     } else if name.starts_with('_') {
         Some(format!("sgx{}", name))
     } else {
