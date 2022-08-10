@@ -7,6 +7,19 @@ use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 
+/// Type name prefixes that need the underscore prefix stripped from them.
+///
+/// For example `_foo_bar` should be `foo_bar`.
+///
+/// While it would be nice to add the `sgx` prefix to any non `_sgx` named type,
+/// the name does not propagate to the types used in the generated bindings.
+/// For example mapping `_foo_bar` to `sgx_foo_bar` would fail because the
+/// following function would still be looking for `foo_bar`.
+/// ```C
+/// void some_function(foo_bar arg);
+/// ```
+const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3"];
+
 /// Normalizes a type encountered by bindgen
 ///
 /// Provides a default [bindgen::callbacks::ParserCallbacks::item_name]
@@ -17,9 +30,12 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 ///
 /// # Arguments
 /// * `name` - The name of the type to determine the bindgen name of.
-pub fn sgx_normalize_item_name(name: &str) -> Option<String> {
-    if name.starts_with("_sgx") || name.starts_with("_tee") {
-        Some(name[1..].to_owned())
+pub fn normalize_item_name(name: &str) -> Option<String> {
+    if STRIP_UNDERSCORE_PREFIX
+        .iter()
+        .any(|prefix| name.starts_with(prefix))
+    {
+        name.strip_prefix('_').map(str::to_string)
     } else if name.starts_with('_') {
         Some(format!("sgx{}", name))
     } else {
@@ -57,7 +73,7 @@ pub struct SgxParseCallbacks;
 
 impl ParseCallbacks for SgxParseCallbacks {
     fn item_name(&self, name: &str) -> Option<String> {
-        sgx_normalize_item_name(name)
+        normalize_item_name(name)
     }
 }
 
