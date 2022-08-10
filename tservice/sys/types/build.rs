@@ -2,51 +2,42 @@
 //! Builds the FFI type bindings for tservice, (trusted service) of the Intel
 //! SGX SDK
 
-use bindgen::{callbacks::ParseCallbacks, Builder};
-
-#[derive(Debug)]
-struct Callbacks;
-
-impl ParseCallbacks for Callbacks {
-    fn item_name(&self, name: &str) -> Option<String> {
-        match name {
-            "_aes_gcm_data_t" => Some("sgx_aes_gcm_data_t".to_owned()),
-            "_sealed_data_t" => Some("sgx_sealed_data_t".to_owned()),
-            name => {
-                if name.starts_with("_sgx") || name.starts_with("_tee") {
-                    Some(name[1..].to_owned())
-                } else {
-                    None
-                }
-            }
-        }
-    }
-}
+const SERVICE_TYPES: &[&str] = &[
+    "align_req_t",
+    "_aes_gcm_data_t",
+    "_sealed_data_t",
+    "_sgx_dh_msg1_t",
+    "_sgx_dh_msg2_t",
+    "_sgx_dh_msg3_body_t",
+    "_sgx_dh_msg3_t",
+    "_sgx_dh_session_enclave_identity_t",
+    "_sgx_dh_session_role_t",
+    "_sgx_dh_session_t",
+    "_sgx_report2_mac_struct_t",
+    "_sgx_report2_t",
+    "_tee_cpu_svn_t",
+    "_tee_measurement_t",
+    "_tee_report_data_t",
+    "_tee_attributes_t",
+    "_tee_report_type_t",
+    "tee_mac_t",
+];
 
 fn main() {
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
-    let bindings = Builder::default()
-        .header_contents(
-            "tservice.h",
-            "#include <sgx_tseal.h>\n#include <sgx_dh.h>\n#include <sgx_utils.h>",
-        )
+    let mut builder = mc_sgx_core_build::sgx_builder()
+        .header("wrapper.h")
         .clang_arg(&format!("-I{}/include", sgx_library_path))
-        .blocklist_type("sgx_.*")
-        .allowlist_type("_aes_gcm_data_t")
-        .allowlist_type("_sealed_data_t")
-        .allowlist_type("_sgx_dh_.*")
-        .allowlist_type("_sgx_report2_mac_struct_t")
-        // `_sgx_dh_msg3_body_t` is a packed struct that bindgen can't derive
-        // Copy for, which will result in E0133.
-        .no_debug("_sgx_dh_msg3_body_t")
-        .parse_callbacks(Box::new(Callbacks))
-        .use_core()
-        .ctypes_prefix("core::ffi")
-        .generate()
-        .expect("Unable to generate bindings");
+        .blocklist_function("*");
+
+    for t in SERVICE_TYPES {
+        builder = builder.allowlist_type(t);
+    }
 
     let out_path = mc_sgx_core_build::build_output_path();
-    bindings
+    builder
+        .generate()
+        .expect("Unable to generate bindings")
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }

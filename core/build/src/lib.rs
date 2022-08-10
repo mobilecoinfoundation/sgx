@@ -18,7 +18,7 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 /// # Arguments
 /// * `name` - The name of the type to determine the bindgen name of.
 pub fn sgx_normalize_item_name(name: &str) -> Option<String> {
-    if name.starts_with("_sgx") {
+    if name.starts_with("_sgx") || name.starts_with("_tee") {
         Some(name[1..].to_owned())
     } else if name.starts_with('_') {
         Some(format!("sgx{}", name))
@@ -39,6 +39,8 @@ pub fn sgx_builder() -> Builder {
         .derive_ord(true)
         .derive_partialeq(true)
         .derive_partialord(true)
+        // Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
+        .generate_comments(false)
         .default_enum_style(EnumVariation::Consts)
         .prepend_enum_name(false)
         .use_core()

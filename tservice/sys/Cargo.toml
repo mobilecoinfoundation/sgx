@@ -2,6 +2,17 @@
 name = "mc-sgx-tservice-sys"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.62.1"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+
+authors = ["MobileCoin"]
+description = '''
+This crate contains the FFI linkage for the `sgx_tservice` library.
+'''
+
+links = "sgx_tservice"
 
 [dependencies]
 mc-sgx-tservice-sys-types = { path = "types" }

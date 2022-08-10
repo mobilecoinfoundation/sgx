@@ -618,6 +618,7 @@ dependencies = [
  "bindgen",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
+ "mc-sgx-tcrypto-sys-types",
 ]
 
 [[package]]
