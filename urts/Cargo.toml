@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mc-sgx-urts-sys = { path = "sys", default-features = false }
+mc-sgx-urts-sys = { path = "sys" }
+mc-sgx-core-sys-types = { path = "../core/sys/types" }
+mc-sgx-urts-sys-types = { path = "sys/types" }
 
 [features]
-hw = ["mc-sgx-urts-sys/hw"]
+sim = ["mc-sgx-urts-sys/sim", "test_enclave/sim"]
 default = []
 
 [dev-dependencies]

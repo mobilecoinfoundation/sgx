@@ -7,6 +7,7 @@ description = "FFI bindings for `sgx_tservice`."
 edition = "2021"
 keywords = ["ffi", "sgx", "no-std"]
 license = "Apache-2.0"
+links = "sgx_tservice"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"

@@ -5,8 +5,8 @@
 #![feature(c_size_t)]
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 
-pub use core::ffi::c_size_t as size_t;
-pub use mc_sgx_core_sys_types::sgx_status_t;
+use core::ffi::c_size_t as size_t;
+use mc_sgx_core_sys_types::sgx_status_t;
 
 pub use mc_sgx_tcrypto_sys_types::{
     sgx_aes_ctr_128bit_key_t, sgx_aes_gcm_128bit_key_t, sgx_aes_gcm_128bit_tag_t,

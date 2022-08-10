@@ -18,7 +18,7 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 /// # Arguments
 /// * `name` - The name of the type to determine the bindgen name of.
 pub fn sgx_normalize_item_name(name: &str) -> Option<String> {
-    if name.starts_with("_sgx") {
+    if name.starts_with("_sgx") || name.starts_with("_tee") {
         Some(name[1..].to_owned())
     } else if name.starts_with('_') {
         Some(format!("sgx{}", name))
@@ -39,11 +39,14 @@ pub fn sgx_builder() -> Builder {
         .derive_ord(true)
         .derive_partialeq(true)
         .derive_partialord(true)
+        // Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
+        .generate_comments(false)
         .default_enum_style(EnumVariation::Consts)
         .prepend_enum_name(false)
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
+        .parse_callbacks(Box::new(SgxParseCallbacks))
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
@@ -75,12 +78,12 @@ pub fn build_output_path() -> PathBuf {
 ///
 /// Some SGX libraries have a suffix for example `sgx_trts.a` versus
 /// `sgx_trts_sim.a`.  This will result the suffix based on the presence of the
-/// feature `hw`.
+/// feature `sim`.
 pub fn sgx_library_suffix() -> &'static str {
     // See https://doc.rust-lang.org/cargo/reference/features.html#build-scripts
     // for description of `CARGO_FEATURE_<name>`
-    match env::var("CARGO_FEATURE_HW") {
-        Ok(_) => "",
-        _ => "_sim",
+    match env::var("CARGO_FEATURE_SIM") {
+        Ok(_) => "_sim",
+        _ => "",
     }
 }

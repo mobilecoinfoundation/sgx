@@ -3,8 +3,8 @@
 Provides a simple enclave that can be used to exercise the SGX SDK for creating
 an enclave and for calling into functions in the enclave.
 
-This crate supports testing with the simulation as well as the hardware SGX
-SDKs. In order to test with the hardware SDKs use the `hw` feature.
+This crate supports testing with the hardware as well as the simulation SGX
+SDKs. To test with the simulation SDKs use the `sim` feature.
 
 This crate can be added to the development dependency of the crate to test the
 creation of enclaves with.
