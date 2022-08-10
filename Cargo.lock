@@ -596,6 +596,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-dcap-tvl-sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-dcap-ql-sys-types",
+ "mc-sgx-dcap-quoteverify-sys-types",
+]
+
+[[package]]
 name = "mc-sgx-panic-abort"
 version = "0.1.0"
 
