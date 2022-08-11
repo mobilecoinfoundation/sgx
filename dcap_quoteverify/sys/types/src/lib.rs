@@ -1,5 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Rust FFI types for the SGX SDK DCAP ql library.
+//! Rust FFI types for the SGX SDK DCAP quoteverify library.
 
 #![no_std]
 #![allow(

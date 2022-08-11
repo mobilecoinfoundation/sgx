@@ -1,5 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Builds the FFI function bindings for dcap ql library of the Intel SGX SDK
+//! Builds the FFI function bindings for dcap quoteverify library of the Intel
+//! SGX SDK
 
 use cargo_emit::rustc_link_lib;
 
