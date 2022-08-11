@@ -43,7 +43,7 @@ jobs:
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
-            grep -v -e mc-sgx-core-build -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-quote-verify -e mc-sgx-urts -e mc-sgx-capable-sys | \
+            grep -v -e mc-sgx-core-build -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts -e mc-sgx-capable-sys | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
   markdown-lint:
     runs-on: [self-hosted, Linux, small]
