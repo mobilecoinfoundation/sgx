@@ -48,7 +48,7 @@ the `sim` feature is present the simulation SGX libraries will be linked in.
 - <https://github.com/intel/linux-sgx#build-the-intelr-sgx-sdk-and-intelr-sgx-psw-package>
 
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-trts-sys.svg?style=for-the-badge
-[crate-link]: https://crates.io/crates/aead
+[crate-link]: https://crates.io/crates/mc-sgx-trts-sys
 [license-image]: https://img.shields.io/crates/l/mc-sgx-trts-sys?style=for-the-badge
 [chat-image]: https://img.shields.io/discord/MOBILECOIN?style=for-the-badge
 [chat-link]: https://mobilecoin.chat
