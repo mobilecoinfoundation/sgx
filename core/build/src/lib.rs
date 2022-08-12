@@ -91,10 +91,10 @@ fn sgx_sdk_path() -> Option<PathBuf> {
     env::var("SGX_SDK").ok().map(PathBuf::from)
 }
 
-/// Return the cargo manifest dir (root dir of this crate), if it exists
-fn cargo_manifest_dir() -> Option<PathBuf> {
-    env::var("CARGO_MANIFEST_DIR").ok().map(PathBuf::from)
-}
+/// This constant contains the manifest dir of crate-build, which will contain
+/// the headers, which allows all the headers to live in one dir, rather than
+/// scattered about the repo.
+const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 /// Return the SGX include path
 ///
@@ -107,8 +107,7 @@ pub fn sgx_include_path() -> String {
             sdk_path
         })
         .unwrap_or_else(|| {
-            let mut crate_dir = cargo_manifest_dir()
-                .expect("Could not find SGX SDK: neither SGX_SDK nor CARGO_MANIFEST_DIR were set");
+            let mut crate_dir = PathBuf::from(CARGO_MANIFEST_DIR);
             crate_dir.push("headers");
             crate_dir
         })

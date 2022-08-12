@@ -17,16 +17,16 @@ use x509_parser::{
 const ROOT_CERT_PEM: &[u8] = include_bytes!("../data/DCAPCACert.pem");
 
 // The size of a quote header. Table 3 of
-// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
 const QUOTE_HEADER_SIZE: usize = 48;
 
 // The size of an enclave report (body). Table 5 of
-// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
 const ENCLAVE_REPORT_SIZE: usize = 384;
 
 // The size of the report data in an enclave report. *Report Data* of
 // the Enclave Report Body. Table 5 of
-// https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
+// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
 const ENCLAVE_REPORT_DATA_SIZE: usize = 64;
 
 // Size of the full ECDSA signature.

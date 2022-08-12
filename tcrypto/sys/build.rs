@@ -2,8 +2,6 @@
 //! Builds the FFI function bindings for trusted crypto (tcrypto) of the
 //! Intel SGX SDK
 
-use cargo_emit::{rustc_link_lib, rustc_link_search};
-
 const CRYPTO_FUNCTIONS: &[&str] = &[
     "sgx_aes_ctr_decrypt",
     "sgx_aes_ctr_encrypt",
@@ -62,13 +60,16 @@ const CRYPTO_FUNCTIONS: &[&str] = &[
 ];
 
 fn main() {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
-    rustc_link_lib!("static=sgx_tcrypto");
-    rustc_link_search!(&format!("{}/lib64", sgx_library_path));
+    let include_path = mc_sgx_core_build::sgx_include_path();
+    cargo_emit::rerun_if_changed!(include_path);
+
+    let link_path = mc_sgx_core_build::sgx_library_path();
+    cargo_emit::rustc_link_lib!("static=sgx_tcrypto");
+    cargo_emit::rustc_link_search!(link_path);
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}/include", sgx_library_path))
+        .clang_arg(&format!("-I{}", link_path))
         .blocklist_type("*");
 
     for f in CRYPTO_FUNCTIONS {
