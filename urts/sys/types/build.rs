@@ -1,7 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
 //! Builds the FFI type bindings for the untrusted side of the Intel SGX SDK
-use std::{env, path::PathBuf};
 
 const URTS_TYPES: &[&str] = &[
     "sgx_enclave_id_t",
@@ -11,16 +10,18 @@ const URTS_TYPES: &[&str] = &[
 ];
 
 fn main() {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let include_path = mc_sgx_core_build::sgx_include_path();
+    cargo_emit::rerun_if_changed!(include_path);
+
     let mut builder = mc_sgx_core_build::sgx_builder()
-        .header_contents("urts_types.h", "#include <sgx_urts.h>")
-        .clang_arg(&format!("-I{}/include", sgx_library_path));
+        .header("wrapper.h")
+        .clang_arg(&format!("-I{}", include_path));
 
     for t in URTS_TYPES {
         builder = builder.allowlist_type(t);
     }
 
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_path = mc_sgx_core_build::build_output_path();
     builder
         .generate()
         .expect("Unable to generate bindings")
