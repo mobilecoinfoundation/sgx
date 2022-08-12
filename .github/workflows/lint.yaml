@@ -28,6 +28,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
         run: rustup show
+      - uses: ./.github/actions/dcap-libs
       - run: cargo clippy --all --all-features --locked -- -D warnings
   nono:
     runs-on: [self-hosted, Linux, small]
@@ -42,5 +43,14 @@ jobs:
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
-            grep -v -e mc-sgx-core-build -e mc-sgx-quote-verify -e mc-sgx-urts | \
+            grep -v -e mc-sgx-core-build -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts -e mc-sgx-capable-sys | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
+  markdown-lint:
+    runs-on: [self-hosted, Linux, small]
+    container: mobilecoin/builder-install:latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: xt0rted/markdownlint-problem-matcher@v1
+      - name: Install markdown lint
+        run: npm install -g markdownlint-cli@0.32.1
+      - run: markdownlint --disable 'MD013' "**/*.md"

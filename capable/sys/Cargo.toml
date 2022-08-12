@@ -1,0 +1,21 @@
+[package]
+name = "mc-sgx-capable-sys"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.62.1"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+
+authors = ["MobileCoin"]
+description = '''
+This crate contains the FFI linkage for the `libsgx_capable.so` library.
+'''
+
+[dependencies]
+mc-sgx-capable-sys-types = { path = "types", version = "0.1.0" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "0.1.0" }
+
+[build-dependencies]
+bindgen = "0.60.1"
+cargo-emit = "0.2.1"

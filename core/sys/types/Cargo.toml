@@ -1,0 +1,9 @@
+[package]
+name = "mc-sgx-core-sys-types"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[build-dependencies]
+bindgen = "0.60.1"
+mc-sgx-core-build = { path = "../../build" }

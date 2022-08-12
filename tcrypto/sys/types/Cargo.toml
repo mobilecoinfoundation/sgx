@@ -1,0 +1,16 @@
+[package]
+name = "mc-sgx-tcrypto-sys-types"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.62.1"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+authors = ["MobileCoin"]
+description = '''
+This crate contains the FFI type definitions which are used by the `sgx_tcrypto` library.
+'''
+
+[build-dependencies]
+bindgen = "0.60.1"
+mc-sgx-core-build = { path = "../../../core/build" }

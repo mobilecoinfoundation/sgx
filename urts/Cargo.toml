@@ -5,10 +5,12 @@ edition = "2021"
 license = "Apache-2.0"
 
 [dependencies]
-mc-sgx-urts-ffi = { path = "ffi", default-features = false }
+mc-sgx-urts-sys = { path = "sys" }
+mc-sgx-core-sys-types = { path = "../core/sys/types" }
+mc-sgx-urts-sys-types = { path = "sys/types" }
 
 [features]
-hw = ["mc-sgx-urts-ffi/hw"]
+sim = ["mc-sgx-urts-sys/sim", "test_enclave/sim"]
 default = []
 
 [dev-dependencies]

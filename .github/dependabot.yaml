@@ -1,22 +1,12 @@
 version: 2
 updates:
 - package-ecosystem: cargo
-  directory: "/core"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-- package-ecosystem: cargo
-  directory: "/untrusted"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-- package-ecosystem: cargo
-  directory: "/trusted"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-- package-ecosystem: "github-actions"
   directory: "/"
   schedule:
-    # Check for updates to GitHub Actions every weekday
-    interval: "daily"
+    interval: daily
+  open-pull-requests-limit: 25
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10

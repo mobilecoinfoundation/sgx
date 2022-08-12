@@ -522,11 +522,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-core-build"
+name = "mc-sgx-capable-sys"
 version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-capable-sys-types",
+ "mc-sgx-core-sys-types",
+]
 
 [[package]]
-name = "mc-sgx-core-ffi-types"
+name = "mc-sgx-capable-sys-types"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+]
+
+[[package]]
+name = "mc-sgx-core-build"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+]
+
+[[package]]
+name = "mc-sgx-core-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
@@ -534,23 +555,44 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-crypto-ffi"
+name = "mc-sgx-dcap-ql-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-ffi-types",
- "mc-sgx-crypto-ffi-types",
- "sha2",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-dcap-ql-sys-types",
 ]
 
 [[package]]
-name = "mc-sgx-crypto-ffi-types"
+name = "mc-sgx-dcap-ql-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-dcap-quoteverify-sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-core-build",
+ "mc-sgx-dcap-ql-sys-types",
+ "mc-sgx-dcap-quoteverify-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-dcap-quoteverify-sys-types"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-dcap-ql-sys-types",
 ]
 
 [[package]]
@@ -570,62 +612,105 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-service-ffi"
+name = "mc-sgx-tcrypto-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-ffi-types",
- "mc-sgx-service-ffi-types",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-tcrypto-sys-types",
+ "sha2",
 ]
 
 [[package]]
-name = "mc-sgx-service-ffi-types"
+name = "mc-sgx-tcrypto-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "mc-sgx-core-build",
- "mc-sgx-core-ffi-types",
 ]
 
 [[package]]
-name = "mc-sgx-trts-ffi"
+name = "mc-sgx-trts-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-ffi-types",
+ "mc-sgx-core-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-tservice-sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-tservice-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-tservice-sys-types"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-tcrypto-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-tstdc-sys"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cargo-emit",
+ "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-tstdc-sys-types",
+]
+
+[[package]]
+name = "mc-sgx-tstdc-sys-types"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "mc-sgx-core-build",
 ]
 
 [[package]]
 name = "mc-sgx-urts"
 version = "0.1.0"
 dependencies = [
- "mc-sgx-urts-ffi",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-urts-sys",
+ "mc-sgx-urts-sys-types",
  "test_enclave",
 ]
 
 [[package]]
-name = "mc-sgx-urts-ffi"
+name = "mc-sgx-urts-sys"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-core-ffi-types",
- "mc-sgx-urts-ffi-types",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-urts-sys-types",
  "test_enclave",
 ]
 
 [[package]]
-name = "mc-sgx-urts-ffi-types"
+name = "mc-sgx-urts-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
+ "mc-sgx-core-sys-types",
  "test_enclave",
 ]
 
@@ -1064,8 +1149,8 @@ dependencies = [
  "cargo-emit",
  "cc",
  "mc-sgx-core-build",
- "mc-sgx-core-ffi-types",
- "mc-sgx-urts-ffi-types",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-urts-sys-types",
  "rand",
  "rsa",
 ]

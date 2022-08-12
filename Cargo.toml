@@ -1,18 +1,26 @@
 [workspace]
 resolver = "2"
 members = [
-    "core/ffi/types",
+    "capable/sys",
+    "capable/sys/types",
+    "core/sys/types",
     "core/build",
-    "crypto/ffi/types",
-    "crypto/ffi",
+    "dcap_ql/sys",
+    "dcap_ql/sys/types",
+    "dcap_quoteverify/sys",
+    "dcap_quoteverify/sys/types",
+    "tcrypto/sys/types",
+    "tcrypto/sys",
     "panic/abort",
     "quote_verify",
-    "service/ffi",
-    "service/ffi/types",
-    "trts/ffi",
+    "tservice/sys",
+    "tservice/sys/types",
+    "trts/sys",
+    "tstdc/sys",
+    "tstdc/sys/types",
     "urts",
-    "urts/ffi",
-    "urts/ffi/types",
+    "urts/sys",
+    "urts/sys/types",
 ]
 exclude = [
     "test_enclave",
@@ -33,4 +41,3 @@ overflow-checks = false
 # Skip the need for LD_LIBRARY_PATH in `cargo test`
 [profile.test]
 rpath = true
-

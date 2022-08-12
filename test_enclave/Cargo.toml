@@ -5,12 +5,12 @@ edition = "2021"
 license = "Apache-2.0"
 
 [dependencies]
-mc-sgx-urts-ffi-types = { path = "../urts/ffi/types" }
-mc-sgx-core-ffi-types = { path = "../core/ffi/types" }
+mc-sgx-urts-sys-types = { path = "../urts/sys/types" }
+mc-sgx-core-sys-types = { path = "../core/sys/types" }
 
 [features]
-hw = []
 default = []
+sim = []
 
 [build-dependencies]
 cargo-emit = "0.2.1"
