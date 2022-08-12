@@ -91,29 +91,30 @@ fn sgx_sdk_path() -> Option<PathBuf> {
     env::var("SGX_SDK").ok().map(PathBuf::from)
 }
 
+/// Return the cargo manifest dir (root dir of this crate), if it exists
 fn cargo_manifest_dir() -> Option<PathBuf> {
     env::var("CARGO_MANIFEST_DIR").ok().map(PathBuf::from)
 }
 
 /// Return the SGX include path
+///
+/// Will first attempt to look at the environment variable `SGX_SDK`, if that
+/// isn't present then the "headers" directory of this crate will be used.
 pub fn sgx_include_path() -> String {
     sgx_sdk_path()
         .map(|mut sdk_path| {
             sdk_path.push("include");
             sdk_path
-                .to_str()
-                .expect("SGX_SDK path contained invalid UTF-8")
-                .to_owned()
         })
         .unwrap_or_else(|| {
             let mut crate_dir = cargo_manifest_dir()
                 .expect("Could not find SGX SDK: neither SGX_SDK nor CARGO_MANIFEST_DIR were set");
             crate_dir.push("headers");
             crate_dir
-                .to_str()
-                .expect("CARGO_MANIFEST_DIR contained invalid UTF-8")
-                .to_owned()
         })
+        .to_str()
+        .expect("Include path contained invalid UTF-8")
+        .to_owned()
 }
 
 /// Return the SGX library path.
