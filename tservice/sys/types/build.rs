@@ -29,7 +29,7 @@ fn main() {
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}/include", include_path))
+        .clang_arg(&format!("-I{}", include_path))
         .blocklist_function("*");
 
     for t in SERVICE_TYPES {
