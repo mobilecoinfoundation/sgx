@@ -1,4 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
+
 //! Builds the FFI function bindings for tstdc (trusted standard C) of the
 //! Intel SGX SDK
 
@@ -15,7 +16,6 @@ fn main() {
     mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))
-        .allowlist_recursively(false)
         .blocklist_type("*")
         .allowlist_function("sgx_thread.*")
         .allowlist_function("sgx_alloc.*")
