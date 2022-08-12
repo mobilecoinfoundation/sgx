@@ -11,7 +11,7 @@
 This crate contains the FFI linkage for the `libsgx_tcrypto.a` library.
 
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-tcrypto-sys.svg?style=for-the-badge
-[crate-link]: https://crates.io/crates/aead
+[crate-link]: https://crates.io/crates/mc-sgx-tcrypto-sys
 [license-image]: https://img.shields.io/crates/l/mc-sgx-tcrypto-sys?style=for-the-badge
 [chat-image]: https://img.shields.io/discord/844353360348971068?style=for-the-badge
 [chat-link]: https://mobilecoin.chat

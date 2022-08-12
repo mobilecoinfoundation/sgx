@@ -12,7 +12,7 @@ This crate contains the FFI type definitions which are used by the
 `libsgx_dcap_quoteverify` library.
 
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-dcap-quoteverify-sys-types.svg?style=for-the-badge
-[crate-link]: https://crates.io/crates/aead
+[crate-link]: https://crates.io/crates/mc-sgx-dcap-quoteverify-sys-types
 [license-image]: https://img.shields.io/crates/l/mc-sgx-dcap-quoteverify-sys-types?style=for-the-badge
 [chat-image]: https://img.shields.io/discord/MOBILECOIN?style=for-the-badge
 [chat-link]: https://mobilecoin.chat
