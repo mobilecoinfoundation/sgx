@@ -22,7 +22,7 @@ const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3", "_pck"];
 
 /// Normalizes a type encountered by bindgen
 ///
-/// Provides a default [bindgen::callbacks::ParserCallbacks::item_name]
+/// Provides a default [bindgen::callbacks::ParseCallbacks::item_name]
 /// implementation that works with most SGX types.
 /// The type should come back in the form of `sgx_<main_text_from_c_interface>`
 ///
