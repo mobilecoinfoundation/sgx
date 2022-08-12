@@ -2,7 +2,6 @@
 
 //! Builds the FFI function bindings for trts (trusted runtime system) of the
 //! Intel SGX SDK
-use cargo_emit::{rustc_link_lib, rustc_link_search};
 
 const TRTS_FUNCTIONS: &[&str] = &[
     "sgx_is_enclave_crashed",
@@ -23,10 +22,11 @@ fn main() {
     cargo_emit::rerun_if_changed!(include_path);
 
     let link_path = mc_sgx_core_build::sgx_library_path();
-    rustc_link_search!(link_path);
+    cargo_emit::rerun_if_changed!(link_path);
+    cargo_emit::rustc_link_search!(link_path);
 
     let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
-    rustc_link_lib!(&format!("static=sgx_trts{}", sgx_suffix));
+    cargo_emit::rustc_link_lib!(&format!("static=sgx_trts{}", sgx_suffix));
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")

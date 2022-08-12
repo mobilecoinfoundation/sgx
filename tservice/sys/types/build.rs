@@ -24,10 +24,12 @@ const SERVICE_TYPES: &[&str] = &[
 ];
 
 fn main() {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let include_path = mc_sgx_core_build::sgx_include_path();
+    cargo_emit::rerun_if_changed!(include_path);
+
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}/include", sgx_library_path))
+        .clang_arg(&format!("-I{}/include", include_path))
         .blocklist_function("*");
 
     for t in SERVICE_TYPES {
