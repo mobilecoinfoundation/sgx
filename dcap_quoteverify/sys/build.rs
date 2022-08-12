@@ -2,8 +2,6 @@
 //! Builds the FFI function bindings for dcap quoteverify library of the Intel
 //! SGX SDK
 
-use cargo_emit::rustc_link_lib;
-
 const DCAP_QL_FUNCTIONS: &[&str] = &[
     "sgx_qv_free_qve_identity",
     "sgx_qv_get_quote_supplemental_data_size",
@@ -15,10 +13,14 @@ const DCAP_QL_FUNCTIONS: &[&str] = &[
 ];
 
 fn main() {
-    rustc_link_lib!("dylib=sgx_dcap_quoteverify");
+    let include_path = mc_sgx_core_build::sgx_include_path();
+    cargo_emit::rerun_if_changed!("{}", include_path);
+
+    cargo_emit::rustc_link_lib!("dylib=sgx_dcap_quoteverify");
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
+        .clang_arg(&format!("-I{}", include_path))
         .blocklist_type("*");
 
     for f in DCAP_QL_FUNCTIONS {
