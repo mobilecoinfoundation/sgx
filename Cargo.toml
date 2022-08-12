@@ -9,6 +9,7 @@ members = [
     "dcap_ql/sys/types",
     "dcap_quoteverify/sys",
     "dcap_quoteverify/sys/types",
+    "dcap_tvl/sys",
     "panic/abort",
     "quote_verify",
     "tcrypto/sys",
