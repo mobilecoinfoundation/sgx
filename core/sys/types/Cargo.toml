@@ -1,9 +1,16 @@
 [package]
 name = "mc-sgx-core-sys-types"
 version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["external-ffi-bindings", "hardware-support", "no-std"]
+description = "FFI type definitions used by SGX libraries."
 edition = "2021"
+keywords = ["ffi", "no-std", "sgx"]
 license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.62.1"
 
 [build-dependencies]
 bindgen = "0.60.1"
-mc-sgx-core-build = { path = "../../build" }
+mc-sgx-core-build = { path = "../../build", version = "=0.1.0" }

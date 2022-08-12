@@ -1,4 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
+
 //! Builds the FFI type bindings for the common SGX SDK types
 
 // The types to generate bindings for.

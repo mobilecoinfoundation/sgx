@@ -1,17 +1,16 @@
 [package]
 name = "mc-sgx-tstdc-sys-types"
 version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["external-ffi-bindings", "hardware-support", "no-std"]
+description = "FFI types for `sgx_tstdc`."
 edition = "2021"
+keywords = ["ffi", "sgx", "no-std"]
 license = "Apache-2.0"
-rust-version = "1.62.1"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-
-authors = ["MobileCoin"]
-description = '''
-This crate contains the FFI type definitions which are used by the `sgx_tstdc` library.
-'''
+rust-version = "1.62.1"
 
 [build-dependencies]
 bindgen = "0.60.1"
-mc-sgx-core-build = { path = "../../../core/build" }
+mc-sgx-core-build = { path = "../../../core/build", version = "=0.1.0" }
