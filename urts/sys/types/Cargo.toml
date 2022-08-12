@@ -11,15 +11,8 @@ readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
-[features]
-sw = []
-default = ["sw"]
-
 [dependencies]
 mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.1.0" }
-
-[dev-dependencies]
-test_enclave = { path = "../../../test_enclave" }
 
 [build-dependencies]
 bindgen = "0.60.1"

@@ -508,9 +508,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.2"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33a33a362ce288760ec6a508b94caaec573ae7d3bbbd91b87aa0bad4456839db"
+checksum = "292a948cd991e376cf75541fe5b97a1081d713c618b4f1b9500f8844e49eb565"
 
 [[package]]
 name = "log"
@@ -712,7 +712,6 @@ dependencies = [
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
  "mc-sgx-urts-sys-types",
- "test_enclave",
 ]
 
 [[package]]
@@ -723,7 +722,6 @@ dependencies = [
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
- "test_enclave",
 ]
 
 [[package]]
