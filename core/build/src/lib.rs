@@ -18,7 +18,7 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 /// ```C
 /// void some_function(foo_bar arg);
 /// ```
-const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3"];
+const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3", "_pck"];
 
 /// Normalizes a type encountered by bindgen
 ///
@@ -31,13 +31,22 @@ const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3"];
 /// # Arguments
 /// * `name` - The name of the type to determine the bindgen name of.
 pub fn normalize_item_name(name: &str) -> Option<String> {
+    let mut name = name.to_string();
+
+    // all of the exposed sgx types end in `_t`, but at times the underlying
+    // type may be missing it.
+    if !name.ends_with("_t") {
+        name.push_str("_t");
+    }
+
     if STRIP_UNDERSCORE_PREFIX
         .iter()
         .any(|prefix| name.starts_with(prefix))
     {
         name.strip_prefix('_').map(str::to_string)
     } else if name.starts_with('_') {
-        Some(format!("sgx{}", name))
+        name.insert_str(0, "sgx");
+        Some(name)
     } else {
         None
     }

@@ -2,8 +2,6 @@
 //! Rust FFI types for the SGX SDK DCAP ql library.
 
 #![no_std]
-// Nesting to work around clippy warnings, see
-// https://github.com/rust-lang/rust-bindgen/issues/1470
 #![allow(
     clippy::missing_safety_doc,
     non_camel_case_types,

@@ -1,9 +1,9 @@
 [package]
-name = "mc-sgx-dcap-ql-sys-types"
+name = "mc-sgx-dcap-quoteverify-sys-types"
 version = "0.1.0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]
-description = "FFI type definitions for the `sgx_dcap_ql` library."
+description = "FFI type definitions used by the `sgx_dcap_quoteverify` library."
 edition = "2021"
 keywords = ["ffi", "sgx", "no-std"]
 license = "Apache-2.0"
@@ -13,6 +13,7 @@ rust-version = "1.62.1"
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.1.0" }
+mc-sgx-dcap-ql-sys-types = { path = "../../../dcap_ql/sys/types", version = "=0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"

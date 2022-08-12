@@ -34,15 +34,24 @@ const CORE_TYPES: &[&str] = &[
     "sgx_mac_t",
     "sgx_misc_select_t",
     "sgx_prod_id_t",
+    "_sgx_att_key_id_ext_t",
+    "_sgx_ql_att_key_id_t",
+    "_quote_nonce",
+    "sgx_epid_group_id_t",
+    "_spid_t",
+    "_basename_t",
+    "sgx_quote_sign_type_t",
+    "_quote_t",
+    "_platform_info",
+    "_update_info_bit",
+    "_att_key_id_t",
+    "_qe_report_info_t",
 ];
 
 fn main() {
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
     let mut builder = mc_sgx_core_build::sgx_builder()
-        .header_contents(
-            "core_types.h",
-            "#include <sgx_error.h>\n#include <sgx_report.h>",
-        )
+        .header("wrapper.h")
         .clang_arg(&format!("-I{}/include", sgx_library_path))
         .newtype_enum("_status_t");
 
