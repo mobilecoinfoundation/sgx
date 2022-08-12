@@ -86,12 +86,47 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 }
 
+/// Return the SGX SDK path, if it exists.
+fn sgx_sdk_path() -> Option<PathBuf> {
+    env::var("SGX_SDK").ok().map(PathBuf::from)
+}
+
+fn cargo_manifest_dir() -> Option<PathBuf> {
+    env::var("CARGO_MANIFEST_DIR").ok().map(PathBuf::from)
+}
+
+/// Return the SGX include path
+pub fn sgx_include_path() -> String {
+    sgx_sdk_path()
+        .map(|mut sdk_path| {
+            sdk_path.push("include");
+            sdk_path
+                .to_str()
+                .expect("SGX_SDK path contained invalid UTF-8")
+                .to_owned()
+        })
+        .unwrap_or_else(|| {
+            let mut crate_dir = cargo_manifest_dir()
+                .expect("Could not find SGX SDK: neither SGX_SDK nor CARGO_MANIFEST_DIR were set");
+            crate_dir.push("headers");
+            crate_dir
+                .to_str()
+                .expect("CARGO_MANIFEST_DIR contained invalid UTF-8")
+                .to_owned()
+        })
+}
+
 /// Return the SGX library path.
 ///
 /// Will first attempt to look at the environment variable `SGX_SDK`, if that
 /// isn't present then `/opt/intel/sgxsdk` will be used.
 pub fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
+    let mut sdk_path = sgx_sdk_path().unwrap_or_else(|| PathBuf::from(DEFAULT_SGX_SDK_PATH));
+    sdk_path.push("include");
+    sdk_path
+        .to_str()
+        .expect("Invalid UTF-8 in library path")
+        .to_owned()
 }
 
 /// Return the build output path.
