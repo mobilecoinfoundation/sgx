@@ -49,10 +49,15 @@ const CORE_TYPES: &[&str] = &[
 ];
 
 fn main() {
+    let sgx_include_path = mc_sgx_core_build::sgx_include_path();
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+
+    cargo_emit::rerun_if_changed!(sgx_include_path);
+    cargo_emit::rerun_if_changed!(sgx_library_path);
+
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}/include", sgx_library_path))
+        .clang_arg(&format!("-I{}", sgx_include_path))
         .newtype_enum("_status_t");
 
     for t in CORE_TYPES.iter() {
