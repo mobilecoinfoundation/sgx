@@ -18,7 +18,7 @@ test = false
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
-mc-sgx-dcap-ql-sys-types = { path = "../../dcap_ql/sys/types", version = "=0.1.0" }
+mc-sgx-dcap-sys-types = { path = "../../dcap/sys/types", version = "=0.1.0" }
 mc-sgx-dcap-quoteverify-sys-types = { path = "../../dcap_quoteverify/sys/types", version = "=0.1.0" }
 
 [build-dependencies]
