@@ -1,0 +1,27 @@
+[package]
+name = "mc-sgx-dcap-tvl-sys"
+version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["external-ffi-bindings", "hardware-support", "no-std"]
+description = "FFI bindings for `sgx_dcap_tvl`."
+edition = "2021"
+keywords = ["crypto", "ffi", "sgx", "no-std"]
+license = "Apache-2.0"
+links = "sgx_dcap_tvl"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.62.1"
+
+[lib]
+# test false due to needing an enclave to fully link
+test = false
+
+[dependencies]
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
+mc-sgx-dcap-ql-sys-types = { path = "../../dcap_ql/sys/types", version = "=0.1.0" }
+mc-sgx-dcap-quoteverify-sys-types = { path = "../../dcap_quoteverify/sys/types", version = "=0.1.0" }
+
+[build-dependencies]
+bindgen = "0.60.1"
+cargo-emit = "0.2.1"
+mc-sgx-core-build = { path = "../../core/build", version = "=0.1.0" }
