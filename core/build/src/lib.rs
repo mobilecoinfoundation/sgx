@@ -102,15 +102,8 @@ const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 /// isn't present then the "headers" directory of this crate will be used.
 pub fn sgx_include_path() -> String {
     sgx_sdk_path()
-        .map(|mut sdk_path| {
-            sdk_path.push("include");
-            sdk_path
-        })
-        .unwrap_or_else(|| {
-            let mut crate_dir = PathBuf::from(CARGO_MANIFEST_DIR);
-            crate_dir.push("headers");
-            crate_dir
-        })
+        .map(|sdk_path| sdk_path.join("include"))
+        .unwrap_or_else(|| PathBuf::from(CARGO_MANIFEST_DIR).join("headers"))
         .to_str()
         .expect("Include path contained invalid UTF-8")
         .to_owned()
@@ -121,9 +114,11 @@ pub fn sgx_include_path() -> String {
 /// Will first attempt to look at the environment variable `SGX_SDK`, if that
 /// isn't present then `/opt/intel/sgxsdk` will be used.
 pub fn sgx_library_path() -> String {
-    let mut sdk_path = sgx_sdk_path().unwrap_or_else(|| PathBuf::from(DEFAULT_SGX_SDK_PATH));
-    sdk_path.push("include");
-    sdk_path
+    // As of INTEL-SA-00615, 32-on-64bit enclaves are insecure, so we don't support
+    // them.
+    sgx_sdk_path()
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_SGX_SDK_PATH))
+        .join("lib64")
         .to_str()
         .expect("Invalid UTF-8 in library path")
         .to_owned()
