@@ -33,7 +33,7 @@ const CRYPTO_TYPES: &[&str] = &[
 ];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_library_path();
+    let include_path = mc_sgx_core_build::sgx_include_path();
     cargo_emit::rerun_if_changed!(include_path);
 
     let mut builder = mc_sgx_core_build::sgx_builder()
