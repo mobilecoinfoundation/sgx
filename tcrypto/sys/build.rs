@@ -77,7 +77,7 @@ fn main() {
         builder = builder.allowlist_function(f);
     }
 
-    let out_path = mc_sgx_core_build::build_output_path();
+    let out_path = mc_sgx_core_build::build_output_dir();
     builder
         .generate()
         .expect("Unable to generate bindings")

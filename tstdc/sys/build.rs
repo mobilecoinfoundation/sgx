@@ -12,7 +12,7 @@ fn main() {
     cargo_emit::rustc_link_search!(link_path);
     cargo_emit::rustc_link_lib!("static=sgx_tstdc");
 
-    let out_path = mc_sgx_core_build::build_output_path();
+    let out_path = mc_sgx_core_build::build_output_dir();
     mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))

@@ -19,6 +19,6 @@ fn main() {
         .allowlist_function("sgx_cap_get_status")
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(mc_sgx_core_build::build_output_path().join("bindings.rs"))
+        .write_to_file(mc_sgx_core_build::build_output_dir().join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }

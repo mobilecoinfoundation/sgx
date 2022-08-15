@@ -150,7 +150,7 @@ pub fn sgx_bin_x64_dir() -> PathBuf {
 }
 
 /// Return the build output path.
-pub fn build_output_path() -> PathBuf {
+pub fn build_output_dir() -> PathBuf {
     PathBuf::from(env::var("OUT_DIR").expect("Missing env.OUT_DIR"))
 }
 

@@ -63,7 +63,7 @@ fn main() {
 
     let bindings = builder.generate().expect("Unable to generate bindings");
 
-    let out_path = mc_sgx_core_build::build_output_path();
+    let out_path = mc_sgx_core_build::build_output_dir();
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");

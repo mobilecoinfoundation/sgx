@@ -70,9 +70,9 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
         .to_str()
         .expect("Invalid UTF-8 in edl path"));
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
-    let mut command = Command::new(&format!("{}/bin/x64/sgx_edger8r", sgx_library_path));
-    let out_dir = mc_sgx_core_build::build_output_path();
+    let bin_path = mc_sgx_core_build::sgx_bin_x64_dir().join("sgx_edger8r");
+    let mut command = Command::new(bin_path);
+    let out_dir = mc_sgx_core_build::build_output_dir();
     command
         .current_dir(&out_dir)
         .arg(edl_file.as_ref().as_os_str());
@@ -111,7 +111,16 @@ where
             .expect("Invalid UTF-8 in enclave C file"));
     }
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
+    let include_dir = mc_sgx_core_build::sgx_include_dir();
+    let include_string = include_dir
+        .to_str()
+        .expect("Invalid UTF-8 in include dir")
+        .to_owned();
+    let tlibc_dir = include_dir.join("tlibc");
+    let tlibc_string = tlibc_dir
+        .to_str()
+        .expect("Invalid UTF-8 in tlibc dir")
+        .to_owned();
 
     // This `Build` builds a static library.  If we don't omit the
     // `cargo_metadata` then this static library will be linked into
@@ -122,12 +131,12 @@ where
     // be directly linked in.
     Build::new()
         .files(files)
-        .include(format!("{}/include", sgx_library_path))
-        .include(format!("{}/include/tlibc", sgx_library_path))
+        .include(include_string)
+        .include(tlibc_string)
         .cargo_metadata(false)
         .compile("enclave");
 
-    let static_enclave = mc_sgx_core_build::build_output_path().join("libenclave.a");
+    let static_enclave = mc_sgx_core_build::build_output_dir().join("libenclave.a");
     let dynamic_enclave = build_dynamic_enclave_binary(static_enclave);
     sign_enclave_binary(dynamic_enclave)
 }
@@ -153,7 +162,13 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let trts = format!("-lsgx_trts{}", sgx_suffix);
     let tservice = format!("-lsgx_tservice{}", sgx_suffix);
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
+    let link_string = mc_sgx_core_build::sgx_library_string();
+    let cve_link_string = mc_sgx_core_build::sgx_library_dir()
+        .join("cve_2020_0551_load")
+        .to_str()
+        .expect("Invalid UTF-8 in cve linker path")
+        .to_owned();
+
     let mut command = Command::new(ld_linker());
     command
         .arg("-o")
@@ -163,8 +178,8 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
                 .expect("Invalid UTF-8 in static enclave path"),
         )
         .args(&["-z", "relro", "-z", "now", "-z", "noexecstack"])
-        .arg(&format!("-L{}/lib64/cve_2020_0551_load", sgx_library_path))
-        .arg(&format!("-L{}/lib64", sgx_library_path))
+        .arg(cve_link_string)
+        .arg(link_string)
         .arg("--no-undefined")
         .arg("--nostdlib")
         .arg("--start-group")
@@ -206,8 +221,8 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 
     let signing_key = get_signing_key();
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
-    let mut command = Command::new(format!("{}/bin/x64/sgx_sign", sgx_library_path));
+    let bin_path = mc_sgx_core_build::sgx_bin_x64_dir().join("sgx_sign");
+    let mut command = Command::new(bin_path);
     command
         .arg("sign")
         .arg("-enclave")
@@ -231,7 +246,7 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 /// Due to the time to create a key file, this will favor returning an already
 /// built signing key and only generate one as needed.
 fn get_signing_key() -> PathBuf {
-    let key_file = mc_sgx_core_build::build_output_path().join("signing_key.pem");
+    let key_file = mc_sgx_core_build::build_output_dir().join("signing_key.pem");
     if !key_file.exists() {
         // The 3072 bit size and exponent of 3 are a restriction of `sgx_sign`
         let bit_size = 3072;
@@ -259,14 +274,20 @@ fn get_signing_key() -> PathBuf {
 /// # Returns
 /// The full path to resultant untrusted library.
 fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
+    let include_string = mc_sgx_core_build::sgx_include_string();
+    let tlibc_string = mc_sgx_core_build::sgx_include_dir()
+        .join("tlibc")
+        .to_str()
+        .expect("Invalid UTF-8 in tlibc include dir")
+        .to_owned();
     let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     Build::new()
         .file(untrusted_file)
-        .include(format!("{}/include", sgx_library_path))
-        .include(format!("{}/include/tlibc", sgx_library_path))
+        .include(include_string)
+        .include(tlibc_string)
         .compile("untrusted");
 
-    let mut untrusted_object = mc_sgx_core_build::build_output_path();
+    let mut untrusted_object = mc_sgx_core_build::build_output_dir();
     untrusted_object.set_file_name("untrusted.a");
     untrusted_object
 }
@@ -281,10 +302,9 @@ fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
 ///
 /// * `header` - The untrusted header file generated from `edger8r`
 fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     let bindings = Builder::default()
         .header(header.as_ref().to_str().unwrap())
-        .clang_arg(format!("-I{}/include", sgx_library_path))
+        .clang_arg(mc_sgx_core_build::sgx_include_string())
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .blocklist_type("*")
         // limit to only the functions needed
@@ -293,6 +313,6 @@ fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
         .expect("Unable to generate bindings");
 
     bindings
-        .write_to_file(mc_sgx_core_build::build_output_path().join("bindings.rs"))
+        .write_to_file(mc_sgx_core_build::build_output_dir().join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }

@@ -12,6 +12,6 @@ fn main() {
         .allowlist_type("_sgx_device_status_t")
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(mc_sgx_core_build::build_output_path().join("bindings.rs"))
+        .write_to_file(mc_sgx_core_build::build_output_dir().join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }
