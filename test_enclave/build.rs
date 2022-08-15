@@ -112,15 +112,9 @@ where
     }
 
     let include_dir = mc_sgx_core_build::sgx_include_dir();
-    let include_string = include_dir
-        .to_str()
-        .expect("Invalid UTF-8 in include dir")
-        .to_owned();
+    let include_string = format!("-I{}", include_dir.display());
     let tlibc_dir = include_dir.join("tlibc");
-    let tlibc_string = tlibc_dir
-        .to_str()
-        .expect("Invalid UTF-8 in tlibc dir")
-        .to_owned();
+    let tlibc_string = format!("-I{}", tlibc_dir.display());
 
     // This `Build` builds a static library.  If we don't omit the
     // `cargo_metadata` then this static library will be linked into
