@@ -280,7 +280,7 @@ fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
         .to_str()
         .expect("Invalid UTF-8 in tlibc include dir")
         .to_owned();
-    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
+
     Build::new()
         .file(untrusted_file)
         .include(include_string)
