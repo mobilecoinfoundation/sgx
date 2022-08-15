@@ -12,4 +12,4 @@ This crate exposes an idiomatic rust interface to the SGX SDK's `libsgx_capable`
 '''
 
 [dependencies]
-mc-sgx-capable-ffi = { path = "ffi" }
+mc-sgx-capable-sys = { path = "sys", version = "=0.1.0" }

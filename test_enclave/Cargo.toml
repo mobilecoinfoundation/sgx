@@ -19,4 +19,4 @@ bindgen = "0.60.1"
 rsa = "0.6.1"
 rand = "0.8.5"
 
-mc-sgx-core-build = { path = "../core/build" }
+mc-sgx-core-build = { path = "../core/build", version = "=0.1.0" }

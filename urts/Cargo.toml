@@ -21,4 +21,4 @@ sim = ["mc-sgx-urts-sys/sim", "test_enclave/sim"]
 default = []
 
 [dev-dependencies]
-test_enclave = { path = "../test_enclave" }
+test_enclave = { path = "../test_enclave", version = "=0.1.0" }
