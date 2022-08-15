@@ -178,8 +178,8 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
                 .expect("Invalid UTF-8 in static enclave path"),
         )
         .args(&["-z", "relro", "-z", "now", "-z", "noexecstack"])
-        .arg(cve_link_string)
-        .arg(link_string)
+        .arg(&format!("-L{}", cve_link_string))
+        .arg(&format!("-L{}", link_string))
         .arg("--no-undefined")
         .arg("--nostdlib")
         .arg("--start-group")
