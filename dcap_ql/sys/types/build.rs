@@ -2,22 +2,10 @@
 //! Builds the FFI type bindings for the dcap quote library of the Intel SGX SDK
 
 const DCAP_QL_TYPES: &[&str] = &[
-    "_quote3_error_t",
-    "_sgx_pce_error_t",
-    "_sgx_pce_info_t",
-    "_sgx_prod_type_t",
-    "_sgx_ql_config_t",
-    "_sgx_ql_config_version_t",
-    "_sgx_ql_log_level_t",
-    "_sgx_ql_qe3_id_t",
+    "_sgx_ql_att_key_id_param_t",
+    "_sgx_ql_att_id_list_t",
     "_sgx_ql_qe_report_info_t",
-    "_sgx_ql_qve_collateral_param_t",
-    "_sgx_ql_qve_collateral_t",
-    "_sgx_ql_qve_collateral_t",
-    "_sgx_ql_request_policy",
-    "sgx_ql_logging_callback_t",
     "sgx_ql_path_type_t",
-    "sgx_quote3_error_t",
 ];
 
 fn main() {

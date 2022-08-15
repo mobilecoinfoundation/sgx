@@ -14,7 +14,7 @@ rust-version = "1.62.1"
 
 [dependencies]
 mc-sgx-dcap-quoteverify-sys-types = { path = "types", version = "=0.1.0" }
-mc-sgx-dcap-ql-sys-types = { path = "../../dcap_ql/sys/types", version = "=0.1.0" }
+mc-sgx-dcap-sys-types = { path = "../../dcap/sys/types", version = "=0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"

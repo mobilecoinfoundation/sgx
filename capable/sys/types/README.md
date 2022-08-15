@@ -8,12 +8,11 @@
 [![CodeCov Status][codecov-image]][codecov-link]
 [![dependency status][deps-image]][deps-link]
 
-This crate contains the FFI type definitions which are used by the `sgx_capable` library.
-
-[//]: # (badges)
+This crate contains the FFI type definitions which are used by the `sgx_capable`
+library.
 
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-capable-sys-types.svg?style=for-the-badge
-[crate-link]: https://crates.io/crates/aead
+[crate-link]: https://crates.io/crates/mc-sgx-capable-sys-types
 [license-image]: https://img.shields.io/crates/l/mc-sgx-capable-sys-types?style=for-the-badge
 [chat-image]: https://img.shields.io/discord/MOBILECOIN?style=for-the-badge
 [chat-link]: https://mobilecoin.chat

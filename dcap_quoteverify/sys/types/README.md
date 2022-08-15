@@ -8,7 +8,7 @@
 [![CodeCov Status][codecov-image]][codecov-link]
 [![dependency status][deps-image]][deps-link]
 
-This crate contains the FFI type definitions which are used by the 
+This crate contains the FFI type definitions which are used by the
 `libsgx_dcap_quoteverify` library.
 
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-dcap-quoteverify-sys-types.svg?style=for-the-badge
