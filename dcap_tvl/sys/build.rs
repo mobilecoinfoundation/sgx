@@ -4,10 +4,10 @@
 const DCAP_TVL_FUNCTIONS: &[&str] = &["sgx_tvl_verify_qve_report_and_identity"];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_path();
+    let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
-    let link_path = mc_sgx_core_build::sgx_library_path();
+    let link_path = mc_sgx_core_build::sgx_library_string();
     cargo_emit::rustc_link_search!(link_path);
     cargo_emit::rerun_if_changed!(link_path);
     cargo_emit::rustc_link_lib!("static=sgx_dcap_tvl");

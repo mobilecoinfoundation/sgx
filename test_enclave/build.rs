@@ -70,7 +70,7 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
         .to_str()
         .expect("Invalid UTF-8 in edl path"));
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     let mut command = Command::new(&format!("{}/bin/x64/sgx_edger8r", sgx_library_path));
     let out_dir = mc_sgx_core_build::build_output_path();
     command
@@ -111,7 +111,7 @@ where
             .expect("Invalid UTF-8 in enclave C file"));
     }
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
 
     // This `Build` builds a static library.  If we don't omit the
     // `cargo_metadata` then this static library will be linked into
@@ -153,7 +153,7 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
     let trts = format!("-lsgx_trts{}", sgx_suffix);
     let tservice = format!("-lsgx_tservice{}", sgx_suffix);
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     let mut command = Command::new(ld_linker());
     command
         .arg("-o")
@@ -206,7 +206,7 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
 
     let signing_key = get_signing_key();
 
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     let mut command = Command::new(format!("{}/bin/x64/sgx_sign", sgx_library_path));
     command
         .arg("sign")
@@ -259,7 +259,7 @@ fn get_signing_key() -> PathBuf {
 /// # Returns
 /// The full path to resultant untrusted library.
 fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     Build::new()
         .file(untrusted_file)
         .include(format!("{}/include", sgx_library_path))
@@ -281,7 +281,7 @@ fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
 ///
 /// * `header` - The untrusted header file generated from `edger8r`
 fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let sgx_library_path = mc_sgx_core_build::sgx_library_string();
     let bindings = Builder::default()
         .header(header.as_ref().to_str().unwrap())
         .clang_arg(format!("-I{}/include", sgx_library_path))

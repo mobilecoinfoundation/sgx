@@ -3,10 +3,10 @@
 //! Builds the FFI type bindings for the types used by libsgx_capable.{so,a}.
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_path();
+    let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
-    let link_path = mc_sgx_core_build::sgx_library_path();
+    let link_path = mc_sgx_core_build::sgx_library_string();
     cargo_emit::rerun_if_changed!(link_path);
     cargo_emit::rustc_link_search!("{}", link_path);
     cargo_emit::rustc_link_lib!("static=sgx_capable");

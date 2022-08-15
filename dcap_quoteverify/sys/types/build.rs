@@ -5,7 +5,7 @@
 const DCAP_QUOTEVERIFY_TYPES: &[&str] = &["sgx_qv_path_type_t"];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_path();
+    let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
     let mut builder = mc_sgx_core_build::sgx_builder()
