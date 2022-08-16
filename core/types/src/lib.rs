@@ -3,3 +3,9 @@
 //! Rust wrappers for SGX types
 
 #![no_std]
+
+extern crate alloc;
+
+mod error;
+
+pub use crate::error::Error;

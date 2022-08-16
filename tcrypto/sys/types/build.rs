@@ -2,6 +2,8 @@
 //! Builds the FFI type bindings for the trusted crypto functions, (aes, rsa,
 //! etc.), of the Intel SGX SDK
 
+use mc_sgx_core_build::SgxParseCallbacks;
+
 const CRYPTO_TYPES: &[&str] = &[
     "_rsa_params_t",
     "_sgx_ec256_dh_shared_t",
@@ -33,12 +35,22 @@ const CRYPTO_TYPES: &[&str] = &[
 ];
 
 fn main() {
+    let callback = SgxParseCallbacks::new(
+        [
+            "sgx_generic_ecresult_t",
+            "sgx_rsa_result_t",
+            "sgx_rsa_params_t",
+            "sgx_rsa_key_type_t",
+        ]
+        .iter(),
+    );
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))
+        .parse_callbacks(Box::new(callback))
         .blocklist_function("*");
 
     for t in CRYPTO_TYPES {
