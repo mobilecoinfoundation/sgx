@@ -1,11 +1,8 @@
 name: Lint
 on:
   pull_request:
-    paths-ignore:
-      - README.md
     branches:
       - 'main'
-      - 'develop'
       - 'feature/**'
 
 env:
@@ -14,16 +11,14 @@ env:
 
 jobs:
   rustfmt:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/rust-sgx-base:latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo fmt --all -- --check
   clippy:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/rust-sgx-base:latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
@@ -31,8 +26,7 @@ jobs:
       - uses: ./.github/actions/dcap-libs
       - run: cargo clippy --all --all-features --locked -- -D warnings
   nono:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/rust-sgx-base:latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
@@ -46,8 +40,7 @@ jobs:
             grep -v -e mc-sgx-core-build -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts -e mc-sgx-capable-sys | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
   markdown-lint:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/builder-install:latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: xt0rted/markdownlint-problem-matcher@v1

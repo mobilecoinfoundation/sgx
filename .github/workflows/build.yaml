@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - 'main'
-      - 'develop'
       - 'feature/**'
 
 env:
@@ -13,28 +12,26 @@ env:
 
 jobs:
   build:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/rust-sgx-base:latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
         run: rustup show
+      - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
       - run: cargo build --release --locked
   test:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/rust-sgx-base:latest
-    env:
-      LD_LIBRARY_PATH: "/opt/intel/sgxsdk/lib64"
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
         run: rustup show
+      - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
-      - run: cargo test --release --locked --features sim
+      - run:
+          cargo test --release --locked --features sim
   doc:
-    runs-on: [self-hosted, Linux, small]
-    container: mobilecoin/rust-sgx-base:latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
