@@ -112,9 +112,9 @@ where
     }
 
     let include_dir = mc_sgx_core_build::sgx_include_dir();
-    let include_string = format!("-I{}", include_dir.display());
+    let include_string = include_dir.display().to_string();
     let tlibc_dir = include_dir.join("tlibc");
-    let tlibc_string = format!("-I{}", tlibc_dir.display());
+    let tlibc_string = tlibc_dir.display().to_string();
 
     // This `Build` builds a static library.  If we don't omit the
     // `cargo_metadata` then this static library will be linked into
@@ -298,7 +298,7 @@ fn build_untrusted_library<P: AsRef<Path>>(untrusted_file: P) -> PathBuf {
 fn build_untrusted_bindings<P: AsRef<Path>>(header: P) {
     let bindings = Builder::default()
         .header(header.as_ref().to_str().unwrap())
-        .clang_arg(mc_sgx_core_build::sgx_include_string())
+        .clang_arg(format!("-I{}", mc_sgx_core_build::sgx_include_string()))
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .blocklist_type("*")
         // limit to only the functions needed
