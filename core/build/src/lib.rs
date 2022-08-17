@@ -22,7 +22,7 @@ const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3", "_pck"];
 
 /// Normalizes a type encountered by bindgen
 ///
-/// Provides a default [bindgen::callbacks::ParserCallbacks::item_name]
+/// Provides a default [bindgen::callbacks::ParseCallbacks::item_name]
 /// implementation that works with most SGX types.
 /// The type should come back in the form of `sgx_<main_text_from_c_interface>`
 ///
@@ -86,16 +86,71 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 }
 
+/// Return the SGX SDK path, if it exists.
+fn sgx_sdk_dir() -> Option<PathBuf> {
+    env::var("SGX_SDK").ok().map(PathBuf::from)
+}
+
+/// This constant contains the manifest dir of crate-build, which will contain
+/// the headers, which allows all the headers to live in one dir, rather than
+/// scattered about the repo.
+const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+
+/// Return the SGX include path
+///
+/// Will first attempt to look at the environment variable `SGX_SDK`, if that
+/// isn't present then the "headers" directory of this crate will be used.
+pub fn sgx_include_dir() -> PathBuf {
+    sgx_sdk_dir()
+        .map(|sdk_path| sdk_path.join("include"))
+        .unwrap_or_else(|| PathBuf::from(CARGO_MANIFEST_DIR).join("headers"))
+}
+
+/// Return the SGX include path as a string.
+///
+/// Calls sgx_include_dir() and converts to a string.
+pub fn sgx_include_string() -> String {
+    sgx_include_dir()
+        .to_str()
+        .expect("SGX_SDK contained invalid UTF-8 that wasn't caught by rust")
+        .to_owned()
+}
+
 /// Return the SGX library path.
 ///
 /// Will first attempt to look at the environment variable `SGX_SDK`, if that
 /// isn't present then `/opt/intel/sgxsdk` will be used.
-pub fn sgx_library_path() -> String {
-    env::var("SGX_SDK").unwrap_or_else(|_| DEFAULT_SGX_SDK_PATH.into())
+pub fn sgx_library_dir() -> PathBuf {
+    // As of INTEL-SA-00615, 32-on-64bit enclaves are insecure, so we don't support
+    // them.
+    sgx_sdk_dir()
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_SGX_SDK_PATH))
+        .join("lib64")
+}
+
+/// Return the SGX library path as a string
+///
+/// Calls sgx_library_dir() and converts to a string.
+pub fn sgx_library_string() -> String {
+    sgx_library_dir()
+        .to_str()
+        .expect("SGX_SDK contained invalid UTF-8 that wasn't caught by rust")
+        .to_owned()
+}
+
+/// Return the SGX binary path.
+///
+/// Will first attempt to look at the environment variable `SGX_SDK`, if that
+/// isn't present then `/opt/intel/sgxsdk` will be used.
+pub fn sgx_bin_x64_dir() -> PathBuf {
+    let mut retval = sgx_sdk_dir().unwrap_or_else(|| PathBuf::from(DEFAULT_SGX_SDK_PATH));
+    retval.push("bin");
+    retval.push("x64");
+    retval
 }
 
 /// Return the build output path.
-pub fn build_output_path() -> PathBuf {
+pub fn build_output_dir() -> PathBuf {
     PathBuf::from(env::var("OUT_DIR").expect("Missing env.OUT_DIR"))
 }
 

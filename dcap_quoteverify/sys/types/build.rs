@@ -5,15 +5,19 @@
 const DCAP_QUOTEVERIFY_TYPES: &[&str] = &["sgx_qv_path_type_t"];
 
 fn main() {
+    let include_path = mc_sgx_core_build::sgx_include_string();
+    cargo_emit::rerun_if_changed!(include_path);
+
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
+        .clang_arg(&format!("-I{}", include_path))
         .blocklist_function("*");
 
     for t in DCAP_QUOTEVERIFY_TYPES {
         builder = builder.allowlist_type(t);
     }
 
-    let out_path = mc_sgx_core_build::build_output_path();
+    let out_path = mc_sgx_core_build::build_output_dir();
     builder
         .generate()
         .expect("Unable to generate bindings")
