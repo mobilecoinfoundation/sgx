@@ -2,6 +2,8 @@
 //! Builds the FFI type bindings for the dcap libraries of the Intel
 //! SGX SDK
 
+use mc_sgx_core_build::SgxParseCallbacks;
+
 const DCAP_TYPES: &[&str] = &[
     "_quote3_error_t",
     "_sgx_ql_qe3_id_t",
@@ -36,8 +38,20 @@ const DCAP_TYPES: &[&str] = &[
 ];
 
 fn main() {
+    let callback = SgxParseCallbacks::new(
+        [
+            "sgx_ql_auth_data_t",
+            "sgx_quote3_t",
+            "sgx_ql_att_id_list_t",
+            "sgx_ql_att_key_id_param_t",
+            "sgx_ql_ecdsa_sig_data_t",
+            "sgx_ql_certification_data_t",
+        ]
+        .iter(),
+    );
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
+        .parse_callbacks(Box::new(callback))
         .blocklist_function("*");
 
     for t in DCAP_TYPES {

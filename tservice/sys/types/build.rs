@@ -2,6 +2,8 @@
 //! Builds the FFI type bindings for tservice, (trusted service) of the Intel
 //! SGX SDK
 
+use mc_sgx_core_build::SgxParseCallbacks;
+
 const SERVICE_TYPES: &[&str] = &[
     "align_req_t",
     "_aes_gcm_data_t",
@@ -25,9 +27,19 @@ const SERVICE_TYPES: &[&str] = &[
 
 fn main() {
     let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let callback = SgxParseCallbacks::new(
+        [
+            "sgx_dh_msg3_t",
+            "sgx_sealed_data_t",
+            "sgx_dh_msg3_body_t",
+            "sgx_aes_gcm_data_t",
+        ]
+        .iter(),
+    );
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}/include", sgx_library_path))
+        .parse_callbacks(Box::new(callback))
         .blocklist_function("*");
 
     for t in SERVICE_TYPES {

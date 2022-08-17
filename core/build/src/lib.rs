@@ -72,15 +72,41 @@ pub fn sgx_builder() -> Builder {
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
-        .parse_callbacks(Box::new(SgxParseCallbacks))
+        .parse_callbacks(Box::new(SgxParseCallbacks::default()))
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
 ///
 /// This provides a default implementation for most of the SGX libraries
-#[derive(Debug)]
-pub struct SgxParseCallbacks;
+#[derive(Debug, Default)]
+pub struct SgxParseCallbacks {
+    // types that are blocklisted from deriving Clone for.
+    //
+    // These may either already have the Clone attribute from bindgen, or they
+    // can't derive clone due to having non cloneable default types like
+    // `__IncompleteArrayField`.
+    blocklisted_clone_types: Vec<String>,
+}
+
 impl SgxParseCallbacks {
+    /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
+    ///
+    /// # Arguments
+    /// * `blocklisted_clone_types` - Types to blocklist from deriving `Clone`.
+    pub fn new<I>(blocklisted_clone_types: I) -> Self
+    where
+        I: Iterator,
+        I::Item: AsRef<str>,
+        I::Item: ToOwned,
+    {
+        let blocklisted_clone_types = blocklisted_clone_types
+            .map(|s| s.as_ref().to_owned())
+            .collect::<Vec<_>>();
+        Self {
+            blocklisted_clone_types,
+        }
+    }
+
     // Returns the derive attributes needed to implement `Clone` on `name`, if
     // `name` should implement clone.
     //
@@ -91,25 +117,7 @@ impl SgxParseCallbacks {
     //  is expected to be the _final_ name after any normalization,
     //  [bindgen::Builder::ParceCallbacks::item_name]
     fn maybe_derive_clone(&self, name: &str) -> Vec<String> {
-        // Types to not clone, these may either already have the Clone attribute
-        // from bindgen, or they can't derive clone due to having non cloneable
-        // default types like `__IncompleteArrayField`.
-        const DO_NOT_CLONE: &[&str] = &[
-            "sgx_status_t",
-            "sgx_quote_t",
-            "sgx_ql_auth_data_t",
-            "sgx_ql_certification_data_t",
-            "sgx_ql_ecdsa_sig_data_t",
-            "sgx_quote3_t",
-            "sgx_ql_att_key_id_param_t",
-            "sgx_ql_att_id_list_t",
-            "sgx_aes_gcm_data_t",
-            "sgx_dh_msg3_body_t",
-            "sgx_sealed_data_t",
-            "sgx_dh_msg3_t",
-        ];
-
-        if DO_NOT_CLONE.iter().any(|n| *n == name) {
+        if self.blocklisted_clone_types.iter().any(|n| *n == name) {
             vec![]
         } else {
             // In order to support packed types we also need to derive `Copy`,
