@@ -1,8 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
+
 //! Builds the FFI function bindings for tservice, (trusted service) of the
 //! Intel Intel SGX SDK
-
-use cargo_emit::{rustc_link_lib, rustc_link_search};
 
 const SERVICE_FUNCTIONS: &[&str] = &[
     "sgx_create_report",
@@ -33,21 +32,26 @@ const SERVICE_FUNCTIONS: &[&str] = &[
 ];
 
 fn main() {
-    let sgx_library_path = mc_sgx_core_build::sgx_library_path();
+    let include_path = mc_sgx_core_build::sgx_include_string();
+    cargo_emit::rerun_if_changed!(include_path);
+
+    let link_path = mc_sgx_core_build::sgx_library_string();
+    cargo_emit::rerun_if_changed!(link_path);
+    cargo_emit::rustc_link_search!(link_path);
+
     let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
-    rustc_link_lib!(&format!("static=sgx_tservice{}", sgx_suffix));
-    rustc_link_search!(&format!("{}/lib64", sgx_library_path));
+    cargo_emit::rustc_link_lib!(&format!("static=sgx_tservice{}", sgx_suffix));
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}/include", sgx_library_path))
+        .clang_arg(&format!("-I{}", include_path))
         .blocklist_type("*");
 
     for f in SERVICE_FUNCTIONS {
         builder = builder.allowlist_function(f);
     }
 
-    let out_path = mc_sgx_core_build::build_output_path();
+    let out_path = mc_sgx_core_build::build_output_dir();
     builder
         .generate()
         .expect("Unable to generate bindings")

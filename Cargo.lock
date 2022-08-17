@@ -528,6 +528,7 @@ dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-capable-sys-types",
+ "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
 ]
 
@@ -537,6 +538,7 @@ version = "0.1.0"
 dependencies = [
  "bindgen",
  "cargo-emit",
+ "mc-sgx-core-build",
 ]
 
 [[package]]
@@ -551,6 +553,7 @@ name = "mc-sgx-core-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-core-build",
 ]
 
@@ -571,6 +574,7 @@ name = "mc-sgx-dcap-ql-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-core-build",
 ]
 
@@ -590,6 +594,7 @@ name = "mc-sgx-dcap-quoteverify-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-dcap-sys-types",
 ]
@@ -648,6 +653,7 @@ name = "mc-sgx-tcrypto-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-core-build",
 ]
 
@@ -677,6 +683,7 @@ name = "mc-sgx-tservice-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
  "mc-sgx-tcrypto-sys-types",
@@ -698,6 +705,7 @@ name = "mc-sgx-tstdc-sys-types"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "cargo-emit",
  "mc-sgx-core-build",
 ]
 
