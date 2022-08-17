@@ -11,9 +11,3 @@
 )]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-
-impl Clone for sgx_key_id_t {
-    fn clone(&self) -> sgx_key_id_t {
-        sgx_key_id_t { id: self.id }
-    }
-}
