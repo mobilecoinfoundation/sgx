@@ -1,24 +1,21 @@
-# MobileCoin's Rust FFI for the Intel SGX SDK
+# MobileCoin SGX: Common DCAP FFI Types
 
-[![mc-sgx-dcap-sys-types][crate-image]][crate-link]
-![License][license-image]
-[![Project Chat][chat-image]][chat-link]
+[![Project Chat][chat-image]][chat-link]<!--
+-->![License][license-image]<!--
+-->![Target][target-image]<!--
+-->[![Crates.io][crate-image]][crate-link]<!--
+-->[![Docs Status][docs-image]][docs-link]<!--
+-->[![Dependency Status][deps-image]][deps-link]
 
-[![Docs Status][docs-image]][docs-link]
-[![CodeCov Status][codecov-image]][codecov-link]
-[![dependency status][deps-image]][deps-link]
+FFI type definitions used by various DCAP libraries.
 
-This crate contains the FFI type definitions which are used by the 
-SGX DCAP libraries.
-
-[crate-image]: https://img.shields.io/crates/v/mc-sgx-dcap-sys-types.svg?style=for-the-badge
-[crate-link]: https://crates.io/crates/mc-sgx-dcap-sys-types
-[license-image]: https://img.shields.io/crates/l/mc-sgx-dcap-sys-types?style=for-the-badge
-[chat-image]: https://img.shields.io/discord/MOBILECOIN?style=for-the-badge
+[chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
 [chat-link]: https://mobilecoin.chat
-[docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-sys-types?style=for-the-badge
+[license-image]: https://img.shields.io/crates/l/mc-sgx-dcap-sys-types?style=flat-square
+[target-image]: https://img.shields.io/badge/target-any-brightgreen?style=flat-square
+[crate-image]: https://img.shields.io/crates/v/mc-sgx-dcap-sys-types.svg?style=flat-square
+[crate-link]: https://crates.io/crates/mc-sgx-dcap-sys-types
+[docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-sys-types
-[codecov-image]: https://img.shields.io/codecov/c/github/mobilecoinfoundation/sgx/develop?style=for-the-badge
-[codecov-link]: https://codecov.io/gh/mobilecoinfoundation/sgx
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-sys-types/status.svg?style=for-the-badge
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-sys-types
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-sys-types/0.1.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-sys-types/0.1.0

@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! FFI functions for the SGX SDK DCAP ql library.
 
+#![doc = include_str!("../README.md")]
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 
 use mc_sgx_core_sys_types::{sgx_report_t, sgx_target_info_t};

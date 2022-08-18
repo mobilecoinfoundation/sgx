@@ -1,5 +1,6 @@
 [package]
 name = "mc-sgx-tservice-sys-types"
+# When updating version, update the deps.rs link in README.md
 version = "0.1.0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]

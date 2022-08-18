@@ -1,7 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 
-//! Exported SGX FFI types
-
+#![doc = include_str!("../README.md")]
 #![no_std]
 #![allow(
     clippy::missing_safety_doc,

@@ -1,17 +1,21 @@
-# Common build logic for SGX libraries
+# MobileCoin SGX: Build Utilities
 
-This crate provides common logic to build and link against the Intel SGX SDK
+[![Project Chat][chat-image]][chat-link]<!--
+-->![License][license-image]<!--
+-->![Target][target-image]<!--
+-->[![Crates.io][crate-image]][crate-link]<!--
+-->[![Docs Status][docs-image]][docs-link]<!--
+-->[![Dependency Status][deps-image]][deps-link]
 
-## Table of Contents
+Utilities for compiling FFI wrappers to SGX libraries.
 
-- [License](#license)
-- [References](#references)
-
-## License
-
-Look for the *LICENSE* file at the root of the repo for more information.
-
-## References
-
-- <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
-- <https://github.com/intel/linux-sgx#build-the-intelr-sgx-sdk-and-intelr-sgx-psw-package>
+[crate-image]: https://img.shields.io/crates/v/mc-sgx-core-build.svg?style=flat-square
+[crate-link]: https://crates.io/crates/mc-sgx-core-build
+[license-image]: https://img.shields.io/crates/l/mc-sgx-core-build?style=flat-square
+[target-image]: https://img.shields.io/badge/target-any-brightgreen?style=flat-square
+[chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
+[chat-link]: https://mobilecoin.chat
+[docs-image]: https://img.shields.io/docsrs/mc-sgx-core-build?style=flat-square
+[docs-link]: https://docs.rs/crate/mc-sgx-core-build
+[deps-image]: https://deps.rs/crate/mc-sgx-core-build/0.1.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-core-build/0.1.0

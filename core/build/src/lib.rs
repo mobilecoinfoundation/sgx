@@ -64,7 +64,8 @@ pub fn sgx_builder() -> Builder {
         .derive_ord(true)
         .derive_partialeq(true)
         .derive_partialord(true)
-        // Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
+        // TODO: Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
+        //       Disable doctest in the relevant crates: https://github.com/rust-lang/cargo/issues/7252#issuecomment-521778066
         .generate_comments(false)
         .default_enum_style(EnumVariation::NewType { is_bitfield: false })
         .prepend_enum_name(false)

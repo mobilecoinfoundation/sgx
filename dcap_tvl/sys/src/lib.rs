@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! FFI functions for the SGX SDK DCAP tvl library.
 
+#![doc = include_str!("../README.md")]
 #![no_std]
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 
