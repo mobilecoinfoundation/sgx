@@ -8,7 +8,7 @@ runs:
       shell: bash
       run:
         source /etc/lsb-release &&
-        echo "deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu $DISTRIB_CODENAME main" | tee /etc/apt/sources.list.d/intel-sgx.list &&
-        wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - &&
-        apt-get update &&
-        apt-get install -y libsgx-dcap-ql-dev libsgx-dcap-quote-verify-dev
+        echo "deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list &&
+        wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add - &&
+        sudo apt-get update &&
+        sudo apt-get install -y libsgx-dcap-ql-dev libsgx-dcap-quote-verify-dev
