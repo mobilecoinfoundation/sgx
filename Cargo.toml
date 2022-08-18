@@ -3,8 +3,9 @@ resolver = "2"
 members = [
     "capable/sys",
     "capable/sys/types",
-    "core/sys/types",
     "core/build",
+    "core/sys/types",
+    "core/types",
     "dcap/sys/types",
     "dcap_ql/sys",
     "dcap_ql/sys/types",
