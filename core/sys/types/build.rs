@@ -2,6 +2,8 @@
 
 //! Builds the FFI type bindings for the common SGX SDK types
 
+use mc_sgx_core_build::SgxParseCallbacks;
+
 // The types to generate bindings for.
 //
 // To keep the noise out of the bindings, we use the underlying type and tell
@@ -50,11 +52,22 @@ const CORE_TYPES: &[&str] = &[
 
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
-
+    let callback = SgxParseCallbacks::new(
+        [
+            "sgx_status_t",
+            "sgx_quote_t",
+            "sgx_quote_sign_type_t",
+            "sgx_update_info_bit_t",
+            "sgx_ql_att_key_id_t",
+            "sgx_att_key_id_ext_t",
+            "sgx_qe_report_info_t",
+        ]
+        .iter(),
+    );
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))
+        .parse_callbacks(Box::new(callback))
         .newtype_enum("_status_t");
 
     for t in CORE_TYPES.iter() {

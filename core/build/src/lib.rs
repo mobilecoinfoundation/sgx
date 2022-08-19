@@ -56,7 +56,7 @@ pub fn normalize_item_name(name: &str) -> Option<String> {
 /// SGX libraries.
 pub fn sgx_builder() -> Builder {
     Builder::default()
-        .derive_copy(true)
+        .derive_copy(false)
         .derive_debug(true)
         .derive_default(true)
         .derive_eq(true)
@@ -66,23 +66,57 @@ pub fn sgx_builder() -> Builder {
         .derive_partialord(true)
         // Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
         .generate_comments(false)
-        .default_enum_style(EnumVariation::Consts)
+        .default_enum_style(EnumVariation::NewType { is_bitfield: false })
         .prepend_enum_name(false)
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
-        .parse_callbacks(Box::new(SgxParseCallbacks))
+        .parse_callbacks(Box::new(SgxParseCallbacks::default()))
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
 ///
 /// This provides a default implementation for most of the SGX libraries
-#[derive(Debug)]
-pub struct SgxParseCallbacks;
+#[derive(Debug, Default)]
+pub struct SgxParseCallbacks {
+    // types that are blocklisted from deriving Clone for.
+    //
+    // These may either already have the Clone attribute from bindgen, or they
+    // can't derive clone due to having non cloneable default types like
+    // `__IncompleteArrayField`.
+    blocklisted_clone_types: Vec<String>,
+}
+
+impl SgxParseCallbacks {
+    /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
+    ///
+    /// # Arguments
+    /// * `blocklisted_clone_types` - Types to blocklist from deriving `Clone`.
+    pub fn new<'a, E, I>(blocklisted_clone_types: I) -> Self
+    where
+        I: Iterator<Item = &'a E>,
+        E: ToString + 'a + ?Sized,
+    {
+        let blocklisted_clone_types = blocklisted_clone_types
+            .map(ToString::to_string)
+            .collect::<Vec<_>>();
+        Self {
+            blocklisted_clone_types,
+        }
+    }
+}
 
 impl ParseCallbacks for SgxParseCallbacks {
     fn item_name(&self, name: &str) -> Option<String> {
         normalize_item_name(name)
+    }
+
+    fn add_derives(&self, name: &str) -> Vec<String> {
+        if self.blocklisted_clone_types.iter().any(|n| *n == name) {
+            vec![]
+        } else {
+            vec!["Clone".to_string()]
+        }
     }
 }
 
