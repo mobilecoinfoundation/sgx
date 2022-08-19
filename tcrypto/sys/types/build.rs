@@ -37,13 +37,13 @@ const CRYPTO_TYPES: &[&str] = &[
 fn main() {
     let callback = SgxParseCallbacks::new(
         [
-            "sgx_generic_ecresult_t",
             "sgx_rsa_result_t",
-            "sgx_rsa_params_t",
             "sgx_rsa_key_type_t",
+            "sgx_generic_ecresult_t",
         ]
         .iter(),
-    );
+    )
+    .derive_copy(["sgx_ec256_public_t", "rsa_params_t"].iter());
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 

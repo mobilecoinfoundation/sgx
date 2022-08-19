@@ -52,18 +52,26 @@ const CORE_TYPES: &[&str] = &[
 
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
-    let callback = SgxParseCallbacks::new(
-        [
-            "sgx_status_t",
-            "sgx_quote_t",
-            "sgx_quote_sign_type_t",
-            "sgx_update_info_bit_t",
-            "sgx_ql_att_key_id_t",
-            "sgx_att_key_id_ext_t",
-            "sgx_qe_report_info_t",
-        ]
-        .iter(),
-    );
+    let callback = SgxParseCallbacks::new(["sgx_status_t", "sgx_quote_sign_type_t"].iter())
+        .derive_copy(
+            [
+                "sgx_update_info_bit_t",
+                "sgx_ql_att_key_id_t",
+                "sgx_att_key_id_ext_t",
+                "sgx_qe_report_info_t",
+                "sgx_quote_nonce_t",
+                "sgx_target_info_t",
+                "sgx_report_t",
+                "sgx_report_body_t",
+                "sgx_key_id_t",
+                "sgx_cpu_svn_t",
+                "sgx_measurement_t",
+                "sgx_report_data_t",
+                "sgx_attributes_t",
+            ]
+            .iter(),
+        )
+        .dynamically_sized_types(["sgx_quote_t"].iter());
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))
