@@ -100,13 +100,11 @@ impl SgxParseCallbacks {
         E: ToString + 'a + ?Sized,
     {
         let enum_types = enum_types.map(ToString::to_string).collect::<Vec<_>>();
-        self.enum_types.extend(enum_types.clone());
-
-        // Enum types (from C interfaces) are small enough to always be
-        // copyable.
-        self.copyable_types.extend(enum_types);
-
-        self
+        Self {
+            copyable_types: enum_types.clone(),
+            enum_types,
+            dynamically_sized_types: vec![],
+        }
     }
 
     /// Types to derive copy for, usually packed types
