@@ -5,6 +5,11 @@
 
 extern crate alloc;
 
+mod attributes;
 mod error;
+mod macros;
 
-pub use crate::error::FfiError;
+pub use crate::{
+    attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
+    error::FfiError,
+};
