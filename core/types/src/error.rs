@@ -4,6 +4,8 @@
 
 use core::convert::From;
 use mc_sgx_core_sys_types::sgx_status_t;
+
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Errors seen when converting to, or from, rust for the SGX types
@@ -31,7 +33,9 @@ pub enum FfiError {
 ///  8. `0x7000-0x7fff`: Errors with the "SGX Encrypted FS" utility.
 ///  9. `0x8000-0x8fff`: Attestation key errors.
 /// 10. `0xf000-0xffff`: Internal (to SGX) errors.
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[non_exhaustive]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Error {
     // 0x0001 - 0x0fff: Generic errors
     /// An unexpected error.
