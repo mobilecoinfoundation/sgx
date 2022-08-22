@@ -39,11 +39,9 @@ impl From<Path> for sgx_qv_path_type_t {
 
 #[cfg(test)]
 mod test {
-    use yare::{ide, parameterized};
+    use yare::parameterized;
     extern crate std;
     use super::*;
-
-    ide!();
 
     #[parameterized(
         qve = { sgx_qv_path_type_t::SGX_QV_QVE_PATH, Path::QuoteVerificationEnclave },
