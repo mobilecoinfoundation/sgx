@@ -8,4 +8,4 @@ mc-sgx-dcap-quoteverify-sys-types = { path = "../sys/types", version = "=0.1.0" 
 mc-sgx-core-types = { path = "../../core/types", version = "=0.1.0" }
 
 [dev-dependencies]
-yare = "1.0.1"
+yare = "1.0.2"
