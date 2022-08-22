@@ -7,6 +7,7 @@
 macro_rules! new_type_wrapper {
     ($($wrapper:ident, $inner:ty;)*) => {$(
         #[repr(transparent)]
+        #[derive(Debug, Clone, Hash, PartialEq, Eq)]
         pub struct $wrapper($inner);
 
         impl AsMut<$inner> for $wrapper {
