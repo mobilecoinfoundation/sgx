@@ -8,4 +8,4 @@ extern crate alloc;
 
 mod error;
 
-pub use crate::error::Error;
+pub use crate::error::FfiError;

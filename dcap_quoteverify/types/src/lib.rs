@@ -4,12 +4,9 @@
 
 #![no_std]
 
-#[cfg(test)]
-#[macro_use]
-extern crate yare;
 extern crate alloc;
 
-use mc_sgx_core_types::Error;
+use mc_sgx_core_types::FfiError;
 use mc_sgx_dcap_quoteverify_sys_types::sgx_qv_path_type_t;
 
 #[non_exhaustive]
@@ -20,13 +17,13 @@ pub enum Path {
 }
 
 impl TryFrom<sgx_qv_path_type_t> for Path {
-    type Error = Error;
+    type Error = FfiError;
 
     fn try_from(p: sgx_qv_path_type_t) -> Result<Self, Self::Error> {
         match p {
             sgx_qv_path_type_t::SGX_QV_QVE_PATH => Ok(Self::QuoteVerificationEnclave),
             sgx_qv_path_type_t::SGX_QV_QPL_PATH => Ok(Self::QuoteProviderLibrary),
-            p => Err(Error::UnknownEnumValue(p.0.into())),
+            p => Err(FfiError::UnknownEnumValue(p.0.into())),
         }
     }
 }
@@ -42,6 +39,7 @@ impl From<Path> for sgx_qv_path_type_t {
 
 #[cfg(test)]
 mod test {
+    use yare::{ide, parameterized};
     extern crate std;
     use super::*;
 
