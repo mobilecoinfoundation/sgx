@@ -2,17 +2,12 @@
 
 #![doc = include_str!("../README.md")]
 
+use mc_sgx_core_types::Error;
 use mc_sgx_core_sys_types::{sgx_status_t, sgx_target_info_t};
 use mc_sgx_urts_sys::{sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
 SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX};
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
 use std::{mem::MaybeUninit, os::raw::c_int, ptr, io::Read, fs::File, path::Path, ffi::c_void};
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Error {
-    // An error provided from the SGX SDK
-    SgxStatus(sgx_status_t),
-}
 
 /// Struct for interfacing with the SGX SDK.  This should be used directly in
 /// sgx calls `ecall_some_function(*enclave, ...)`.
@@ -113,7 +108,7 @@ impl EnclaveBuilder {
 
         match result {
             sgx_status_t::SGX_SUCCESS => Ok(Enclave { id: enclave_id }),
-            error => Err(Error::SgxStatus(error)),
+            error => Err(error.into()),
         }
     }
 }
@@ -140,7 +135,7 @@ impl Enclave {
         };
         match result {
             sgx_status_t::SGX_SUCCESS => Ok(unsafe { target_info.assume_init() }),
-            error => Err(Error::SgxStatus(error)),
+            error => Err(error.into()),
         }
     }
 }
@@ -175,7 +170,7 @@ mod tests {
         let builder = EnclaveBuilder::new(b"garbage bytes");
         assert_eq!(
             builder.create(),
-            Err(Error::SgxStatus(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE))
+            Err(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE.into())
         );
     }
 
