@@ -339,11 +339,9 @@ impl From<sgx_status_t> for Error {
 
 #[cfg(test)]
 mod test {
-    use yare::{ide, parameterized};
+    use yare::parameterized;
     extern crate std;
     use super::*;
-
-    ide!();
 
     #[parameterized(
     unexpected = { sgx_status_t::SGX_ERROR_UNEXPECTED, Error::Unexpected },
