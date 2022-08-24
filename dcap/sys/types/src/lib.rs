@@ -1,5 +1,4 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Rust FFI types for the SGX SDK DCAP libraries.
 
 #![doc = include_str!("../README.md")]
 #![no_std]
