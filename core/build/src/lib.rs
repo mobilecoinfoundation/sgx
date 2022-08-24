@@ -2,7 +2,10 @@
 
 #![doc = include_str!("../README.md")]
 
-use bindgen::{callbacks::ParseCallbacks, Builder, EnumVariation};
+use bindgen::{
+    callbacks::{IntKind, ParseCallbacks},
+    Builder, EnumVariation,
+};
 use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
@@ -162,6 +165,20 @@ impl ParseCallbacks for SgxParseCallbacks {
             attributes.push("Copy");
         }
         attributes.into_iter().map(String::from).collect::<Vec<_>>()
+    }
+
+    fn int_macro(&self, name: &str, _value: i64) -> Option<IntKind> {
+        const USIZE_SUFFIXES: &[&str] = &["_SIZE", "_BYTES", "_IDX"];
+        if USIZE_SUFFIXES.iter().any(|suffix| name.ends_with(suffix)) {
+            Some(IntKind::Custom {
+                name: "usize",
+                is_signed: false,
+            })
+        } else if name.starts_with("SGX_KEYSELECT_") || name.starts_with("SGX_KEYPOLICY_") {
+            Some(IntKind::U16)
+        } else {
+            None
+        }
     }
 }
 

@@ -2,6 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 #![no_std]
+#![feature(core_intrinsics)]
 
 extern crate alloc;
 

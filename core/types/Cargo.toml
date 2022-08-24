@@ -20,6 +20,7 @@ serde = [
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.1.0" }
+rand = "0.8.5"
 serde = { version = "1.0.144", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
