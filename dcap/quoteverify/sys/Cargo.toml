@@ -13,6 +13,9 @@ readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
+[lib]
+doctest = false
+
 [dependencies]
 mc-sgx-dcap-quoteverify-sys-types = { path = "types", version = "=0.1.0" }
 mc-sgx-dcap-sys-types = { path = "../../../dcap/sys/types", version = "=0.1.0" }
