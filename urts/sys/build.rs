@@ -31,7 +31,12 @@ fn main() {
         builder = builder.allowlist_function(f);
     }
 
+    for c in URTS_CONSTANTS {
+        builder = builder.allowlist_var(c);
+    }
+
     let out_path = mc_sgx_core_build::build_output_dir();
+
     builder
         .generate()
         .expect("Unable to generate bindings")

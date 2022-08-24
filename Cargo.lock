@@ -586,6 +586,7 @@ name = "mc-sgx-urts"
 version = "0.2.0-pre0"
 dependencies = [
  "mc-sgx-core-sys-types",
+ "mc-sgx-core-types",
  "mc-sgx-urts-sys",
  "mc-sgx-urts-sys-types",
  "test_enclave",
