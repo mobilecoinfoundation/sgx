@@ -1,11 +1,18 @@
-# Untrusted SGX rust interface
+# MobileCoin's Rust Interface for uRTS
+
+[![Project Chat][chat-image]][chat-link]<!--
+-->![License][license-image]<!--
+-->![Target][target-image]<!--
+-->[![Crates.io][crate-image]][crate-link]<!--
+-->[![Docs Status][docs-image]][docs-link]<!--
+-->[![Dependency Status][deps-image]][deps-link]
 
 Provides a rust interface for creating (`sgx_create_enclave_from_buffer_ex()`)
 and persisting SGX enclaves.
 
 Example usage:
 
-```rust
+```ignore,rust
 let enclave = EnclaveBuilder::new(&mut enclave_bytes).create().unrwap()
 let result = unsafe { ecall_foo(*enclave, arg1, arg2) };
 ```
@@ -49,3 +56,14 @@ the `sim` feature is present the simulation SGX libraries will be linked in.
 
 - <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
 - <https://github.com/intel/linux-sgx#build-the-intelr-sgx-sdk-and-intelr-sgx-psw-package>
+
+[chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
+[chat-link]: https://mobilecoin.chat
+[license-image]: https://img.shields.io/crates/l/mc-sgx-urts?style=flat-square
+[target-image]: https://img.shields.io/badge/target-x86__64-blue?style=flat-square
+[crate-image]: https://img.shields.io/crates/v/mc-sgx-urts.svg?style=flat-square
+[crate-link]: https://crates.io/crates/mc-sgx-urts
+[docs-image]: https://img.shields.io/docsrs/mc-sgx-urts?style=flat-square
+[docs-link]: https://docs.rs/crate/mc-sgx-urts
+[deps-image]: https://deps.rs/crate/mc-sgx-urts/0.1.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-urts/0.1.0

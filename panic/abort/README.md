@@ -21,14 +21,14 @@ goal for all crates in this repository is to handle the intricate linkage
 requirements of the Intel SGX SDK automagically, but that is not in place yet,
 so users of this crate will need to link it themselves for now.
 
-[crate-image]: https://img.shields.io/crates/v/mc-sgx-panic-abort?style=for-the-badge
+[crate-image]: https://img.shields.io/crates/v/mc-sgx-panic-abort?style=flat-square
 [crate-link]: https://crates.io/crates/mc-sgx-panic-abort
-[docs-image]: https://img.shields.io/docsrs/mc-sgx-panic-abort/latest?style=for-the-badge
+[docs-image]: https://img.shields.io/docsrs/mc-sgx-panic-abort/latest?style=flat-square
 [docs-link]: https://docs.rs/mc-sgx-panic-abort/
-[license-image]: https://img.shields.io/github/license/mobilecoinfoundation/sgx?style=for-the-badge
-[rustc-image]: https://img.shields.io/badge/rustc-nightly-orange.svg?style=for-the-badge&logo=rust
-[chat-image]: https://img.shields.io/discord/844353360348971068.svg?style=for-the-badge
+[license-image]: https://img.shields.io/github/license/mobilecoinfoundation/sgx?style=flat-square
+[rustc-image]: https://img.shields.io/badge/rustc-nightly-orange.svg?style=flat-square&logo=rust
+[chat-image]: https://img.shields.io/discord/844353360348971068.svg?style=flat-square
 [chat-link]: https://discord.gg/4kP8ftbVfA
-[downloads-image]: https://img.shields.io/crates/d/mc-sgx-panic-abort.svg?style=for-the-badge
-[build-image]: https://img.shields.io/github/workflow/status/mobilecoinfoundation/sgx/panic-abort?style=for-the-badge
+[downloads-image]: https://img.shields.io/crates/d/mc-sgx-panic-abort.svg?style=flat-square
+[build-image]: https://img.shields.io/github/workflow/status/mobilecoinfoundation/sgx/panic-abort?style=flat-square
 [build-link]: https://github.com/mobilecoinfoundation/sgx/actions

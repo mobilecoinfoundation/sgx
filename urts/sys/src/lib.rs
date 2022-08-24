@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-// See https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf
-//
+
+#![doc = include_str!("../README.md")]
 #![feature(c_size_t)]
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 

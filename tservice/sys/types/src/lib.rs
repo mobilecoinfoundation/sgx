@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! FFI types for the SGX SDK trusted service library (tservice).
 
+#![doc = include_str!("../README.md")]
 #![no_std]
 #![feature(c_size_t)]
 #![allow(

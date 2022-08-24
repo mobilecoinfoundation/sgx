@@ -1,23 +1,21 @@
-# MobileCoin's Rust FFI for the Intel SGX SDK
+# MobileCoin SGX: Crypto FFI Bindings 
 
-[![mc-sgx-tcrypto-sys][crate-image]][crate-link]
-![License][license-image]
-[![Project Chat][chat-image]][chat-link]
+[![Project Chat][chat-image]][chat-link]<!--
+-->![License][license-image]<!--
+-->![Target][target-image]<!--
+-->[![Crates.io][crate-image]][crate-link]<!--
+-->[![Docs Status][docs-image]][docs-link]<!--
+-->[![Dependency Status][deps-image]][deps-link]
 
-[![Docs Status][docs-image]][docs-link]
-[![CodeCov Status][codecov-image]][codecov-link]
-[![dependency status][deps-image]][deps-link]
+FFI linkage for the `sgx_tcrypto` library.
 
-This crate contains the FFI linkage for the `libsgx_tcrypto.a` library.
-
-[crate-image]: https://img.shields.io/crates/v/mc-sgx-tcrypto-sys.svg?style=for-the-badge
-[crate-link]: https://crates.io/crates/mc-sgx-tcrypto-sys
-[license-image]: https://img.shields.io/crates/l/mc-sgx-tcrypto-sys?style=for-the-badge
-[chat-image]: https://img.shields.io/discord/844353360348971068?style=for-the-badge
+[chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
 [chat-link]: https://mobilecoin.chat
-[docs-image]: https://img.shields.io/docsrs/mc-sgx-tcrypto-sys?style=for-the-badge
+[license-image]: https://img.shields.io/crates/l/mc-sgx-tcrypto-sys?style=flat-square
+[target-image]: https://img.shields.io/badge/target-sgx-red?style=flat-square
+[crate-image]: https://img.shields.io/crates/v/mc-sgx-tcrypto-sys.svg?style=flat-square
+[crate-link]: https://crates.io/crates/mc-sgx-tcrypto-sys
+[docs-image]: https://img.shields.io/docsrs/mc-sgx-tcrypto-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tcrypto-sys
-[codecov-image]: https://img.shields.io/codecov/c/github/mobilecoinfoundation/sgx/develop?style=for-the-badge
-[codecov-link]: https://codecov.io/gh/mobilecoinfoundation/sgx
-[deps-image]: https://deps.rs/crate/mc-sgx-tcrypto-sys/status.svg?style=for-the-badge
-[deps-link]: https://deps.rs/crate/mc-sgx-tcrypto-sys
+[deps-image]: https://deps.rs/crate/mc-sgx-tcrypto-sys/0.1.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tcrypto-sys/0.1.0

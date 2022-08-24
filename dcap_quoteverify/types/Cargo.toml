@@ -1,5 +1,6 @@
 [package]
 name = "mc-sgx-dcap-quoteverify-types"
+# When updating version, update the deps.rs link in README.md
 version = "0.1.0"
 edition = "2021"
 

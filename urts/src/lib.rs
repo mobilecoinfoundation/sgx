@@ -1,6 +1,6 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-//! Provides rust wrappers for the SGX untrusted runtime system (uRTS)
-//! functionality
+
+#![doc = include_str!("../README.md")]
 
 use mc_sgx_core_sys_types::sgx_status_t;
 use mc_sgx_urts_sys::{sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave};
