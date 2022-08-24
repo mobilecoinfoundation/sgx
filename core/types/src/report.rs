@@ -1,0 +1,300 @@
+// Copyright (c) 2022 The MobileCoin Foundation
+//! SGX Report
+
+use crate::{
+    impl_newtype_for_bytestruct, new_type_accessors_impls, Attributes, ConfigSvn, CpuSvn, IsvSvn,
+    MiscellaneousSelect,
+};
+use mc_sgx_core_sys_types::{
+    sgx_config_id_t, sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_measurement_t, sgx_prod_id_t,
+    sgx_report_body_t, sgx_report_data_t, SGX_CONFIGID_SIZE, SGX_HASH_SIZE,
+    SGX_ISVEXT_PROD_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES, SGX_REPORT_BODY_RESERVED2_BYTES,
+    SGX_REPORT_BODY_RESERVED3_BYTES, SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
+};
+
+/// A measurement
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct Measurement(sgx_measurement_t);
+
+impl_newtype_for_bytestruct! {
+    Measurement, sgx_measurement_t, m;
+}
+
+impl Default for Measurement {
+    fn default() -> Self {
+        Self(sgx_measurement_t {
+            m: [0; SGX_HASH_SIZE],
+        })
+    }
+}
+
+/// Report Data
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct ReportData(sgx_report_data_t);
+
+impl_newtype_for_bytestruct! {
+    ReportData, sgx_report_data_t, d;
+}
+
+impl Default for ReportData {
+    fn default() -> Self {
+        Self(sgx_report_data_t {
+            d: [0; SGX_REPORT_DATA_SIZE],
+        })
+    }
+}
+
+/// ISV Family ID
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[repr(transparent)]
+pub struct IsvFamilyId(sgx_isvfamily_id_t);
+
+new_type_accessors_impls! {
+    IsvFamilyId, sgx_isvfamily_id_t;
+}
+
+/// ISV Extended Product ID
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct IsvExtendedProductId(sgx_isvext_prod_id_t);
+
+new_type_accessors_impls! {
+    IsvExtendedProductId, sgx_isvext_prod_id_t;
+}
+
+impl Default for IsvExtendedProductId {
+    fn default() -> Self {
+        Self([0; SGX_ISVEXT_PROD_ID_SIZE])
+    }
+}
+
+/// Config ID
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct ConfigId(sgx_config_id_t);
+
+new_type_accessors_impls! {
+    ConfigId, sgx_config_id_t;
+}
+
+impl Default for ConfigId {
+    fn default() -> Self {
+        Self([0; SGX_CONFIGID_SIZE])
+    }
+}
+
+/// ISV Product ID
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[repr(transparent)]
+pub struct IsvProductId(sgx_prod_id_t);
+
+new_type_accessors_impls! {
+    IsvProductId, sgx_prod_id_t;
+}
+
+/// The main body of a report from SGX
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct ReportBody(sgx_report_body_t);
+
+impl ReportBody {
+    /// The CPU SVN of this report
+    pub fn cpu_svn(&self) -> CpuSvn {
+        self.0.cpu_svn.into()
+    }
+
+    /// Miscellaneous Select values
+    pub fn miscellaneous_select(&self) -> MiscellaneousSelect {
+        self.0.misc_select.into()
+    }
+
+    /// The ISV extended product id
+    pub fn isv_extended_product_id(&self) -> IsvExtendedProductId {
+        self.0.isv_ext_prod_id.into()
+    }
+
+    /// The attributes
+    pub fn attributes(&self) -> Attributes {
+        self.0.attributes.into()
+    }
+
+    /// The MRENCLAVE measurement
+    pub fn mr_enclave(&self) -> Measurement {
+        self.0.mr_enclave.into()
+    }
+
+    /// The MRSIGNER measurement
+    pub fn mr_signer(&self) -> Measurement {
+        self.0.mr_signer.into()
+    }
+
+    /// The Config ID
+    pub fn config_id(&self) -> ConfigId {
+        self.0.config_id.into()
+    }
+
+    /// The ISV product ID
+    pub fn isv_product_id(&self) -> IsvProductId {
+        self.0.isv_prod_id.into()
+    }
+
+    /// The ISV SVN
+    pub fn isv_svn(&self) -> IsvSvn {
+        self.0.isv_svn.into()
+    }
+
+    /// The Config SVN
+    pub fn config_svn(&self) -> ConfigSvn {
+        self.0.config_svn.into()
+    }
+
+    /// The ISV Family ID
+    pub fn isv_family_id(&self) -> IsvFamilyId {
+        self.0.isv_family_id.into()
+    }
+
+    /// The report data
+    pub fn report_data(&self) -> ReportData {
+        self.0.report_data.into()
+    }
+}
+
+new_type_accessors_impls! {
+    ReportBody, sgx_report_body_t;
+}
+
+// Implementing default to make it easier to pass an `sgx_report_body_t` to the
+// sgx functions.
+// ```
+// let mut report: sgx_report_body_t = Report::default().into()
+// let return_value = unsafe{ sgx_some_call(&report as *mut _) }
+// ```
+impl Default for ReportBody {
+    fn default() -> Self {
+        Self(sgx_report_body_t {
+            cpu_svn: CpuSvn::default().into(),
+            misc_select: MiscellaneousSelect::default().into(),
+            reserved1: [0u8; SGX_REPORT_BODY_RESERVED1_BYTES],
+            isv_ext_prod_id: IsvExtendedProductId::default().into(),
+            attributes: Attributes::default().into(),
+            mr_enclave: Measurement::default().into(),
+            reserved2: [0u8; SGX_REPORT_BODY_RESERVED2_BYTES],
+            mr_signer: Measurement::default().into(),
+            reserved3: [0u8; SGX_REPORT_BODY_RESERVED3_BYTES],
+            config_id: ConfigId::default().into(),
+            isv_prod_id: IsvProductId::default().into(),
+            isv_svn: IsvSvn::default().into(),
+            config_svn: ConfigSvn::default().into(),
+            reserved4: [0u8; SGX_REPORT_BODY_RESERVED4_BYTES],
+            isv_family_id: IsvFamilyId::default().into(),
+            report_data: ReportData::default().into(),
+        })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    extern crate std;
+    use super::*;
+    use mc_sgx_core_sys_types::{
+        sgx_attributes_t, sgx_cpu_svn_t, SGX_CPUSVN_SIZE, SGX_ISV_FAMILY_ID_SIZE,
+    };
+
+    #[test]
+    fn measurement_from_slice() {
+        let raw_measurement = [4u8; SGX_HASH_SIZE].as_slice();
+        let measurement: Measurement = raw_measurement.try_into().unwrap();
+        assert_eq!(measurement.0.m, raw_measurement);
+    }
+
+    #[test]
+    fn default_report_body() {
+        let body = ReportBody::default();
+        assert_eq!(body.cpu_svn(), CpuSvn::default());
+        assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::default());
+        assert_eq!(
+            body.isv_extended_product_id(),
+            IsvExtendedProductId::default()
+        );
+        assert_eq!(body.attributes(), Attributes::default());
+        assert_eq!(body.mr_enclave(), Measurement::default());
+        assert_eq!(body.mr_signer(), Measurement::default());
+        assert_eq!(body.config_id(), ConfigId::default());
+        assert_eq!(body.isv_product_id(), IsvProductId::default());
+        assert_eq!(body.isv_svn(), IsvSvn::default());
+        assert_eq!(body.config_svn(), ConfigSvn::default());
+        assert_eq!(body.isv_family_id(), IsvFamilyId::default());
+        assert_eq!(body.report_data(), ReportData::default());
+    }
+
+    #[test]
+    fn from_sgx_report_body_t() {
+        let sgx_body = sgx_report_body_t {
+            cpu_svn: sgx_cpu_svn_t {
+                svn: [1u8; SGX_CPUSVN_SIZE],
+            },
+            misc_select: 2,
+            reserved1: [3u8; SGX_REPORT_BODY_RESERVED1_BYTES],
+            isv_ext_prod_id: [4u8; SGX_ISVEXT_PROD_ID_SIZE],
+            attributes: sgx_attributes_t { flags: 5, xfrm: 6 },
+            mr_enclave: sgx_measurement_t {
+                m: [7u8; SGX_HASH_SIZE],
+            },
+            reserved2: [8u8; SGX_REPORT_BODY_RESERVED2_BYTES],
+            mr_signer: sgx_measurement_t {
+                m: [9u8; SGX_HASH_SIZE],
+            },
+            reserved3: [10u8; SGX_REPORT_BODY_RESERVED3_BYTES],
+            config_id: [11u8; SGX_CONFIGID_SIZE],
+            isv_prod_id: 12,
+            isv_svn: 13,
+            config_svn: 14,
+            reserved4: [15u8; SGX_REPORT_BODY_RESERVED4_BYTES],
+            isv_family_id: [16u8; SGX_ISV_FAMILY_ID_SIZE],
+            report_data: sgx_report_data_t {
+                d: [17u8; SGX_REPORT_DATA_SIZE],
+            },
+        };
+
+        let body: ReportBody = sgx_body.into();
+
+        assert_eq!(body.cpu_svn(), CpuSvn::new(&[1u8; CpuSvn::SVN_SIZE]));
+        assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::new(2));
+        assert_eq!(
+            body.isv_extended_product_id(),
+            IsvExtendedProductId([4u8; SGX_ISVEXT_PROD_ID_SIZE])
+        );
+        assert_eq!(
+            body.attributes(),
+            Attributes::default().set_flags(5).set_transform(6)
+        );
+        assert_eq!(
+            body.mr_enclave(),
+            Measurement(sgx_measurement_t {
+                m: [7u8; SGX_HASH_SIZE]
+            })
+        );
+        assert_eq!(
+            body.mr_signer(),
+            Measurement(sgx_measurement_t {
+                m: [9u8; SGX_HASH_SIZE]
+            })
+        );
+        assert_eq!(body.config_id(), ConfigId([11u8; SGX_CONFIGID_SIZE]));
+        assert_eq!(body.isv_product_id(), IsvProductId(12));
+        assert_eq!(body.isv_svn(), IsvSvn::new(13));
+        assert_eq!(body.config_svn(), ConfigSvn::new(14));
+        assert_eq!(
+            body.isv_family_id(),
+            IsvFamilyId([16u8; SGX_ISV_FAMILY_ID_SIZE])
+        );
+        assert_eq!(
+            body.report_data(),
+            ReportData(sgx_report_data_t {
+                d: [17u8; SGX_REPORT_DATA_SIZE]
+            })
+        );
+    }
+}
