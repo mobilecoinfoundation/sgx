@@ -26,6 +26,25 @@ jobs:
       - name: Install markdown lint
         run: npm install -g markdownlint-cli@0.32.1
       - run: markdownlint --disable 'MD013' "**/*.md"
+
+  deny:
+    runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+    # Prevent sudden announcement of a new advisory from failing ci:
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: EmbarkStudios/cargo-deny-action@v1
+      with:
+        command: check ${{ matrix.checks }}
+
   clippy:
     runs-on: ubuntu-20.04
     needs:
