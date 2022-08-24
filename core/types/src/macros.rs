@@ -4,12 +4,8 @@
 /// an SgxWrapperType that don't depend on the contents of the inner
 /// type.
 #[macro_export]
-macro_rules! new_type_wrapper {
+macro_rules! new_type_accessors_impls {
     ($($wrapper:ident, $inner:ty;)*) => {$(
-        #[repr(transparent)]
-        #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-        pub struct $wrapper($inner);
-
         impl AsMut<$inner> for $wrapper {
             fn as_mut(&mut self) -> &mut $inner {
                 &mut self.0

@@ -2,10 +2,13 @@
 
 //! SGX Attributes types
 
-use crate::new_type_wrapper;
+use crate::new_type_accessors_impls;
 use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
 
-new_type_wrapper! {
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Attributes(sgx_attributes_t);
+new_type_accessors_impls! {
     Attributes, sgx_attributes_t;
 }
 
@@ -37,20 +40,17 @@ impl Attributes {
     }
 }
 
-new_type_wrapper! {
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+pub struct MiscellaneousSelect(sgx_misc_select_t);
+new_type_accessors_impls! {
     MiscellaneousSelect, sgx_misc_select_t;
 }
 
-// Suppress clippy as the `new_type_wrapper` macro can't derive Default for many
-// of the types.
-#[allow(clippy::derivable_impls)]
-impl Default for MiscellaneousSelect {
-    fn default() -> Self {
-        MiscellaneousSelect(0)
-    }
-}
-
-new_type_wrapper! {
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct MiscellaneousAttribute(sgx_misc_attribute_t);
+new_type_accessors_impls! {
     MiscellaneousAttribute, sgx_misc_attribute_t;
 }
 
