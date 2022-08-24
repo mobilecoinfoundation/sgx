@@ -100,7 +100,7 @@ impl KeyRequestBuilder {
     ///
     /// * `key_name` - The key name to use
     pub fn key_name(mut self, key_name: KeyName) -> Self {
-        self.0.key_name = ::core::intrinsics::discriminant_value(&key_name);
+        self.0.key_name = key_name as u16;
         self
     }
 
@@ -171,8 +171,8 @@ mod test {
     extern crate std;
 
     use super::*;
-    use rand::{rngs::StdRng, SeedableRng};
     use mc_sgx_core_sys_types::SGX_CPUSVN_SIZE;
+    use rand::{rngs::StdRng, SeedableRng};
 
     #[test]
     fn new_key_request_all_zero_except_key_id() {

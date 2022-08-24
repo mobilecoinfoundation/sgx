@@ -2,9 +2,6 @@
 
 #![doc = include_str!("../README.md")]
 #![no_std]
-// Needed for ::core::intrinsics::discriminant_value() to get underlying value
-// of an enum.  Used in `key_request.rs`
-#![feature(core_intrinsics)]
 
 extern crate alloc;
 
