@@ -118,9 +118,9 @@ jobs:
     if: failure()
     needs:
       - rustfmt
+      - markdown-lint
       - clippy
       - nono
-      - markdown-lint
       - build
       - test
       - doc
@@ -128,8 +128,20 @@ jobs:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
         with:
-          username: "Github Workflow Failed"
+          username: "Github Actions"
           status: Failure
-          noprefix: true
+          nodetail: true
+          title: "Workflow: rust"
+          description: |
+            The ${{ github.workflow }} workflow, triggered by ${{ github.actor }} via ${{ github.event_name }}, has failed.<br/>
+            | Job | Status |
+            | --- | ------ |
+            | rustfmt | ${{ needs.rustfmt.result }} |
+            | markdown-lint | ${{ needs.markdown-lint.result }} |
+            | clippy | ${{ needs.clippy.result }} |
+            | nono | ${{ needs.nono.result }} |
+            | build | ${{ needs.build.result }} |
+            | test | ${{ needs.test.result }} |
+            | doc | ${{ needs.doc.result }} |
           avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
