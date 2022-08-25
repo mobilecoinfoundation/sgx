@@ -87,26 +87,29 @@ pub struct SgxParseCallbacks {
 }
 
 impl SgxParseCallbacks {
-    /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
+    /// Types that are enums
+    ///
+    /// Bindgen derives some attributes by default for enums, in order to
+    /// properly handle them they must be known.
+    ///
+    /// Note: Enums will also derive `Copy`, there is no need to specify in
+    ///     [derive_copy]
     ///
     /// # Arguments
-    /// * `enum_types` - Types that are enums.  Bindgen derives some attributes
-    ///   by default for enums, in order to properly handle them they must be
-    ///   known.
-    ///
-    ///     Note: Enums will also derive `Copy`, there is no need to specify in
-    ///     [derive_copy]
-    pub fn new<'a, E, I>(enum_types: I) -> Self
+    /// * `enum_types` - Types that are enums.
+    pub fn enum_types<'a, E, I>(mut self, enum_types: I) -> Self
     where
         I: Iterator<Item = &'a E>,
         E: ToString + 'a + ?Sized,
     {
         let enum_types = enum_types.map(ToString::to_string).collect::<Vec<_>>();
-        Self {
-            copyable_types: enum_types.clone(),
-            enum_types,
-            dynamically_sized_types: vec![],
-        }
+        self.enum_types.extend(enum_types.clone());
+
+        // Enum types (from C interfaces) are small enough to always be
+        // copyable.
+        self.copyable_types.extend(enum_types);
+
+        self
     }
 
     /// Types to derive copy for, usually packed types
@@ -157,7 +160,7 @@ impl ParseCallbacks for SgxParseCallbacks {
             attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
         }
 
-        // The [new] method added enums to the [copyable_types]
+        // The [enum_types] method adds enums to the [copyable_types]
         if self.copyable_types.iter().any(|n| *n == name) {
             attributes.push("Copy");
         }

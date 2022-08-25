@@ -52,7 +52,8 @@ const CORE_TYPES: &[&str] = &[
 
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
-    let callback = SgxParseCallbacks::new(["sgx_status_t", "sgx_quote_sign_type_t"].iter())
+    let callback = SgxParseCallbacks::default()
+        .enum_types(["sgx_status_t", "sgx_quote_sign_type_t"].iter())
         .derive_copy(
             [
                 "sgx_update_info_bit_t",

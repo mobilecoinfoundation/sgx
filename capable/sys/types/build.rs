@@ -8,7 +8,7 @@ fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
-    let callback = SgxParseCallbacks::new(["sgx_device_status_t"].iter());
+    let callback = SgxParseCallbacks::default().enum_types(["sgx_device_status_t"].iter());
 
     mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
