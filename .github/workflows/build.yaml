@@ -18,8 +18,19 @@ jobs:
       - name: Setup rust toolchain
         run: rustup show
       - run: cargo fmt --all -- --check
+  markdown-lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: xt0rted/markdownlint-problem-matcher@v1
+      - name: Install markdown lint
+        run: npm install -g markdownlint-cli@0.32.1
+      - run: markdownlint --disable 'MD013' "**/*.md"
   clippy:
     runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
@@ -28,6 +39,9 @@ jobs:
       - run: cargo clippy --all --all-features --locked -- -D warnings
   nono:
     runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
@@ -40,16 +54,11 @@ jobs:
             jq -r '.packages[].name' | \
             grep -v -e mc-sgx-core-build -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts -e mc-sgx-capable-sys | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
-  markdown-lint:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: xt0rted/markdownlint-problem-matcher@v1
-      - name: Install markdown lint
-        run: npm install -g markdownlint-cli@0.32.1
-      - run: markdownlint --disable 'MD013' "**/*.md"
   build:
     runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
@@ -59,6 +68,9 @@ jobs:
       - run: cargo build --release --locked
   test:
     runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
@@ -69,6 +81,9 @@ jobs:
           cargo test --release --locked --features sim
   doc:
     runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
       - name: Setup rust toolchain
