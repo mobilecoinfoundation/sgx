@@ -25,6 +25,7 @@ const CORE_TYPES: &[&str] = &[
     "_sgx_key_id_t",
     "_sgx_measurement_t",
     "_sgx_report_data_t",
+    "_sgx_misc_attribute_t",
     "_status_t",
     "_target_info_t",
     "sgx_config_id_t",
