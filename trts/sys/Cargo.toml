@@ -16,6 +16,7 @@ rust-version = "1.62.1"
 [lib]
 # test false due to needing an enclave to fully link
 test = false
+doctest = false
 
 [features]
 default = []

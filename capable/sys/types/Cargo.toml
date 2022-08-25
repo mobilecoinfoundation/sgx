@@ -12,6 +12,9 @@ readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
+[lib]
+doctest = false
+
 [build-dependencies]
 bindgen = "0.60.1"
 cargo-emit = "0.2.1"

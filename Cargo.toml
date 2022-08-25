@@ -14,7 +14,6 @@ members = [
     "dcap/quoteverify/types",
     "dcap/tvl/sys",
     "panic/abort",
-    "quote_verify",
     "tcrypto/sys",
     "tcrypto/sys/types",
     "tservice/sys",
