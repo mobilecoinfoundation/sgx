@@ -72,7 +72,6 @@ impl From<SgxError> for Error {
 /// }
 /// ```
 ///
-/// Basically, you're going to
 impl TryFrom<sgx_device_status_t> for Error {
     type Error = ();
 
