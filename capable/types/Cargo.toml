@@ -16,7 +16,7 @@ rust-version = "1.62.1"
 displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-capable-sys-types = { path = "../sys/types", version = "=0.1.0" }
 mc-sgx-core-types = { path = "../../core/types", version = "=0.1.0" }
-serde = { version = "1.0.143", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.144", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 yare = "1.0.1"
