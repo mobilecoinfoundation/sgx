@@ -331,6 +331,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-capable"
+version = "0.1.0"
+dependencies = [
+ "mc-sgx-capable-sys",
+ "mc-sgx-capable-sys-types",
+ "mc-sgx-capable-types",
+ "mc-sgx-core-sys-types",
+ "mc-sgx-core-types",
+]
+
+[[package]]
 name = "mc-sgx-capable-sys"
 version = "0.1.0"
 dependencies = [
