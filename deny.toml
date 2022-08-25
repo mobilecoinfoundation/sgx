@@ -32,6 +32,7 @@ wildcards = "deny"
 highlight = "all"
 allow = []
 deny = [
+    # https://github.com/briansmith/ring/issues/774
     { name = "ring" },
 ]
 skip = []
