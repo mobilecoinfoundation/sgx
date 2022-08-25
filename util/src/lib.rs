@@ -17,6 +17,7 @@
 ///
 /// /// An example FFI type
 /// #[allow(non_camel_case_types)]
+/// #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// pub struct a_status_t(u32);
 ///
 /// impl a_status_t {
@@ -25,6 +26,7 @@
 /// }
 ///
 /// /// An example rusty enum wrapper for a_status_t
+/// #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// pub enum AnError {
 ///     Stuff,
 ///     Unknown
@@ -50,6 +52,8 @@
 ///
 /// let status = a_status_t::FAIL;
 /// assert_eq!(Err(AnError::Stuff), AnError::result_from(status));
+///
+/// assert!(false);
 /// ```
 pub trait ResultFrom<ST>: TryFrom<ST> {
     /// Flips the result of a `TryFrom`.
