@@ -26,6 +26,7 @@ members = [
     "urts",
     "urts/sys",
     "urts/sys/types",
+    "util",
 ]
 exclude = [
     "test_enclave",

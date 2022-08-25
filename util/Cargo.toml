@@ -1,0 +1,13 @@
+[package]
+name = "mc-sgx-util"
+# When updating version, update the deps.rs link in README.md
+version = "0.1.0"
+authors = ["MobileCoin"]
+categories = ["api-bindings", "hardware-support"]
+description = "Rust wrapper for SGX capabilities types."
+edition = "2021"
+keywords = ["ffi", "sgx"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.62.1"
