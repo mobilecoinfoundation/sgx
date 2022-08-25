@@ -46,7 +46,9 @@ impl From<SgxError> for Error {
     }
 }
 
-/// Try to convert an sgx_device_status_t to an [Error].
+/// Try to convert an
+/// [sgx_device_status_t](mc_sgx_capable_sys_types::sgx_device_status_t) to an
+/// [Error].
 ///
 /// This is fallible because device_status_t also includes
 /// [`SGX_ENABLED`](mc_sgx_capable_sys_types::SGX_ENABLED), which is (obviously)
@@ -71,7 +73,6 @@ impl From<SgxError> for Error {
 ///     Ok(true)
 /// }
 /// ```
-///
 impl TryFrom<sgx_device_status_t> for Error {
     type Error = ();
 
