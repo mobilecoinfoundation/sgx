@@ -18,31 +18,28 @@ pub type Result<T> = CoreResult<T, Error>;
 #[non_exhaustive]
 pub enum Error {
     /// An unknown error occurred
-    Unknown = -1,
+    Unknown,
     /// SGX has been enabled for the next reboot
-    RebootRequired = sgx_device_status_t::SGX_DISABLED_REBOOT_REQUIRED.0 as isize,
+    RebootRequired,
     /// SGX can be enabled using the Software Control Interface
-    SciAvailable = sgx_device_status_t::SGX_DISABLED_SCI_AVAILABLE.0 as isize,
+    SciAvailable,
     /// SGX must be enabled in BIOS settings
-    ManualEnable = sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE.0 as isize,
+    ManualEnable,
     /// Hyper-V must be disabled before SGX can be enabled
-    HyperVEnabled = sgx_device_status_t::SGX_DISABLED_HYPERV_ENABLED.0 as isize,
+    HyperVEnabled,
     /// The running OS does not support enabling SGX through UEFI
-    LegacyOs = sgx_device_status_t::SGX_DISABLED_LEGACY_OS.0 as isize,
+    LegacyOs,
     /// This CPU does not support SGX
-    UnsupportedCpu = sgx_device_status_t::SGX_DISABLED_UNSUPPORTED_CPU.0 as isize,
+    UnsupportedCpu,
     /// SGX must be enabled in BIOS settings
-    Disabled = sgx_device_status_t::SGX_DISABLED.0 as isize,
+    Disabled,
     /// Administrator privileges are required to read and set EFI variables
-    NoPrivilege = -2,
+    Sgx(SgxError),
 }
 
 impl From<SgxError> for Error {
     fn from(err: SgxError) -> Self {
-        match err {
-            SgxError::NoPrivilege => Error::NoPrivilege,
-            _ => Error::Unknown,
-        }
+        Error::Sgx(err)
     }
 }
 

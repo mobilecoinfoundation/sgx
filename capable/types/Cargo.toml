@@ -12,6 +12,13 @@ readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
+[features]
+default = []
+serde = [
+    "dep:serde",
+    "mc-sgx-core-types/serde"
+]
+
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-capable-sys-types = { path = "../sys/types", version = "=0.1.0" }
