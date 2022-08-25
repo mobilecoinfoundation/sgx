@@ -339,6 +339,7 @@ dependencies = [
  "mc-sgx-capable-types",
  "mc-sgx-core-sys-types",
  "mc-sgx-core-types",
+ "yare",
 ]
 
 [[package]]

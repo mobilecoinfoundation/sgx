@@ -63,20 +63,23 @@ pub fn enable() -> Result<()> {
     handle_retval(status, device_status)
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
     use yare::parameterized;
 
     #[parameterized(
-    ok = { sgx_status_t::SGX_SUCCESS, sgx_device_status_t::SGX_ENABLED, Ok(()) },
-    status_fail = { sgx_status_t::SGX_ERROR_UNEXPECTED, sgx_device_status_t::SGX_ENABLED, Err(Error::Unknown)},
-    no_privelidge = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, sgx_device_status_t::SGX_ENABLED, Err(Error::NoPrivilege)},
-    status_fail_has_precedence = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::NoPrivilege)},
-    device_status_fail = { sgx_status_t::SGX_SUCCESS, sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::ManualEnable)},
+        ok = { sgx_status_t::SGX_SUCCESS, sgx_device_status_t::SGX_ENABLED, Ok(()) },
+        status_fail = { sgx_status_t::SGX_ERROR_UNEXPECTED, sgx_device_status_t::SGX_ENABLED, Err(Error::Sgx(SgxError::Unexpected)) },
+        no_priviledge = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, sgx_device_status_t::SGX_ENABLED, Err(Error::Sgx(SgxError::NoPrivilege)) },
+        status_fail_has_precedence = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::Sgx(SgxError::NoPrivilege)) },
+        device_status_fail = { sgx_status_t::SGX_SUCCESS, sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::ManualEnable) },
     )]
-    fn return_value_mapping(status: sgx_status_t, device_status: sgx_device_status_t, expected: Result<()>) {
+    fn return_value_mapping(
+        status: sgx_status_t,
+        device_status: sgx_device_status_t,
+        expected: Result<()>,
+    ) {
         assert_eq!(handle_retval(status, device_status), expected);
     }
 }
