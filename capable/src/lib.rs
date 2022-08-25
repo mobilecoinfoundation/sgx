@@ -43,7 +43,7 @@ fn handle_retval(status: sgx_status_t, device_status: sgx_device_status_t) -> Re
 /// Returns `Ok(())` when SGX is enable, or an [Error] indicating what would
 /// need to happen to turn it on.
 pub fn is_enabled() -> Result<()> {
-    let mut device_status = sgx_device_status_t::SGX_ENABLED;
+    let mut device_status = sgx_device_status_t::SGX_DISABLED;
 
     let status = unsafe { mc_sgx_capable_sys::sgx_cap_get_status(&mut device_status as *mut _) };
     handle_retval(status, device_status)
@@ -57,8 +57,26 @@ pub fn is_enabled() -> Result<()> {
 /// Returns `Ok(())` if SGX is now enabled, or an [Error] indicating what would
 /// need to happen to turn it on.
 pub fn enable() -> Result<()> {
-    let mut device_status = sgx_device_status_t::SGX_ENABLED;
+    let mut device_status = sgx_device_status_t::SGX_DISABLED;
 
     let status = unsafe { mc_sgx_capable_sys::sgx_cap_enable_device(&mut device_status as *mut _) };
     handle_retval(status, device_status)
+}
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use yare::parameterized;
+
+    #[parameterized(
+    ok = { sgx_status_t::SGX_SUCCESS, sgx_device_status_t::SGX_ENABLED, Ok(()) },
+    status_fail = { sgx_status_t::SGX_ERROR_UNEXPECTED, sgx_device_status_t::SGX_ENABLED, Err(Error::Unknown)},
+    no_privelidge = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, sgx_device_status_t::SGX_ENABLED, Err(Error::NoPrivilege)},
+    status_fail_has_precedence = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::NoPrivilege)},
+    device_status_fail = { sgx_status_t::SGX_SUCCESS, sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::ManualEnable)},
+    )]
+    fn return_value_mapping(status: sgx_status_t, device_status: sgx_device_status_t, expected: Result<()>) {
+        assert_eq!(handle_retval(status, device_status), expected);
+    }
 }
