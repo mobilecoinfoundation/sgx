@@ -39,7 +39,10 @@ fn handle_retval(status: sgx_status_t, device_status: sgx_device_status_t) -> Re
 ///
 /// This function requires running the untrusted userspace application as an
 /// administrator.
-pub fn enabled() -> Result<()> {
+///
+/// Returns `Ok(())` when SGX is enable, or an [Error] indicating what would
+/// need to happen to turn it on.
+pub fn is_enabled() -> Result<()> {
     let mut device_status = sgx_device_status_t::SGX_ENABLED;
 
     let status = unsafe { mc_sgx_capable_sys::sgx_cap_get_status(&mut device_status as *mut _) };
@@ -50,6 +53,9 @@ pub fn enabled() -> Result<()> {
 ///
 /// This function requires running the untrusted userspace application as an
 /// administrator.
+///
+/// Returns `Ok(())` if SGX is now enabled, or an [Error] indicating what would
+/// need to happen to turn it on.
 pub fn enable() -> Result<()> {
     let mut device_status = sgx_device_status_t::SGX_ENABLED;
 
