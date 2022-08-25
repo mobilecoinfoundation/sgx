@@ -18,7 +18,7 @@ static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
 /// ```C
 /// void some_function(foo_bar arg);
 /// ```
-const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3", "_pck"];
+const STRIP_UNDERSCORE_PREFIX: &[&str] = &["_sgx", "_tee", "_quote3", "_pck", "_rsa"];
 
 /// Normalizes a type encountered by bindgen
 ///
@@ -57,13 +57,7 @@ pub fn normalize_item_name(name: &str) -> Option<String> {
 pub fn sgx_builder() -> Builder {
     Builder::default()
         .derive_copy(false)
-        .derive_debug(true)
-        .derive_default(true)
-        .derive_eq(true)
-        .derive_hash(true)
-        .derive_ord(true)
-        .derive_partialeq(true)
-        .derive_partialord(true)
+        .derive_debug(false)
         // TODO: Comments can cause doc tests to fail, see https://github.com/rust-lang/rust-bindgen/issues/1313
         //       Disable doctest in the relevant crates: https://github.com/rust-lang/cargo/issues/7252#issuecomment-521778066
         .generate_comments(false)
@@ -80,30 +74,71 @@ pub fn sgx_builder() -> Builder {
 /// This provides a default implementation for most of the SGX libraries
 #[derive(Debug, Default)]
 pub struct SgxParseCallbacks {
-    // types that are blocklisted from deriving Clone for.
+    // types that are copyable and thus should derive `Copy`
     //
-    // These may either already have the Clone attribute from bindgen, or they
-    // can't derive clone due to having non cloneable default types like
-    // `__IncompleteArrayField`.
-    blocklisted_clone_types: Vec<String>,
+    // These are usually small types or packed types
+    copyable_types: Vec<String>,
+
+    // types that are enums
+    enum_types: Vec<String>,
+
+    // Dynamically Sized types
+    dynamically_sized_types: Vec<String>,
 }
 
 impl SgxParseCallbacks {
-    /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
+    /// Types that are enums
+    ///
+    /// Bindgen derives some attributes by default for enums, in order to
+    /// properly handle them they must be known.
+    ///
+    /// Note: Enums will also derive `Copy`, there is no need to specify in
+    ///     [derive_copy]
     ///
     /// # Arguments
-    /// * `blocklisted_clone_types` - Types to blocklist from deriving `Clone`.
-    pub fn new<'a, E, I>(blocklisted_clone_types: I) -> Self
+    /// * `enum_types` - Types that are enums.
+    pub fn enum_types<'a, E, I>(mut self, enum_types: I) -> Self
     where
         I: Iterator<Item = &'a E>,
         E: ToString + 'a + ?Sized,
     {
-        let blocklisted_clone_types = blocklisted_clone_types
-            .map(ToString::to_string)
-            .collect::<Vec<_>>();
-        Self {
-            blocklisted_clone_types,
-        }
+        let enum_types = enum_types.map(ToString::to_string).collect::<Vec<_>>();
+        self.enum_types.extend(enum_types.clone());
+
+        // Enum types (from C interfaces) are small enough to always be
+        // copyable.
+        self.copyable_types.extend(enum_types);
+
+        self
+    }
+
+    /// Types to derive copy for, usually packed types
+    ///
+    /// # Arguments
+    /// * `copyable_types` - Types to derive copy for.
+    pub fn derive_copy<'a, E, I>(mut self, copyable_types: I) -> Self
+    where
+        I: Iterator<Item = &'a E>,
+        E: ToString + 'a + ?Sized,
+    {
+        self.copyable_types
+            .extend(copyable_types.map(ToString::to_string));
+        self
+    }
+
+    /// Dynamically Sized Types
+    ///
+    /// # Arguments
+    /// * `dynamically_sized_types` - Types that are dynamically sized.  Due to
+    ///   the dynamic size certain traits like `Eq` can't be derived.
+    pub fn dynamically_sized_types<'a, E, I>(mut self, dynamically_sized_types: I) -> Self
+    where
+        I: Iterator<Item = &'a E>,
+        E: ToString + 'a + ?Sized,
+    {
+        self.dynamically_sized_types
+            .extend(dynamically_sized_types.map(ToString::to_string));
+        self
     }
 }
 
@@ -113,11 +148,23 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 
     fn add_derives(&self, name: &str) -> Vec<String> {
-        if self.blocklisted_clone_types.iter().any(|n| *n == name) {
-            vec![]
-        } else {
-            vec!["Clone".to_string()]
+        if self.dynamically_sized_types.iter().any(|n| *n == name) {
+            // For dynamically sized types we don't even derive Debug, because
+            // they are often times packed and packed types can't derive Debug
+            // without deriving Copy, however by the dynamic nature one can't
+            // derive Copy
+            return vec![];
         }
+        let mut attributes = vec!["Debug"];
+        if !self.enum_types.iter().any(|n| *n == name) {
+            attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
+        }
+
+        // The [enum_types] method adds enums to the [copyable_types]
+        if self.copyable_types.iter().any(|n| *n == name) {
+            attributes.push("Copy");
+        }
+        attributes.into_iter().map(String::from).collect::<Vec<_>>()
     }
 }
 
