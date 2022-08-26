@@ -25,6 +25,7 @@ jobs:
           profile: minimal
           components: rustfmt
           override: true
+      - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -94,6 +95,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
           override: true
+      - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
@@ -115,6 +117,7 @@ jobs:
           crate: cargo-nono
           version: latest
           use-tool-cache: true
+      - uses: r7kamura/rust-problem-matchers@v1
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
@@ -138,6 +141,7 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
+      - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -160,6 +164,7 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
+      - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -178,6 +183,7 @@ jobs:
           # FIXME: replace with stable ASAP
           toolchain: nightly-2022-07-22
           override: true
+      - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
         with:
           command: doc
