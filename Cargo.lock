@@ -476,10 +476,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mc-sgx-panic-abort"
-version = "0.1.0"
-
-[[package]]
 name = "mc-sgx-tcrypto-sys"
 version = "0.1.0"
 dependencies = [
