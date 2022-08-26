@@ -21,8 +21,8 @@ sim = []
 default = []
 
 [dependencies]
-mc-sgx-urts-sys-types = { path = "types", version = "=0.1.0" }
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
+mc-sgx-urts-sys-types = { path = "types", version = "=0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"

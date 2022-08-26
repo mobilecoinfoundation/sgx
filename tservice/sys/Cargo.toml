@@ -17,8 +17,8 @@ rust-version = "1.62.1"
 doctest = false
 
 [dependencies]
-mc-sgx-tservice-sys-types = { path = "types", version = "=0.1.0" }
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
+mc-sgx-tservice-sys-types = { path = "types", version = "=0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"
