@@ -95,19 +95,20 @@ impl ResultFrom<sgx_device_status_t> for Error {}
 #[cfg(test)]
 mod test {
     use super::*;
+    use mc_sgx_util::ResultInto;
     use yare::parameterized;
 
     #[parameterized(
-        enabled = { sgx_device_status_t::SGX_ENABLED, Err(()) },
-        reboot_required = { sgx_device_status_t::SGX_DISABLED_REBOOT_REQUIRED, Ok(Error::RebootRequired) },
-        legacy_os = { sgx_device_status_t::SGX_DISABLED_LEGACY_OS, Ok(Error::LegacyOs) },
-        disabled = { sgx_device_status_t::SGX_DISABLED, Ok(Error::Disabled) },
-        sci_available = { sgx_device_status_t::SGX_DISABLED_SCI_AVAILABLE, Ok(Error::SciAvailable) },
-        manual_enable = { sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Ok(Error::ManualEnable) },
-        hyperv_enabled = { sgx_device_status_t::SGX_DISABLED_HYPERV_ENABLED, Ok(Error::HyperVEnabled) },
-        unsupported_cpu = { sgx_device_status_t::SGX_DISABLED_UNSUPPORTED_CPU, Ok(Error::UnsupportedCpu) },
+        enabled = { sgx_device_status_t::SGX_ENABLED, Ok(()) },
+        reboot_required = { sgx_device_status_t::SGX_DISABLED_REBOOT_REQUIRED, Err(Error::RebootRequired) },
+        legacy_os = { sgx_device_status_t::SGX_DISABLED_LEGACY_OS, Err(Error::LegacyOs) },
+        disabled = { sgx_device_status_t::SGX_DISABLED, Err(Error::Disabled) },
+        sci_available = { sgx_device_status_t::SGX_DISABLED_SCI_AVAILABLE, Err(Error::SciAvailable) },
+        manual_enable = { sgx_device_status_t::SGX_DISABLED_MANUAL_ENABLE, Err(Error::ManualEnable) },
+        hyperv_enabled = { sgx_device_status_t::SGX_DISABLED_HYPERV_ENABLED, Err(Error::HyperVEnabled) },
+        unsupported_cpu = { sgx_device_status_t::SGX_DISABLED_UNSUPPORTED_CPU, Err(Error::UnsupportedCpu) },
     )]
-    fn status_try_into_error(actual: sgx_device_status_t, expected: CoreResult<Error, ()>) {
-        assert_eq!(Error::try_from(actual), expected);
+    fn device_status_into_result(actual: sgx_device_status_t, expected: CoreResult<(), Error>) {
+        assert_eq!(actual.into_result(), expected);
     }
 }
