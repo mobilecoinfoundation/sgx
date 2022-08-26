@@ -35,9 +35,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: xt0rted/markdownlint-problem-matcher@v1
-      - name: Install markdown lint
-        run: npm install -g markdownlint-cli@0.32.1
-      - run: markdownlint --disable 'MD013' "**/*.md"
+      - uses: DavidAnson/markdownlint-cli2-action@v7
+        with:
+          globs: "**/*.md"
 
   deny:
     runs-on: ubuntu-20.04
