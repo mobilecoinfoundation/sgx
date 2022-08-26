@@ -68,7 +68,12 @@ pub trait ResultFrom<ST>: TryFrom<ST> {
 ///
 /// As with [`TryInto`](core::convert::TryInto), this trait is not intended to
 /// be implemented manually, but instead should be added to an FFI type via
-/// blanket implementation attached to it's derivative wrapper type.
+/// explicit impl block attached to it's derivative wrapper type.
+///
+/// rust```
+/// // Pick up the default implementation of [`ResultInto`]
+/// impl ResultInto<AnError> for a_status_t {}
+/// ```
 ///
 /// That is, users should not attach this to a bindgen-generated status type,
 /// they should attach [`ResultFrom`] to the intended error wrapper associated
