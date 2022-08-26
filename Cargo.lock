@@ -337,8 +337,8 @@ dependencies = [
  "mc-sgx-capable-sys",
  "mc-sgx-capable-sys-types",
  "mc-sgx-capable-types",
- "mc-sgx-core-sys-types",
  "mc-sgx-core-types",
+ "mc-sgx-util",
  "yare",
 ]
 
@@ -369,6 +369,7 @@ dependencies = [
  "displaydoc",
  "mc-sgx-capable-sys-types",
  "mc-sgx-core-types",
+ "mc-sgx-util",
  "serde",
  "yare",
 ]
@@ -397,6 +398,7 @@ dependencies = [
  "mc-sgx-core-sys-types",
  "rand",
  "rand_core",
+ "mc-sgx-util",
  "serde",
  "yare",
 ]

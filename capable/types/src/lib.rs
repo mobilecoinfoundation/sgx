@@ -7,6 +7,7 @@
 use core::result::Result as CoreResult;
 use mc_sgx_capable_sys_types::sgx_device_status_t;
 use mc_sgx_core_types::Error as SgxError;
+use mc_sgx_util::ResultFrom;
 
 /// Convenience type for handling SGX capable results
 pub type Result<T> = CoreResult<T, Error>;
@@ -44,28 +45,29 @@ impl From<SgxError> for Error {
 }
 
 /// Try to convert an
-/// [sgx_device_status_t](mc_sgx_capable_sys_types::sgx_device_status_t) to an
-/// [Error].
+/// [`sgx_device_status_t`](mc_sgx_capable_sys_types::sgx_device_status_t) to an
+/// [`Error`].
 ///
 /// This is fallible because device_status_t also includes
 /// [`SGX_ENABLED`](mc_sgx_capable_sys_types::sgx_device_status_t::SGX_ENABLED),
 /// which is (obviously) not an error.
 ///
 /// As a result, we need to use this here, so the preferred way to actually do
-/// FFI with this is going to look something like this:
+/// FFI with this is best done via the blanket
+/// [`ResultInto`](mc_sgx_util::ResultInto) implementation.
+///
+/// # Example
 ///
 /// ```
 /// use mc_sgx_capable_sys_types::sgx_device_status_t;
-/// use mc_sgx_capable_types::{Error, Result};
+/// use mc_sgx_capable_types::Result;
+/// use mc_sgx_util::ResultInto;
 ///
 /// fn foo() -> Result<bool> {
 ///     let device_status = sgx_device_status_t::SGX_DISABLED;
 ///
-///     // Actually do FFI to fill in device status here
-///
-///     if let Ok(err) = Error::try_from(device_status) {
-///         return Err(err);
-///     }
+///     // Convert the status into a `Result<(), Err>`
+///     device_status.into_result()?;
 ///
 ///     Ok(true)
 /// }
@@ -87,6 +89,8 @@ impl TryFrom<sgx_device_status_t> for Error {
         }
     }
 }
+
+impl ResultFrom<sgx_device_status_t> for Error {}
 
 #[cfg(test)]
 mod test {

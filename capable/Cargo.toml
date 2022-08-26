@@ -14,11 +14,11 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
-mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.1.0" }
-mc-sgx-core-types = { path = "../core/types", version = "=0.1.0" }
 mc-sgx-capable-sys = { path = "sys", version = "=0.1.0" }
 mc-sgx-capable-sys-types = { path = "sys/types", version = "=0.1.0" }
 mc-sgx-capable-types = { path = "types", version = "=0.1.0" }
+mc-sgx-core-types = { path = "../core/types", version = "=0.1.0" }
+mc-sgx-util = { path = "../util", version = "=0.1.0" }
 
 [dev-dependencies]
 yare = "1.0.1"
