@@ -1,8 +1,0 @@
-# For use with https://github.com/DavidAnson/markdownlint and
-# https://github.com/igorshubovych/markdownlint-cli
-# See https://github.com/DavidAnson/markdownlint/blob/main/schema/.markdownlint.yaml
-# for the schema.
-default: true
-
-MD013:
-  tables: false
