@@ -77,9 +77,9 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           components: clippy
-      - uses: actions-rs/clippy-check@v1
+      - uses: actions-rs/cargo@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: clippy
           args: --all --all-features --locked -- -D warnings
   nono:
     runs-on: ubuntu-20.04
@@ -92,11 +92,11 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-      - name: Install cargo nono
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/install@v0.1
         with:
-          command: install
-          args: nono
+          crate: cargo-nono
+          version: latest
+          use-tool-cache: true
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
