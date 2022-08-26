@@ -131,17 +131,17 @@ jobs:
           username: "Github Actions"
           status: Failure
           nodetail: true
-          title: "Workflow: rust"
+          title: "Workflow: ${{ github.workflow }}"
+          url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           description: |
-            The ${{ github.workflow }} workflow, triggered by ${{ github.actor }} via ${{ github.event_name }}, has failed.<br/>
-            | Job | Status |
-            | --- | ------ |
-            | rustfmt | ${{ needs.rustfmt.result }} |
-            | markdown-lint | ${{ needs.markdown-lint.result }} |
-            | clippy | ${{ needs.clippy.result }} |
-            | nono | ${{ needs.nono.result }} |
-            | build | ${{ needs.build.result }} |
-            | test | ${{ needs.test.result }} |
-            | doc | ${{ needs.doc.result }} |
+            ${{ github.actor }} should triage why the ${{ github.workflow }} workflow in ${{ github.repository }} has failed.
+
+            rustfmt: ${{ needs.rustfmt.result }}
+            markdown-lint: ${{ needs.markdown-lint.result }}
+            clippy: ${{ needs.clippy.result }}
+            nono: ${{ needs.nono.result }}
+            build: ${{ needs.build.result }}
+            test: ${{ needs.test.result }}
+            doc: ${{ needs.doc.result }}
           avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
