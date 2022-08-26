@@ -1,7 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! SGX core SVN (Security Version Numbers)
 
-use crate::new_type_accessors_impls;
+use crate::{impl_newtype_for_bytestruct, new_type_accessors_impls};
 use mc_sgx_core_sys_types::{sgx_config_svn_t, sgx_cpu_svn_t, sgx_isv_svn_t, SGX_CPUSVN_SIZE};
 
 #[repr(transparent)]
@@ -36,23 +36,6 @@ impl IsvSvn {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CpuSvn(sgx_cpu_svn_t);
 
-new_type_accessors_impls! {
-    CpuSvn, sgx_cpu_svn_t;
-}
-
-impl CpuSvn {
-    pub const SVN_SIZE: usize = SGX_CPUSVN_SIZE;
-    pub fn new(svn: &[u8; Self::SVN_SIZE]) -> Self {
-        let mut cpu_svn = Self::default();
-        cpu_svn.0.svn.copy_from_slice(svn);
-        cpu_svn
-    }
-}
-
-impl Default for CpuSvn {
-    fn default() -> Self {
-        CpuSvn(sgx_cpu_svn_t {
-            svn: [0; Self::SVN_SIZE],
-        })
-    }
+impl_newtype_for_bytestruct! {
+    CpuSvn, sgx_cpu_svn_t, SGX_CPUSVN_SIZE, svn;
 }
