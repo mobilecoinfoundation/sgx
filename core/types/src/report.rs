@@ -2,14 +2,13 @@
 //! SGX Report
 
 use crate::{
-    impl_newtype_for_bytestruct, new_type_accessors_impls, Attributes, ConfigSvn, CpuSvn, IsvSvn,
-    Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
+    impl_newtype_for_bytestruct, new_type_accessors_impls, svn::ConfigId, Attributes, ConfigSvn,
+    CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
 };
 use mc_sgx_core_sys_types::{
-    sgx_config_id_t, sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_prod_id_t, sgx_report_body_t,
-    sgx_report_data_t, SGX_CONFIGID_SIZE, SGX_ISVEXT_PROD_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES,
-    SGX_REPORT_BODY_RESERVED2_BYTES, SGX_REPORT_BODY_RESERVED3_BYTES,
-    SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
+    sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_prod_id_t, sgx_report_body_t, sgx_report_data_t,
+    SGX_ISVEXT_PROD_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES, SGX_REPORT_BODY_RESERVED2_BYTES,
+    SGX_REPORT_BODY_RESERVED3_BYTES, SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
 };
 
 /// Report Data
@@ -42,21 +41,6 @@ new_type_accessors_impls! {
 impl Default for IsvExtendedProductId {
     fn default() -> Self {
         Self([0; SGX_ISVEXT_PROD_ID_SIZE])
-    }
-}
-
-/// Config ID
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-#[repr(transparent)]
-pub struct ConfigId(sgx_config_id_t);
-
-new_type_accessors_impls! {
-    ConfigId, sgx_config_id_t;
-}
-
-impl Default for ConfigId {
-    fn default() -> Self {
-        Self([0; SGX_CONFIGID_SIZE])
     }
 }
 
@@ -173,7 +157,7 @@ impl Default for ReportBody {
 mod test {
     extern crate std;
     use super::*;
-    use mc_sgx_core_sys_types::{SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE};
+    use mc_sgx_core_sys_types::{SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE};
 
     #[test]
     fn default_report_body() {
@@ -241,7 +225,7 @@ mod test {
             body.mr_signer(),
             Measurement::MrSigner(MrSigner::from([9u8; SGX_HASH_SIZE]))
         );
-        assert_eq!(body.config_id(), ConfigId([11u8; SGX_CONFIGID_SIZE]));
+        assert_eq!(body.config_id(), ConfigId::new([11u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(12));
         assert_eq!(body.isv_svn(), IsvSvn::new(13));
         assert_eq!(body.config_svn(), ConfigSvn::new(14));

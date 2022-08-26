@@ -12,6 +12,7 @@ mod macros;
 mod measurement;
 mod report;
 mod svn;
+mod target_info;
 
 pub use crate::{
     attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
@@ -20,4 +21,5 @@ pub use crate::{
     measurement::{Measurement, MrEnclave, MrSigner},
     report::ReportBody,
     svn::{ConfigSvn, CpuSvn, IsvSvn},
+    target_info::TargetInfo,
 };
