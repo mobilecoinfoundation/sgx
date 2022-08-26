@@ -20,4 +20,4 @@ mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.1.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"
-mc-sgx-core-build = { path = "../../../core/build", version = "=0.1.0" }
+mc-sgx-core-build = { path = "../../../core/build", version = "=0.2.0-pre0" }
