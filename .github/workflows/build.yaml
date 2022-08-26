@@ -16,8 +16,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - beta
-          - nightly-2022-04-29 # Used by mobilecoin.git
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -65,8 +64,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - beta
-          - nightly-2022-04-29 # Used by mobilecoin.git
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dcap-libs
@@ -108,8 +106,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - beta
-          - nightly-2022-04-29
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/sgxsdk
@@ -130,8 +127,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - beta
-          - nightly-2022-04-29
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/sgxsdk
