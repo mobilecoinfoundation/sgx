@@ -68,11 +68,12 @@ jobs:
         with:
           toolchain: stable
           profile: minimal
-      - name: Installing cargo sort
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/install@v0.1
         with:
-          command: install sort
-      # We run this manually because cargo actions doesn't fly
+          crate: cargo-sort
+          version: latest
+          use-tool-cache: true
+      # We run this manually because actions-rs/cargo doesn't have output redirect
       - run: cargo sort --workspace --check >/dev/null
 
   clippy:
