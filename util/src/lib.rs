@@ -52,8 +52,6 @@
 ///
 /// let status = a_status_t::FAIL;
 /// assert_eq!(Err(AnError::Stuff), AnError::result_from(status));
-///
-/// assert!(false);
 /// ```
 pub trait ResultFrom<ST>: TryFrom<ST> {
     /// Flips the result of a `TryFrom`.
