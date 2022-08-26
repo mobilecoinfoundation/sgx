@@ -1,4 +1,4 @@
-# MobileCoin SGX: Common FFI Types 
+# MobileCoin SGX: Common FFI Types
 
 [![Project Chat][chat-image]][chat-link]<!--
 -->![License][license-image]<!--

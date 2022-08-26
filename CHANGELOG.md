@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update all `README.md` files.
 
-
 ## [0.1.0] - 2022-08-18
 
 - Initial release of FFI bindings crates
