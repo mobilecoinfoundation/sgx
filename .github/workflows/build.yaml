@@ -132,16 +132,8 @@ jobs:
           status: Failure
           nodetail: true
           title: "Workflow: ${{ github.workflow }}"
-          url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          url: ${{ github.repository_url }}/actions/runs/${{ github.run_id }}
           description: |
-            ${{ github.actor }} should triage why the ${{ github.workflow }} workflow in ${{ github.repository }} has failed.
-
-            rustfmt: ${{ needs.rustfmt.result }}
-            markdown-lint: ${{ needs.markdown-lint.result }}
-            clippy: ${{ needs.clippy.result }}
-            nono: ${{ needs.nono.result }}
-            build: ${{ needs.build.result }}
-            test: ${{ needs.test.result }}
-            doc: ${{ needs.doc.result }}
+            gh:@${{ github.actor }} should triage this failure in ${{ github.repository }}, which was started by a ${{ github.event_name }}.
           avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
