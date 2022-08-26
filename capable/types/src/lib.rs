@@ -53,23 +53,21 @@ impl From<SgxError> for Error {
 /// which is (obviously) not an error.
 ///
 /// As a result, we need to use this here, so the preferred way to actually do
-/// FFI with this is best done via the blanket
-/// [`ResultInto`](mc_sgx_util::ResultInto) implementation.
+/// FFI with this is best done via
+/// [`ResultFrom`](mc_sgx_util::ResultFrom) or [`ResultInto`]implementation.
 ///
 /// # Example
 ///
 /// ```
 /// use mc_sgx_capable_sys_types::sgx_device_status_t;
-/// use mc_sgx_capable_types::Result;
-/// use mc_sgx_util::ResultInto;
+/// use mc_sgx_capable_types::{Error, Result};
+/// use mc_sgx_util::ResultFrom;
 ///
 /// fn foo() -> Result<bool> {
 ///     let device_status = sgx_device_status_t::SGX_DISABLED;
 ///
-///     // Convert the status into a `Result<(), Err>`
-///     device_status.into_result()?;
-///
-///     Ok(true)
+///     // Convert the status into a `Result<(), Err>`, change () to true
+///     Error::result_from(device_status).map(|_| true)
 /// }
 /// ```
 impl TryFrom<sgx_device_status_t> for Error {
