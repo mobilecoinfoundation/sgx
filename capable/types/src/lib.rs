@@ -54,7 +54,8 @@ impl From<SgxError> for Error {
 ///
 /// As a result, we need to use this here, so the preferred way to actually do
 /// FFI with this is best done via
-/// [`ResultFrom`](mc_sgx_util::ResultFrom) or [`ResultInto`]implementation.
+/// [`ResultFrom`](mc_sgx_util::ResultFrom) or
+/// [`ResultInto`](mc_sgx_util::ResultInto) implementation.
 ///
 /// # Example
 ///

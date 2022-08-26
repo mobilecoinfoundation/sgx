@@ -24,8 +24,9 @@ pub fn is_capable() -> Result<bool> {
 /// This function requires running the untrusted userspace application as an
 /// administrator.
 ///
-/// Returns `Ok(())` when SGX is enable, or an [Error] indicating what would
-/// need to happen to turn it on.
+/// Returns `Ok(())` when SGX is enable, or an
+/// [`Error`](mc_sgx_capable_types::Error) indicating what would need to happen
+/// to turn it on.
 pub fn is_enabled() -> Result<()> {
     let mut device_status = sgx_device_status_t::SGX_DISABLED;
 
@@ -41,8 +42,9 @@ pub fn is_enabled() -> Result<()> {
 /// This function requires running the untrusted userspace application as an
 /// administrator.
 ///
-/// Returns `Ok(())` if SGX is now enabled, or an [Error] indicating what would
-/// need to happen to turn it on.
+/// Returns `Ok(())` if SGX is now enabled, or an
+/// [`Error`](mc_sgx_capable_types::Error) indicating what would need to happen
+/// to turn it on.
 pub fn enable() -> Result<()> {
     let mut device_status = sgx_device_status_t::SGX_DISABLED;
 
