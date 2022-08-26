@@ -381,7 +381,10 @@ dependencies = [
 name = "mc-sgx-core-types"
 version = "0.1.0"
 dependencies = [
+ "bitflags",
  "mc-sgx-core-sys-types",
+ "rand",
+ "rand_core",
  "serde",
  "yare",
 ]

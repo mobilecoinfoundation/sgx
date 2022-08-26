@@ -51,6 +51,23 @@ const CORE_TYPES: &[&str] = &[
     "_qe_report_info_t",
 ];
 
+const CORE_CONSTS: &[&str] = &[
+    "SGX_CPUSVN_SIZE",
+    "SGX_KEYID_SIZE",
+    "SGX_KEY_REQUEST_RESERVED2_BYTES",
+    "SGX_KEYSELECT_EINITTOKEN",
+    "SGX_KEYSELECT_PROVISION",
+    "SGX_KEYSELECT_PROVISION_SEAL",
+    "SGX_KEYSELECT_REPORT",
+    "SGX_KEYSELECT_SEAL",
+    "SGX_KEYPOLICY_MRENCLAVE",
+    "SGX_KEYPOLICY_MRSIGNER",
+    "SGX_KEYPOLICY_NOISVPRODID",
+    "SGX_KEYPOLICY_CONFIGID",
+    "SGX_KEYPOLICY_ISVFAMILYID",
+    "SGX_KEYPOLICY_ISVEXTPRODID",
+];
+
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
     let callback = SgxParseCallbacks::default()
@@ -82,6 +99,10 @@ fn main() {
 
     for t in CORE_TYPES.iter() {
         builder = builder.allowlist_type(t)
+    }
+
+    for c in CORE_CONSTS.iter() {
+        builder = builder.allowlist_var(c)
     }
 
     let bindings = builder.generate().expect("Unable to generate bindings");
