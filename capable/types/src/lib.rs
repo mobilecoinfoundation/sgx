@@ -7,7 +7,7 @@
 use core::result::Result as CoreResult;
 use mc_sgx_capable_sys_types::sgx_device_status_t;
 use mc_sgx_core_types::Error as SgxError;
-use mc_sgx_util::ResultFrom;
+use mc_sgx_util::{ResultFrom, ResultInto};
 
 /// Convenience type for handling SGX capable results
 pub type Result<T> = CoreResult<T, Error>;
@@ -90,6 +90,7 @@ impl TryFrom<sgx_device_status_t> for Error {
 }
 
 impl ResultFrom<sgx_device_status_t> for Error {}
+impl ResultInto<Error> for sgx_device_status_t {}
 
 #[cfg(test)]
 mod test {

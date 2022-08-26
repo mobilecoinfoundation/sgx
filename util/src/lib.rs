@@ -82,7 +82,3 @@ pub trait ResultInto<T: TryFrom<Self>>: Sized {
         }
     }
 }
-
-/// This blanket implementation exists to automatically add this to any FFI type
-/// which has an inverse [`ResultFrom`] implementation.
-impl<T, ST> ResultInto<T> for ST where T: ResultFrom<ST> {}

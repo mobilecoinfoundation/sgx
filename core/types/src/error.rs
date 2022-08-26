@@ -4,7 +4,7 @@
 
 use core::result::Result as CoreResult;
 use mc_sgx_core_sys_types::sgx_status_t;
-use mc_sgx_util::ResultFrom;
+use mc_sgx_util::{ResultFrom, ResultInto};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -348,6 +348,7 @@ impl TryFrom<sgx_status_t> for Error {
 }
 
 impl ResultFrom<sgx_status_t> for Error {}
+impl ResultInto<Error> for sgx_status_t {}
 
 #[cfg(test)]
 mod test {
