@@ -394,6 +394,6 @@ mod test {
 
     #[test]
     fn success_is_not_an_error() {
-        assert!(Error::try_from(sgx_status_t::SGX_SUCCESS).is_err())
+        assert!(sgx_status_t::SGX_SUCCESS.into_result().is_ok())
     }
 }
