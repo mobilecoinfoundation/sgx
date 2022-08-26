@@ -48,8 +48,8 @@ impl From<SgxError> for Error {
 /// [Error].
 ///
 /// This is fallible because device_status_t also includes
-/// [`SGX_ENABLED`](mc_sgx_capable_sys_types::SGX_ENABLED), which is (obviously)
-/// not an error.
+/// [`SGX_ENABLED`](mc_sgx_capable_sys_types::sgx_device_status_t::SGX_ENABLED),
+/// which is (obviously) not an error.
 ///
 /// As a result, we need to use this here, so the preferred way to actually do
 /// FFI with this is going to look something like this:
