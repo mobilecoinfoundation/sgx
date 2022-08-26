@@ -11,5 +11,5 @@ mod macros;
 
 pub use crate::{
     attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
-    error::FfiError,
+    error::{Error, FfiError},
 };

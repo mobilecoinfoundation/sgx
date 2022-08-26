@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "capable/sys",
     "capable/sys/types",
+    "capable/types",
     "core/build",
     "core/sys/types",
     "core/types",

@@ -1,4 +1,4 @@
-# MobileCoin SGX: Capablilities FFI Bindings 
+# MobileCoin SGX: Capabilities FFI Bindings 
 
 [![Project Chat][chat-image]][chat-link]<!--
 -->![License][license-image]<!--
