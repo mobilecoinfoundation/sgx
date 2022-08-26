@@ -115,7 +115,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() && ${{ github.event_name }} == 'push'
     needs:
       - rustfmt
       - markdown-lint
@@ -134,6 +134,6 @@ jobs:
           title: "Workflow: ${{ github.workflow }}"
           url: ${{ github.repository_url }}/actions/runs/${{ github.run_id }}
           description: |
-            gh:@${{ github.actor }} should triage this failure in ${{ github.repository }}, which was started by a ${{ github.event_name }}.
+            [@${{ github.pusher }}](${{ github.url }}/${{ github.pusher }}] was the last one to touch ${{ github.repository }}, is all I'm saying...
           avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
