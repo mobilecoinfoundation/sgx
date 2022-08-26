@@ -23,12 +23,13 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
+          profile: minimal
           components: rustfmt
       - uses: actions-rs/cargo@v1
         with:
-          command: fmt --all -- --check
+          command: fmt
+          args: --all -- --check
 
   markdown-lint:
     runs-on: ubuntu-20.04
@@ -57,7 +58,30 @@ jobs:
       with:
         command: check ${{ matrix.checks }}
 
-  sort:
+  clippy:
+    runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly-2022-04-29 # Used by mobilecoin.git
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dcap-libs
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all --all-features --locked -- -D warnings
+  nono:
     runs-on: ubuntu-20.04
     needs:
       - "rustfmt"
@@ -68,39 +92,11 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-      - name: Installing cargo sort
+      - name: Install cargo nono
         uses: actions-rs/cargo@v1
         with:
-          command: install sort
-      - uses: actions-rs/cargo@v1
-        with:
-          command: sort --workspace --check
-  clippy:
-    runs-on: ubuntu-20.04
-    needs:
-      - "rustfmt"
-      - "markdown-lint"
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
-      - uses: ./.github/actions/dcap-libs
-      - run: cargo clippy --all --all-features --locked -- -D warnings
-  nono:
-    runs-on: ubuntu-20.04
-    needs:
-      - "rustfmt"
-      - "markdown-lint"
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
-      - name: install nono
-        run: cargo install cargo-nono
-      # `mc-sgx-quote-verify` should be `no_std`, but it isn't yet.  See #34
-      # `mc-sgx-core-types` should be `no_std`, but cargo nono doesn't parse
-      # rand_core correctly, see https://github.com/hobofan/cargo-nono/pull/64
-      # for a suggested improvement
+          command: install
+          args: nono
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
@@ -111,26 +107,47 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly-2022-04-29
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
-      - run: cargo build --release --locked
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --locked
   test:
     runs-on: ubuntu-20.04
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly-2022-04-29
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
-      - run:
-          cargo test --release --locked --features sim
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --locked --features sim
   doc:
     runs-on: ubuntu-20.04
     needs:
@@ -138,10 +155,15 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/dcap-libs
-      - run: cargo doc --release --locked --no-deps --features sim
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --release --locked --no-deps --features sim
 
   notify:
     runs-on: ubuntu-latest
