@@ -33,22 +33,22 @@ impl_newtype_for_bytestruct! {
 /// ISV Family ID
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
 #[repr(transparent)]
-pub struct IsvFamilyId(sgx_isvfamily_id_t);
+pub struct FamilyId(sgx_isvfamily_id_t);
 
 new_type_accessors_impls! {
-    IsvFamilyId, sgx_isvfamily_id_t;
+    FamilyId, sgx_isvfamily_id_t;
 }
 
-/// ISV Extended Product ID
+/// Extended Product ID
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct IsvExtendedProductId(sgx_isvext_prod_id_t);
+pub struct ExtendedProductId(sgx_isvext_prod_id_t);
 
 new_type_accessors_impls! {
-    IsvExtendedProductId, sgx_isvext_prod_id_t;
+    ExtendedProductId, sgx_isvext_prod_id_t;
 }
 
-impl Default for IsvExtendedProductId {
+impl Default for ExtendedProductId {
     fn default() -> Self {
         Self([0; SGX_ISVEXT_PROD_ID_SIZE])
     }
@@ -80,7 +80,7 @@ impl ReportBody {
     }
 
     /// The ISV extended product id
-    pub fn isv_extended_product_id(&self) -> IsvExtendedProductId {
+    pub fn isv_extended_product_id(&self) -> ExtendedProductId {
         self.0.isv_ext_prod_id.into()
     }
 
@@ -120,7 +120,7 @@ impl ReportBody {
     }
 
     /// The ISV Family ID
-    pub fn isv_family_id(&self) -> IsvFamilyId {
+    pub fn isv_family_id(&self) -> FamilyId {
         self.0.isv_family_id.into()
     }
 
@@ -146,7 +146,7 @@ impl Default for ReportBody {
             cpu_svn: CpuSvn::default().into(),
             misc_select: MiscellaneousSelect::default().into(),
             reserved1: [0u8; SGX_REPORT_BODY_RESERVED1_BYTES],
-            isv_ext_prod_id: IsvExtendedProductId::default().into(),
+            isv_ext_prod_id: ExtendedProductId::default().into(),
             attributes: Attributes::default().into(),
             mr_enclave: MrEnclave::default().into(),
             reserved2: [0u8; SGX_REPORT_BODY_RESERVED2_BYTES],
@@ -157,7 +157,7 @@ impl Default for ReportBody {
             isv_svn: IsvSvn::default().into(),
             config_svn: ConfigSvn::default().into(),
             reserved4: [0u8; SGX_REPORT_BODY_RESERVED4_BYTES],
-            isv_family_id: IsvFamilyId::default().into(),
+            isv_family_id: FamilyId::default().into(),
             report_data: ReportData::default().into(),
         })
     }
@@ -212,10 +212,7 @@ mod test {
         let body = ReportBody::default();
         assert_eq!(body.cpu_svn(), CpuSvn::default());
         assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::default());
-        assert_eq!(
-            body.isv_extended_product_id(),
-            IsvExtendedProductId::default()
-        );
+        assert_eq!(body.isv_extended_product_id(), ExtendedProductId::default());
         assert_eq!(body.attributes(), Attributes::default());
         assert_eq!(
             body.mr_enclave(),
@@ -226,7 +223,7 @@ mod test {
         assert_eq!(body.isv_product_id(), IsvProductId::default());
         assert_eq!(body.isv_svn(), IsvSvn::default());
         assert_eq!(body.config_svn(), ConfigSvn::default());
-        assert_eq!(body.isv_family_id(), IsvFamilyId::default());
+        assert_eq!(body.isv_family_id(), FamilyId::default());
         assert_eq!(body.report_data(), ReportData::default());
     }
 
@@ -259,7 +256,7 @@ mod test {
         assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::new(2));
         assert_eq!(
             body.isv_extended_product_id(),
-            IsvExtendedProductId([4u8; SGX_ISVEXT_PROD_ID_SIZE])
+            ExtendedProductId([4u8; SGX_ISVEXT_PROD_ID_SIZE])
         );
         assert_eq!(
             body.attributes(),
@@ -279,7 +276,7 @@ mod test {
         assert_eq!(body.config_svn(), ConfigSvn::new(14));
         assert_eq!(
             body.isv_family_id(),
-            IsvFamilyId([16u8; SGX_ISV_FAMILY_ID_SIZE])
+            FamilyId([16u8; SGX_ISV_FAMILY_ID_SIZE])
         );
         assert_eq!(
             body.report_data(),
