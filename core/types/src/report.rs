@@ -6,10 +6,30 @@ use crate::{
     ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
 };
 use mc_sgx_core_sys_types::{
-    sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_prod_id_t, sgx_report_body_t, sgx_report_data_t,
-    SGX_ISVEXT_PROD_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES, SGX_REPORT_BODY_RESERVED2_BYTES,
+    sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
+    sgx_report_data_t, sgx_report_t, SGX_ISVEXT_PROD_ID_SIZE, SGX_MAC_SIZE,
+    SGX_REPORT_BODY_RESERVED1_BYTES, SGX_REPORT_BODY_RESERVED2_BYTES,
     SGX_REPORT_BODY_RESERVED3_BYTES, SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
 };
+
+/// MAC
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct Mac(sgx_mac_t);
+
+new_type_accessors_impls! {
+    Mac, sgx_mac_t;
+}
+
+impl Mac {
+    pub const SIZE: usize = SGX_MAC_SIZE;
+}
+
+impl Default for Mac {
+    fn default() -> Self {
+        Self([0; Self::SIZE])
+    }
+}
 
 /// Report Data
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -153,11 +173,49 @@ impl Default for ReportBody {
     }
 }
 
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Report(sgx_report_t);
+
+impl Report {
+    /// The report body
+    pub fn body(&self) -> ReportBody {
+        self.0.body.into()
+    }
+
+    /// The key ID
+    pub fn key_id(&self) -> KeyId {
+        self.0.key_id.into()
+    }
+
+    /// The MAC
+    pub fn mac(&self) -> Mac {
+        self.0.mac.into()
+    }
+}
+
+new_type_accessors_impls! {
+    Report, sgx_report_t;
+}
+
+impl Default for Report {
+    fn default() -> Self {
+        Self(sgx_report_t {
+            body: ReportBody::default().into(),
+            key_id: KeyId::default().into(),
+            mac: Mac::default().into(),
+        })
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate std;
     use super::*;
-    use mc_sgx_core_sys_types::{SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE};
+    use crate::key_request::KeyId;
+    use mc_sgx_core_sys_types::{
+        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE, SGX_KEYID_SIZE,
+    };
 
     #[test]
     fn default_report_body() {
@@ -239,5 +297,28 @@ mod test {
                 d: [17u8; SGX_REPORT_DATA_SIZE]
             })
         );
+    }
+
+    #[test]
+    fn report_from_sgx_report() {
+        let mut body = ReportBody::default();
+        body.0.isv_prod_id = 3;
+        let sgx_report = sgx_report_t {
+            body: body.clone().into(),
+            key_id: KeyId::from([4u8; SGX_KEYID_SIZE]).into(),
+            mac: [5u8; SGX_MAC_SIZE],
+        };
+        let report: Report = sgx_report.into();
+        assert_eq!(report.body(), body);
+        assert_eq!(report.key_id(), KeyId::from([4u8; SGX_KEYID_SIZE]));
+        assert_eq!(report.mac(), Mac([5u8; SGX_MAC_SIZE]));
+    }
+
+    #[test]
+    fn sgx_report_default() {
+        let report = Report::default();
+        assert_eq!(report.body(), ReportBody::default());
+        assert_eq!(report.key_id(), KeyId::default());
+        assert_eq!(report.mac(), Mac::default());
     }
 }

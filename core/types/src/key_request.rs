@@ -1,7 +1,10 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! SGX key request rust types
 
-use crate::{new_type_accessors_impls, Attributes, ConfigSvn, CpuSvn, IsvSvn, MiscellaneousSelect};
+use crate::{
+    impl_newtype_for_bytestruct, new_type_accessors_impls, Attributes, ConfigSvn, CpuSvn, IsvSvn,
+    MiscellaneousSelect,
+};
 use bitflags::bitflags;
 use mc_sgx_core_sys_types::{
     sgx_key_128bit_t, sgx_key_id_t, sgx_key_request_t, SGX_KEYID_SIZE, SGX_KEYPOLICY_CONFIGID,
@@ -11,6 +14,15 @@ use mc_sgx_core_sys_types::{
     SGX_KEYSELECT_SEAL, SGX_KEY_REQUEST_RESERVED2_BYTES,
 };
 use rand_core::{CryptoRng, RngCore};
+
+/// Key ID
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct KeyId(sgx_key_id_t);
+
+impl_newtype_for_bytestruct! {
+    KeyId, sgx_key_id_t, SGX_KEYID_SIZE, id;
+}
 
 #[non_exhaustive]
 #[repr(u16)]
