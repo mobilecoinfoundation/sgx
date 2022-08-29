@@ -10,13 +10,14 @@ use mc_sgx_util::{ResultFrom, ResultInto};
 use serde::{Deserialize, Serialize};
 
 /// Errors seen when converting to, or from, rust for the SGX types
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum FfiError {
-    /// When the provided bytes or slice are too small to support converting
-    /// to the type.
+    /** When the provided bytes or slice are too small to support converting
+     *  to the type. */
     InvalidInputLength,
-    /// Enum out of range
-    /// Happens when a value that is not represented by the known C enum values.
+    /** Enum out of range. Happens when a value that is not represented by
+     * the known C enum values. */
     UnknownEnumValue(i64),
 }
 
@@ -41,7 +42,7 @@ pub type Result<T> = CoreResult<T, Error>;
 ///  9. `0x8000-0x8fff`: Attestation key errors.
 /// 10. `0xf000-0xffff`: Internal (to SGX) errors.
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Error {
     // 0x0001 - 0x0fff: Generic errors
@@ -51,8 +52,8 @@ pub enum Error {
     InvalidParameter,
     /// There is not enough memory available to complete this operation.
     OutOfMemory,
-    /// The enclave was lost after power transition or used in a child process
-    /// created by fork().
+    /** The enclave was lost after power transition or used in a child
+     * process created by fork(). */
     EnclaveLost,
     /// The API is invoked in incorrect order or state.
     InvalidState,
@@ -70,13 +71,13 @@ pub enum Error {
     OutOfTcs,
     /// The enclave crashed.
     EnclaveCrashed,
-    /// ECALL is not allowed at this time.
-    ///
-    /// Possible reasons include:
-    ///
-    ///  * ECALL is not public.
-    ///  * ECALL is blocked by the dynamic entry table.
-    ///  * A nested ECALL is not allowed during global initialization.
+    /** ECALL is not allowed at this time.
+     *
+     * Possible reasons include:
+     *
+     * - ECALL is not public.
+     * - ECALL is blocked by the dynamic entry table.
+     * - A nested ECALL is not allowed during global initialization. */
     EcallNotAllowed,
     /// OCALL is not allowed during exception handling.
     OcallNotAllowed,
@@ -92,12 +93,12 @@ pub enum Error {
     InvalidEnclaveId,
     /// The signature for the enclave is invalid.
     InvalidSignature,
-    /// The enclave was signed as a production enclave, and cannot be
-    /// instantiated as debuggable.
+    /** The enclave was signed as a production enclave, and cannot be
+     * instantiated as debuggable. */
     NdebugEnclave,
-    /// There is not enough EPC (encrypted page cache) available to load the
-    /// enclave or one of the Architecture Enclaves needed to complete the
-    /// operation requested.
+    /** There is not enough EPC (encrypted page cache) available to load the
+     * enclave or one of the Architecture Enclaves needed to complete the
+     * operation requested. */
     OutOfEpc,
     /// Cannot open the device.
     NoDevice,
@@ -107,12 +108,12 @@ pub enum Error {
     InvalidMetadata,
     /// The device is busy
     DeviceBusy,
-    /// Metadata version is inconsistent between uRTS and
-    /// `sgx_status_t::SGX_sign` or the uRTS is incompatible with the current
-    /// platform.
+    /** Metadata version is inconsistent between uRTS and
+     * `sgx_status_t::SGX_sign` or the uRTS is incompatible with the current
+     * platform. */
     InvalidVersion,
-    /// The target enclave mode (either 32 vs. 64-bit, or hardware vs.
-    /// simulation) is incompatible with the untrusted mode.
+    /** The target enclave mode (either 32 vs. 64-bit, or hardware vs.
+     * simulation) is incompatible with the untrusted mode. */
     ModeIncompatible,
     /// Cannot open the enclave file.
     EnclaveFileAccess,
@@ -134,8 +135,8 @@ pub enum Error {
     InvalidKeyname,
 
     // 0x4000 - 0x4fff: AESM
-    /// Architectural Enclave service does not respond or the requested service
-    /// is not supported.
+    /** Architectural Enclave service does not respond or the requested
+     * service is not supported. */
     ServiceUnavailable,
     /// The request to the Architectural Enclave service timed out.
     ServiceTimeout,
@@ -143,9 +144,8 @@ pub enum Error {
     AeInvalidEpidblob,
     /// Enclave has no privilege to get a launch token.
     ServiceInvalidPrivilege,
-    /// The EPID group membership has been revoked .
-    ///
-    /// The platform is not trusted,and will not be trusted even if updated.
+    /** The EPID group membership has been revoked. The platform is not
+     * trusted,and will not be trusted even if updated. */
     EpidMemberRevoked,
     /// Intel SGX requires update.
     UpdateNeeded,
@@ -157,8 +157,8 @@ pub enum Error {
     Busy,
     /// The Monotonic Counter does not exist or has been invalidated.
     McNotFound,
-    /// The caller does not have the access right to the specified Virtual
-    /// Monotonic Counter.
+    /** The caller does not have the access right to the specified Virtual
+     * Monotonic Counter. */
     McNoAccessRight,
     /// No monotonic counter is available.
     McUsedUp,
@@ -166,54 +166,54 @@ pub enum Error {
     McOverQuota,
     /// Key derivation function did not match during key exchange.
     KdfMismatch,
-    /// Intel EPID provisioning failed because the platform is not recognized by
-    /// the back-end server.
+    /** Intel EPID provisioning failed because the platform is not recognized
+     * by the back-end server. */
     UnrecognizedPlatform,
     /// There are unsupported bits in the config.
     UnsupportedConfig,
 
     // 0x5000 - 0x5fff: AESM-internal errors
-    /// The application does not have the privilege needed to read UEFI
-    /// variables.
+    /** The application does not have the privilege needed to read UEFI
+     * variables. */
     NoPrivilege,
 
     // 0x6000 - 0x6fff: Encrypted Enclaves
-    /// Trying to load an encrypted enclave using API or parameters for
-    /// plaintext enclaves.
+    /** Trying to load an encrypted enclave using API or parameters for
+     * plaintext enclaves. */
     PclEncrypted,
-    /// Trying to load an enclave that is not encrypted with using API or
-    /// parameters for encrypted enclaves.
+    /** Trying to load an enclave that is not encrypted with using API or
+     * parameters for encrypted enclaves. */
     PclNotEncrypted,
-    /// The runtime AES-GCM-128 MAC result of an encrypted section does not
-    /// match the one used at build time.
+    /** The runtime AES-GCM-128 MAC result of an encrypted section does not
+     * match the one used at build time. */
     PclMacMismatch,
-    /// The runtime SHA256 hash of the decryption key does not match the one
-    /// used at build time.
+    /** The runtime SHA256 hash of the decryption key does not match the one
+     * used at build time. */
     PclShaMismatch,
-    /// The GUID in the decryption key sealed blob does not match the one used
-    /// at build time.
+    /** The GUID in the decryption key sealed blob does not match the one
+     * used at build time. */
     PclGuidMismatch,
 
     // 0x7000 - 0x7fff: SGX Encrypted FS
-    /// The file is in a bad status, run sgx_status_t::SGX_clearerr to try and
-    /// fix it.
+    /** The file is in a bad status, run sgx_status_t::SGX_clearerr to try
+     * and fix it. */
     FileBadStatus,
-    /// The Key ID field is all zeroes, the encryption key cannot be
-    /// regenerated.
+    /** The Key ID field is all zeroes, the encryption key cannot be
+     * regenerated. */
     FileNoKeyId,
-    /// The current file name is different from the original file name
-    /// (substitution attack).
+    /** The current file name is different from the original file name
+     * (substitution attack). */
     FileNameMismatch,
     /// The file is not an Intel SGX file.
     FileNotSgxFile,
-    /// A recovery file cannot be opened, so the flush operation cannot
-    /// continue.
+    /** A recovery file cannot be opened, so the flush operation cannot
+     * continue. */
     FileCantOpenRecoveryFile,
-    /// A recovery file cannot be written, so the flush operation cannot
-    /// continue.
+    /** A recovery file cannot be written, so the flush operation cannot
+     * continue. */
     FileCantWriteRecoveryFile,
-    /// When opening the file, recovery is needed, but the recovery process
-    /// failed.
+    /** When opening the file, recovery is needed, but the recovery process
+     * failed. */
     FileRecoveryNeeded,
     /// The fflush() operation failed.
     FileFlushFailed,
@@ -225,8 +225,8 @@ pub enum Error {
     UnsupportedAttKeyId,
     /// Failed to generate and certify the attestation key.
     AttKeyCertificationFailure,
-    /// The platform quoting infrastructure does not have the attestation key
-    /// available to generate a quote.
+    /** The platform quoting infrastructure does not have the attestation key
+     * available to generate a quote. */
     AttKeyUninitialized,
     /// The data returned by sgx_status_t::SGX_get_quote_config() is invalid.
     InvalidAttKeyCertData,
