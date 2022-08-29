@@ -4,7 +4,7 @@
 use crate::{new_type_accessors_impls, Attributes, ConfigSvn, CpuSvn, IsvSvn, MiscellaneousSelect};
 use bitflags::bitflags;
 use mc_sgx_core_sys_types::{
-    sgx_key_id_t, sgx_key_request_t, SGX_KEYID_SIZE, SGX_KEYPOLICY_CONFIGID,
+    sgx_key_128bit_t, sgx_key_id_t, sgx_key_request_t, SGX_KEYID_SIZE, SGX_KEYPOLICY_CONFIGID,
     SGX_KEYPOLICY_ISVEXTPRODID, SGX_KEYPOLICY_ISVFAMILYID, SGX_KEYPOLICY_MRENCLAVE,
     SGX_KEYPOLICY_MRSIGNER, SGX_KEYPOLICY_NOISVPRODID, SGX_KEYSELECT_EINITTOKEN,
     SGX_KEYSELECT_PROVISION, SGX_KEYSELECT_PROVISION_SEAL, SGX_KEYSELECT_REPORT,
@@ -166,6 +166,26 @@ impl KeyRequestBuilder {
     }
 }
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Key128bit(sgx_key_128bit_t);
+
+new_type_accessors_impls! {
+    Key128bit, sgx_key_128bit_t;
+}
+
+impl Key128bit {
+    /// The underlying size of the key array.
+    // Note: The SGX headers do not have a header for this, they use 16
+    // directly.
+    pub const SIZE: usize = 16;
+}
+
+impl Default for Key128bit {
+    fn default() -> Self {
+        Self([0; Self::SIZE])
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -211,5 +231,19 @@ mod test {
         assert_eq!(request.0.attribute_mask.xfrm, 6);
         assert_eq!(request.0.misc_mask, 7);
         assert_eq!(request.0.config_svn, 8);
+    }
+
+    #[test]
+    fn key_from_sgx_key() {
+        let sgx_key = [1u8; 16];
+        let key: Key128bit = sgx_key.into();
+        assert_eq!(key.0, sgx_key);
+    }
+
+    #[test]
+    fn sgx_key_from_key() {
+        let key = Key128bit::default();
+        let sgx_key: sgx_key_128bit_t = key.into();
+        assert_eq!(sgx_key, [0u8; 16]);
     }
 }
