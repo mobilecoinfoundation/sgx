@@ -70,7 +70,7 @@ pub trait ResultFrom<ST>: TryFrom<ST> {
 /// be implemented manually, but instead should be added to an FFI type via
 /// explicit impl block attached to it's derivative wrapper type.
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Pick up the default implementation of [`ResultInto`]
 /// impl ResultInto<AnError> for a_status_t {}
 /// ```
