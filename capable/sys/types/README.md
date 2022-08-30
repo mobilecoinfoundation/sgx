@@ -1,4 +1,4 @@
-# MobileCoin SGX: Capabilities FFI Types 
+# MobileCoin SGX: Capabilities FFI Types
 
 [![Project Chat][chat-image]][chat-link]<!--
 -->![License][license-image]<!--

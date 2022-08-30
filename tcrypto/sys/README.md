@@ -1,4 +1,4 @@
-# MobileCoin SGX: Crypto FFI Bindings 
+# MobileCoin SGX: Crypto FFI Bindings
 
 [![Project Chat][chat-image]][chat-link]<!--
 -->![License][license-image]<!--

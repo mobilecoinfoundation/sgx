@@ -9,11 +9,10 @@
 
 Idiomatic rust wrappers for DCAP quote verification.
 
-This crate provides rust type definitions to support verifying quotes 
-for Intel SGX DCAP attestation.
+This crate provides rust type definitions to support verifying quotes for Intel SGX DCAP attestation.
 
-If you're looking for using the Intel&reg; DCAP libraries you may be 
-interested in:
+If you're looking for using the Intel&reg; DCAP libraries you may be interested in:
+
 - [DCAP Orientation Guide][dcap-orientation-guide]
 - [DCAP Installation][dcap-installation]
 - [DCAP Reference][dcap-reference]
@@ -23,8 +22,7 @@ interested in:
 
 Rust **1.62** or higher.
 
-Minimum supported Rust version can be changed in the future, but it will be
-done with a minor version bump.
+Minimum supported Rust version can be changed in the future, but it will be done with a minor version bump.
 
 ## SemVer Policy
 
