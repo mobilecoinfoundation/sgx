@@ -101,7 +101,12 @@ fn main() {
             "sgx_attributes_t",
         ])
         .dynamically_sized_types(["sgx_quote_t"])
-        .derive_default(["sgx_report_t", "sgx_attributes_t"]);
+        .derive_default([
+            "sgx_report_t",
+            "sgx_attributes_t",
+            "sgx_basename_t",
+            "sgx_quote_nonce_t",
+        ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))

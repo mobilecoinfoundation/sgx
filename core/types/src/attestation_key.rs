@@ -61,26 +61,26 @@ new_type_accessors_impls! {
     Id, u16;
 }
 
-/// The type of quote signature.  Only valid for EPID quotes.
+/// The type of quote.  Only valid for EPID quotes.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[non_exhaustive]
 #[repr(u16)]
-pub enum QuoteSignature {
+pub enum QuoteSignatureType {
     UnLinkable,
     Linkable,
 }
 
-impl TryFrom<sgx_quote_sign_type_t> for QuoteSignature {
+impl TryFrom<sgx_quote_sign_type_t> for QuoteSignatureType {
     type Error = FfiError;
-    fn try_from(sign_type: sgx_quote_sign_type_t) -> Result<QuoteSignature, FfiError> {
+    fn try_from(sign_type: sgx_quote_sign_type_t) -> Result<QuoteSignatureType, FfiError> {
         match sign_type {
             // Per the header `sgx_quote.h` and
             // https://download.01.org/intel-sgx/sgx-linux/2.17.1/docs/Intel_SGX_Developer_Reference_Linux_2.17.1_Open_Source.pdf
             // the `sgx_att_key_id_ext_t::att_key_type` is only valid for EPID
             // quotes it will be 0 otherwise, which also happens to map to
             // SGX_UNLINKABLE_SIGNATURE.
-            sgx_quote_sign_type_t::SGX_UNLINKABLE_SIGNATURE => Ok(QuoteSignature::UnLinkable),
-            sgx_quote_sign_type_t::SGX_LINKABLE_SIGNATURE => Ok(QuoteSignature::Linkable),
+            sgx_quote_sign_type_t::SGX_UNLINKABLE_SIGNATURE => Ok(QuoteSignatureType::UnLinkable),
+            sgx_quote_sign_type_t::SGX_LINKABLE_SIGNATURE => Ok(QuoteSignatureType::Linkable),
             v => Err(FfiError::UnknownEnumValue(v.0.into())),
         }
     }
@@ -261,13 +261,13 @@ mod test {
     }
 
     #[parameterized(
-    unlinkable = {0, Ok(QuoteSignature::UnLinkable)},
-    linkable = {1, Ok(QuoteSignature::Linkable)},
+    unlinkable = {0, Ok(QuoteSignatureType::UnLinkable)},
+    linkable = {1, Ok(QuoteSignatureType::Linkable)},
     out_of_bounds = {2, Err(FfiError::UnknownEnumValue(2))},
     )]
-    fn try_from_signature_type(raw_value: u32, result: Result<QuoteSignature, FfiError>) {
+    fn try_from_signature_type(raw_value: u32, result: Result<QuoteSignatureType, FfiError>) {
         assert_eq!(
-            QuoteSignature::try_from(sgx_quote_sign_type_t(raw_value)),
+            QuoteSignatureType::try_from(sgx_quote_sign_type_t(raw_value)),
             result
         );
     }
