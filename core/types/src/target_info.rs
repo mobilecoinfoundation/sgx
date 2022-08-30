@@ -2,7 +2,7 @@
 //! SGX TargetInfo
 
 use crate::{
-    new_type_accessors_impls, svn::ConfigId, Attributes, ConfigSvn, Measurement,
+    config_id::ConfigId, new_type_accessors_impls, Attributes, ConfigSvn, Measurement,
     MiscellaneousSelect, MrEnclave,
 };
 use mc_sgx_core_sys_types::{
@@ -104,6 +104,6 @@ mod test {
         );
         assert_eq!(info.config_svn(), ConfigSvn::new(5));
         assert_eq!(info.miscellaneous_select(), MiscellaneousSelect::new(6));
-        assert_eq!(info.config_id(), ConfigId::new([8; SGX_CONFIGID_SIZE]));
+        assert_eq!(info.config_id(), ConfigId::from([8; SGX_CONFIGID_SIZE]));
     }
 }

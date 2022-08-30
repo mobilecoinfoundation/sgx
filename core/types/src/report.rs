@@ -2,8 +2,8 @@
 //! SGX Report
 
 use crate::{
-    impl_newtype_for_bytestruct, new_type_accessors_impls, svn::ConfigId, Attributes, ConfigSvn,
-    CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
+    config_id::ConfigId, impl_newtype_for_bytestruct, new_type_accessors_impls, Attributes,
+    ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
 };
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_prod_id_t, sgx_report_body_t, sgx_report_data_t,
@@ -225,7 +225,7 @@ mod test {
             body.mr_signer(),
             Measurement::MrSigner(MrSigner::from([9u8; SGX_HASH_SIZE]))
         );
-        assert_eq!(body.config_id(), ConfigId::new([11u8; SGX_CONFIGID_SIZE]));
+        assert_eq!(body.config_id(), ConfigId::from([11u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(12));
         assert_eq!(body.isv_svn(), IsvSvn::new(13));
         assert_eq!(body.config_svn(), ConfigSvn::new(14));
