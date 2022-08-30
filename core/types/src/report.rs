@@ -2,33 +2,23 @@
 //! SGX Report
 
 use crate::{
-    config_id::ConfigId, impl_newtype_for_bytestruct, new_type_accessors_impls, Attributes,
-    ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
+    config_id::ConfigId, impl_newtype_for_bytestruct, key_request::KeyId, new_type_accessors_impls,
+    Attributes, ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
 };
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
-    sgx_report_data_t, sgx_report_t, SGX_ISVEXT_PROD_ID_SIZE, SGX_MAC_SIZE,
-    SGX_REPORT_BODY_RESERVED1_BYTES, SGX_REPORT_BODY_RESERVED2_BYTES,
-    SGX_REPORT_BODY_RESERVED3_BYTES, SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
+    sgx_report_data_t, sgx_report_t, SGX_ISVEXT_PROD_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES,
+    SGX_REPORT_BODY_RESERVED2_BYTES, SGX_REPORT_BODY_RESERVED3_BYTES,
+    SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
 };
 
 /// MAC
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Mac(sgx_mac_t);
 
 new_type_accessors_impls! {
     Mac, sgx_mac_t;
-}
-
-impl Mac {
-    pub const SIZE: usize = SGX_MAC_SIZE;
-}
-
-impl Default for Mac {
-    fn default() -> Self {
-        Self([0; Self::SIZE])
-    }
 }
 
 /// Report Data
@@ -214,7 +204,7 @@ mod test {
     use super::*;
     use crate::key_request::KeyId;
     use mc_sgx_core_sys_types::{
-        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE, SGX_KEYID_SIZE,
+        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE, SGX_KEYID_SIZE, SGX_MAC_SIZE,
     };
 
     #[test]
