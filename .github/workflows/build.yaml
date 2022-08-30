@@ -13,11 +13,23 @@ env:
 jobs:
   rustfmt:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        rust:
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
-      - run: cargo fmt --all -- --check
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          components: rustfmt
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
   markdown-lint:
     runs-on: ubuntu-20.04
     steps:
@@ -50,12 +62,23 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/dcap-libs
-      - run: cargo clippy --all --all-features --locked -- -D warnings
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all --all-features --locked -- -D warnings
   nono:
     runs-on: ubuntu-20.04
     needs:
@@ -63,14 +86,16 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
-      - name: install nono
-        run: cargo install cargo-nono
-      # `mc-sgx-quote-verify` should be `no_std`, but it isn't yet.  See #34
-      # `mc-sgx-core-types` should be `no_std`, but cargo nono doesn't parse
-      # rand_core correctly, see https://github.com/hobofan/cargo-nono/pull/64
-      # for a suggested improvement
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-nono
+          version: latest
+          use-tool-cache: true
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
@@ -81,26 +106,45 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
-      - run: cargo build --release --locked
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --locked
   test:
     runs-on: ubuntu-20.04
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
-      - run:
-          cargo test --release --locked --features sim
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --locked --features sim
   doc:
     runs-on: ubuntu-20.04
     needs:
@@ -108,10 +152,17 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - name: Setup rust toolchain
-        run: rustup show
       - uses: ./.github/actions/dcap-libs
-      - run: cargo doc --release --locked --no-deps --features sim
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          # FIXME: replace with stable ASAP
+          toolchain: nightly-2022-07-22
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --release --locked --no-deps --features sim
 
   notify:
     runs-on: ubuntu-latest

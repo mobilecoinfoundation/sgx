@@ -93,7 +93,7 @@ impl SgxParseCallbacks {
     /// properly handle them they must be known.
     ///
     /// Note: Enums will also derive `Copy`, there is no need to specify in
-    ///     [derive_copy]
+    ///       [`derive_copy()`](SgxParseCallbacks::derive_copy())
     ///
     /// # Arguments
     /// * `enum_types` - Types that are enums.
