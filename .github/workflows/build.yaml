@@ -57,6 +57,25 @@ jobs:
       with:
         command: check ${{ matrix.checks }}
 
+  sort:
+    runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-sort
+          version: latest
+          use-tool-cache: true
+      # We run this manually because actions-rs/cargo doesn't have output redirect
+      - run: cargo sort --workspace --check >/dev/null
+
   clippy:
     runs-on: ubuntu-20.04
     needs:
@@ -170,6 +189,7 @@ jobs:
     needs:
       - rustfmt
       - markdown-lint
+      - sort
       - clippy
       - nono
       - build
