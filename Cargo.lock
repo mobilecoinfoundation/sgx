@@ -396,9 +396,9 @@ version = "0.1.0"
 dependencies = [
  "bitflags",
  "mc-sgx-core-sys-types",
+ "mc-sgx-util",
  "rand",
  "rand_core",
- "mc-sgx-util",
  "serde",
  "yare",
 ]
