@@ -86,7 +86,7 @@ impl TryFrom<sgx_quote_sign_type_t> for QuoteSignature {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct QuoteLibAttestationKeyId(sgx_ql_att_key_id_t);
 
@@ -147,21 +147,6 @@ new_type_accessors_impls! {
     QuoteLibAttestationKeyId, sgx_ql_att_key_id_t;
 }
 
-impl Default for QuoteLibAttestationKeyId {
-    fn default() -> Self {
-        Self(sgx_ql_att_key_id_t {
-            id: 0,
-            version: 0,
-            mrsigner_length: 32,
-            mrsigner: [0u8; 48],
-            prod_id: 0,
-            extended_prod_id: [0u8; 16],
-            config_id: [0u8; 64],
-            family_id: [0u8; 16],
-            algorithm_id: 0,
-        })
-    }
-}
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ServiceProviderId([u8; 16]);
@@ -170,7 +155,7 @@ new_type_accessors_impls! {
     ServiceProviderId, [u8; 16];
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ExtendedAttestationKeyId(sgx_att_key_id_ext_t);
 
@@ -193,17 +178,6 @@ impl ExtendedAttestationKeyId {
 
 new_type_accessors_impls! {
     ExtendedAttestationKeyId, sgx_att_key_id_ext_t;
-}
-
-impl Default for ExtendedAttestationKeyId {
-    fn default() -> Self {
-        Self(sgx_att_key_id_ext_t {
-            base: QuoteLibAttestationKeyId::default().into(),
-            spid: [0u8; 16],
-            att_key_type: 0,
-            reserved: [0u8; 80],
-        })
-    }
 }
 
 #[cfg(test)]

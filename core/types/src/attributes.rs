@@ -6,16 +6,10 @@ use crate::new_type_accessors_impls;
 use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
 
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Attributes(sgx_attributes_t);
 new_type_accessors_impls! {
     Attributes, sgx_attributes_t;
-}
-
-impl Default for Attributes {
-    fn default() -> Self {
-        Attributes(sgx_attributes_t { flags: 0, xfrm: 0 })
-    }
 }
 
 impl Attributes {

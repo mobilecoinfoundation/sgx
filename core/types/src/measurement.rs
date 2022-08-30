@@ -12,7 +12,7 @@ use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
 /// A MRENCLAVE value is a chained cryptographic hash of the signed
 /// enclave binary (.so), and the results of the page initialization
 /// steps which created the enclave's pages.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(transparent)]
 pub struct MrEnclave(sgx_measurement_t);
 
@@ -20,7 +20,7 @@ pub struct MrEnclave(sgx_measurement_t);
 ///
 /// A MRSIGNER value is a cryptographic hash of the public key an enclave
 /// was signed with.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(transparent)]
 pub struct MrSigner(sgx_measurement_t);
 

@@ -91,12 +91,6 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
-        impl Default for $wrapper {
-            fn default() -> Self {
-                Self($inner { $fieldname: [0u8; $size] })
-            }
-        }
-
         impl From<[u8; $size]> for $wrapper {
             fn from($fieldname: [u8; $size]) -> Self {
                 Self($inner { $fieldname })
@@ -112,14 +106,14 @@ mod test {
     use alloc::vec;
     use yare::parameterized;
 
-    const FIELD_SIZE: usize = 83;
+    const FIELD_SIZE: usize = 24;
 
-    #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
     struct Inner {
         field: [u8; FIELD_SIZE],
     }
 
-    #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
     #[repr(transparent)]
     struct Outer(Inner);
 
