@@ -74,7 +74,7 @@ jobs:
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
-            grep -v -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts -e mc-sgx-capable-sys | \
+            grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
   build:
     runs-on: ubuntu-20.04
@@ -126,7 +126,6 @@ jobs:
       - doc
     steps:
       - name: Notify Discord on failure
-        uses: rjstone/discord-webhook-notify@v1
+        uses: sarisia/actions-status-discord@v1
         with:
-          severity: error
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
