@@ -26,5 +26,5 @@ rand_core = { version = "0.6.3", default-features = false }
 serde = { version = "1.0.144", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
-yare = "1.0.1"
 rand = "0.8.5"
+yare = "1.0.1"
