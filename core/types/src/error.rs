@@ -2,8 +2,9 @@
 
 //! SGX Error types
 
-use core::convert::From;
+use core::result::Result as CoreResult;
 use mc_sgx_core_sys_types::sgx_status_t;
+use mc_sgx_util::{ResultFrom, ResultInto};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,9 @@ pub enum FfiError {
     /// Happens when a value that is not represented by the known C enum values.
     UnknownEnumValue(i64),
 }
+
+/// A convenience type alias for a `Result` which contains an [`Error`].
+pub type Result<T> = CoreResult<T, Error>;
 
 /// A enumeration of SGX errors.
 ///
@@ -231,111 +235,120 @@ pub enum Error {
     EnclaveCreateInterrupted,
 }
 
-impl From<sgx_status_t> for Error {
-    fn from(src: sgx_status_t) -> Error {
+impl TryFrom<sgx_status_t> for Error {
+    type Error = ();
+
+    fn try_from(src: sgx_status_t) -> CoreResult<Error, ()> {
         match src {
+            sgx_status_t::SGX_SUCCESS => Err(()),
+
             // 0x0001 - 0x0fff: Generic errors
-            sgx_status_t::SGX_ERROR_UNEXPECTED => Error::Unexpected,
-            sgx_status_t::SGX_ERROR_INVALID_PARAMETER => Error::InvalidParameter,
-            sgx_status_t::SGX_ERROR_OUT_OF_MEMORY => Error::OutOfMemory,
-            sgx_status_t::SGX_ERROR_ENCLAVE_LOST => Error::EnclaveLost,
-            sgx_status_t::SGX_ERROR_INVALID_STATE => Error::InvalidState,
-            sgx_status_t::SGX_ERROR_FEATURE_NOT_SUPPORTED => Error::FeatureNotSupported,
-            sgx_status_t::SGX_PTHREAD_EXIT => Error::ThreadExit,
-            sgx_status_t::SGX_ERROR_MEMORY_MAP_FAILURE => Error::MemoryMapFailure,
+            sgx_status_t::SGX_ERROR_UNEXPECTED => Ok(Error::Unexpected),
+            sgx_status_t::SGX_ERROR_INVALID_PARAMETER => Ok(Error::InvalidParameter),
+            sgx_status_t::SGX_ERROR_OUT_OF_MEMORY => Ok(Error::OutOfMemory),
+            sgx_status_t::SGX_ERROR_ENCLAVE_LOST => Ok(Error::EnclaveLost),
+            sgx_status_t::SGX_ERROR_INVALID_STATE => Ok(Error::InvalidState),
+            sgx_status_t::SGX_ERROR_FEATURE_NOT_SUPPORTED => Ok(Error::FeatureNotSupported),
+            sgx_status_t::SGX_PTHREAD_EXIT => Ok(Error::ThreadExit),
+            sgx_status_t::SGX_ERROR_MEMORY_MAP_FAILURE => Ok(Error::MemoryMapFailure),
 
             // 0x1001 - 0x1fff: Fatal runtime errors
-            sgx_status_t::SGX_ERROR_INVALID_FUNCTION => Error::InvalidFunction,
-            sgx_status_t::SGX_ERROR_OUT_OF_TCS => Error::OutOfTcs,
-            sgx_status_t::SGX_ERROR_ENCLAVE_CRASHED => Error::EnclaveCrashed,
-            sgx_status_t::SGX_ERROR_ECALL_NOT_ALLOWED => Error::EcallNotAllowed,
-            sgx_status_t::SGX_ERROR_OCALL_NOT_ALLOWED => Error::OcallNotAllowed,
-            sgx_status_t::SGX_ERROR_STACK_OVERRUN => Error::StackOverrun,
+            sgx_status_t::SGX_ERROR_INVALID_FUNCTION => Ok(Error::InvalidFunction),
+            sgx_status_t::SGX_ERROR_OUT_OF_TCS => Ok(Error::OutOfTcs),
+            sgx_status_t::SGX_ERROR_ENCLAVE_CRASHED => Ok(Error::EnclaveCrashed),
+            sgx_status_t::SGX_ERROR_ECALL_NOT_ALLOWED => Ok(Error::EcallNotAllowed),
+            sgx_status_t::SGX_ERROR_OCALL_NOT_ALLOWED => Ok(Error::OcallNotAllowed),
+            sgx_status_t::SGX_ERROR_STACK_OVERRUN => Ok(Error::StackOverrun),
 
             // 0x2000 - 0x2fff: Enclave construction errors
-            sgx_status_t::SGX_ERROR_UNDEFINED_SYMBOL => Error::UndefinedSymbol,
-            sgx_status_t::SGX_ERROR_INVALID_ENCLAVE => Error::InvalidEnclave,
-            sgx_status_t::SGX_ERROR_INVALID_ENCLAVE_ID => Error::InvalidEnclaveId,
-            sgx_status_t::SGX_ERROR_INVALID_SIGNATURE => Error::InvalidSignature,
-            sgx_status_t::SGX_ERROR_NDEBUG_ENCLAVE => Error::NdebugEnclave,
-            sgx_status_t::SGX_ERROR_OUT_OF_EPC => Error::OutOfEpc,
-            sgx_status_t::SGX_ERROR_NO_DEVICE => Error::NoDevice,
-            sgx_status_t::SGX_ERROR_MEMORY_MAP_CONFLICT => Error::MemoryMapConflict,
-            sgx_status_t::SGX_ERROR_INVALID_METADATA => Error::InvalidMetadata,
-            sgx_status_t::SGX_ERROR_DEVICE_BUSY => Error::DeviceBusy,
-            sgx_status_t::SGX_ERROR_INVALID_VERSION => Error::InvalidVersion,
-            sgx_status_t::SGX_ERROR_MODE_INCOMPATIBLE => Error::ModeIncompatible,
-            sgx_status_t::SGX_ERROR_ENCLAVE_FILE_ACCESS => Error::EnclaveFileAccess,
-            sgx_status_t::SGX_ERROR_INVALID_MISC => Error::InvalidMisc,
-            sgx_status_t::SGX_ERROR_INVALID_LAUNCH_TOKEN => Error::InvalidLaunchToken,
+            sgx_status_t::SGX_ERROR_UNDEFINED_SYMBOL => Ok(Error::UndefinedSymbol),
+            sgx_status_t::SGX_ERROR_INVALID_ENCLAVE => Ok(Error::InvalidEnclave),
+            sgx_status_t::SGX_ERROR_INVALID_ENCLAVE_ID => Ok(Error::InvalidEnclaveId),
+            sgx_status_t::SGX_ERROR_INVALID_SIGNATURE => Ok(Error::InvalidSignature),
+            sgx_status_t::SGX_ERROR_NDEBUG_ENCLAVE => Ok(Error::NdebugEnclave),
+            sgx_status_t::SGX_ERROR_OUT_OF_EPC => Ok(Error::OutOfEpc),
+            sgx_status_t::SGX_ERROR_NO_DEVICE => Ok(Error::NoDevice),
+            sgx_status_t::SGX_ERROR_MEMORY_MAP_CONFLICT => Ok(Error::MemoryMapConflict),
+            sgx_status_t::SGX_ERROR_INVALID_METADATA => Ok(Error::InvalidMetadata),
+            sgx_status_t::SGX_ERROR_DEVICE_BUSY => Ok(Error::DeviceBusy),
+            sgx_status_t::SGX_ERROR_INVALID_VERSION => Ok(Error::InvalidVersion),
+            sgx_status_t::SGX_ERROR_MODE_INCOMPATIBLE => Ok(Error::ModeIncompatible),
+            sgx_status_t::SGX_ERROR_ENCLAVE_FILE_ACCESS => Ok(Error::EnclaveFileAccess),
+            sgx_status_t::SGX_ERROR_INVALID_MISC => Ok(Error::InvalidMisc),
+            sgx_status_t::SGX_ERROR_INVALID_LAUNCH_TOKEN => Ok(Error::InvalidLaunchToken),
 
             // 0x3001-0x3fff: Report verification
-            sgx_status_t::SGX_ERROR_MAC_MISMATCH => Error::MacMismatch,
-            sgx_status_t::SGX_ERROR_INVALID_ATTRIBUTE => Error::InvalidAttribute,
-            sgx_status_t::SGX_ERROR_INVALID_CPUSVN => Error::InvalidCpuSvn,
-            sgx_status_t::SGX_ERROR_INVALID_ISVSVN => Error::InvalidIsvSvn,
-            sgx_status_t::SGX_ERROR_INVALID_KEYNAME => Error::InvalidKeyname,
+            sgx_status_t::SGX_ERROR_MAC_MISMATCH => Ok(Error::MacMismatch),
+            sgx_status_t::SGX_ERROR_INVALID_ATTRIBUTE => Ok(Error::InvalidAttribute),
+            sgx_status_t::SGX_ERROR_INVALID_CPUSVN => Ok(Error::InvalidCpuSvn),
+            sgx_status_t::SGX_ERROR_INVALID_ISVSVN => Ok(Error::InvalidIsvSvn),
+            sgx_status_t::SGX_ERROR_INVALID_KEYNAME => Ok(Error::InvalidKeyname),
 
             // 0x4000 - 0x4fff: AESM
-            sgx_status_t::SGX_ERROR_SERVICE_UNAVAILABLE => Error::ServiceUnavailable,
-            sgx_status_t::SGX_ERROR_SERVICE_TIMEOUT => Error::ServiceTimeout,
-            sgx_status_t::SGX_ERROR_AE_INVALID_EPIDBLOB => Error::AeInvalidEpidblob,
-            sgx_status_t::SGX_ERROR_SERVICE_INVALID_PRIVILEGE => Error::ServiceInvalidPrivilege,
-            sgx_status_t::SGX_ERROR_EPID_MEMBER_REVOKED => Error::EpidMemberRevoked,
-            sgx_status_t::SGX_ERROR_UPDATE_NEEDED => Error::UpdateNeeded,
-            sgx_status_t::SGX_ERROR_NETWORK_FAILURE => Error::NetworkFailure,
-            sgx_status_t::SGX_ERROR_AE_SESSION_INVALID => Error::AeSessionInvalid,
-            sgx_status_t::SGX_ERROR_BUSY => Error::Busy,
-            sgx_status_t::SGX_ERROR_MC_NOT_FOUND => Error::McNotFound,
-            sgx_status_t::SGX_ERROR_MC_NO_ACCESS_RIGHT => Error::McNoAccessRight,
-            sgx_status_t::SGX_ERROR_MC_USED_UP => Error::McUsedUp,
-            sgx_status_t::SGX_ERROR_MC_OVER_QUOTA => Error::McOverQuota,
-            sgx_status_t::SGX_ERROR_KDF_MISMATCH => Error::KdfMismatch,
-            sgx_status_t::SGX_ERROR_UNRECOGNIZED_PLATFORM => Error::UnrecognizedPlatform,
-            sgx_status_t::SGX_ERROR_UNSUPPORTED_CONFIG => Error::UnsupportedConfig,
+            sgx_status_t::SGX_ERROR_SERVICE_UNAVAILABLE => Ok(Error::ServiceUnavailable),
+            sgx_status_t::SGX_ERROR_SERVICE_TIMEOUT => Ok(Error::ServiceTimeout),
+            sgx_status_t::SGX_ERROR_AE_INVALID_EPIDBLOB => Ok(Error::AeInvalidEpidblob),
+            sgx_status_t::SGX_ERROR_SERVICE_INVALID_PRIVILEGE => Ok(Error::ServiceInvalidPrivilege),
+            sgx_status_t::SGX_ERROR_EPID_MEMBER_REVOKED => Ok(Error::EpidMemberRevoked),
+            sgx_status_t::SGX_ERROR_UPDATE_NEEDED => Ok(Error::UpdateNeeded),
+            sgx_status_t::SGX_ERROR_NETWORK_FAILURE => Ok(Error::NetworkFailure),
+            sgx_status_t::SGX_ERROR_AE_SESSION_INVALID => Ok(Error::AeSessionInvalid),
+            sgx_status_t::SGX_ERROR_BUSY => Ok(Error::Busy),
+            sgx_status_t::SGX_ERROR_MC_NOT_FOUND => Ok(Error::McNotFound),
+            sgx_status_t::SGX_ERROR_MC_NO_ACCESS_RIGHT => Ok(Error::McNoAccessRight),
+            sgx_status_t::SGX_ERROR_MC_USED_UP => Ok(Error::McUsedUp),
+            sgx_status_t::SGX_ERROR_MC_OVER_QUOTA => Ok(Error::McOverQuota),
+            sgx_status_t::SGX_ERROR_KDF_MISMATCH => Ok(Error::KdfMismatch),
+            sgx_status_t::SGX_ERROR_UNRECOGNIZED_PLATFORM => Ok(Error::UnrecognizedPlatform),
+            sgx_status_t::SGX_ERROR_UNSUPPORTED_CONFIG => Ok(Error::UnsupportedConfig),
 
             // 0x5000 - 0x5fff: AESM-internal errors
-            sgx_status_t::SGX_ERROR_NO_PRIVILEGE => Error::NoPrivilege,
+            sgx_status_t::SGX_ERROR_NO_PRIVILEGE => Ok(Error::NoPrivilege),
 
             // 0x6000 - 0x6fff: Encrypted Enclaves
-            sgx_status_t::SGX_ERROR_PCL_ENCRYPTED => Error::PclEncrypted,
-            sgx_status_t::SGX_ERROR_PCL_NOT_ENCRYPTED => Error::PclNotEncrypted,
-            sgx_status_t::SGX_ERROR_PCL_MAC_MISMATCH => Error::PclMacMismatch,
-            sgx_status_t::SGX_ERROR_PCL_SHA_MISMATCH => Error::PclShaMismatch,
-            sgx_status_t::SGX_ERROR_PCL_GUID_MISMATCH => Error::PclGuidMismatch,
+            sgx_status_t::SGX_ERROR_PCL_ENCRYPTED => Ok(Error::PclEncrypted),
+            sgx_status_t::SGX_ERROR_PCL_NOT_ENCRYPTED => Ok(Error::PclNotEncrypted),
+            sgx_status_t::SGX_ERROR_PCL_MAC_MISMATCH => Ok(Error::PclMacMismatch),
+            sgx_status_t::SGX_ERROR_PCL_SHA_MISMATCH => Ok(Error::PclShaMismatch),
+            sgx_status_t::SGX_ERROR_PCL_GUID_MISMATCH => Ok(Error::PclGuidMismatch),
 
             // 0x7000 - 0x7fff: SGX Encrypted FS
-            sgx_status_t::SGX_ERROR_FILE_BAD_STATUS => Error::FileBadStatus,
-            sgx_status_t::SGX_ERROR_FILE_NO_KEY_ID => Error::FileNoKeyId,
-            sgx_status_t::SGX_ERROR_FILE_NAME_MISMATCH => Error::FileNameMismatch,
-            sgx_status_t::SGX_ERROR_FILE_NOT_SGX_FILE => Error::FileNotSgxFile,
-            sgx_status_t::SGX_ERROR_FILE_CANT_OPEN_RECOVERY_FILE => Error::FileCantOpenRecoveryFile,
-            sgx_status_t::SGX_ERROR_FILE_CANT_WRITE_RECOVERY_FILE => {
-                Error::FileCantWriteRecoveryFile
+            sgx_status_t::SGX_ERROR_FILE_BAD_STATUS => Ok(Error::FileBadStatus),
+            sgx_status_t::SGX_ERROR_FILE_NO_KEY_ID => Ok(Error::FileNoKeyId),
+            sgx_status_t::SGX_ERROR_FILE_NAME_MISMATCH => Ok(Error::FileNameMismatch),
+            sgx_status_t::SGX_ERROR_FILE_NOT_SGX_FILE => Ok(Error::FileNotSgxFile),
+            sgx_status_t::SGX_ERROR_FILE_CANT_OPEN_RECOVERY_FILE => {
+                Ok(Error::FileCantOpenRecoveryFile)
             }
-            sgx_status_t::SGX_ERROR_FILE_RECOVERY_NEEDED => Error::FileRecoveryNeeded,
-            sgx_status_t::SGX_ERROR_FILE_FLUSH_FAILED => Error::FileFlushFailed,
-            sgx_status_t::SGX_ERROR_FILE_CLOSE_FAILED => Error::FileCloseFailed,
+            sgx_status_t::SGX_ERROR_FILE_CANT_WRITE_RECOVERY_FILE => {
+                Ok(Error::FileCantWriteRecoveryFile)
+            }
+            sgx_status_t::SGX_ERROR_FILE_RECOVERY_NEEDED => Ok(Error::FileRecoveryNeeded),
+            sgx_status_t::SGX_ERROR_FILE_FLUSH_FAILED => Ok(Error::FileFlushFailed),
+            sgx_status_t::SGX_ERROR_FILE_CLOSE_FAILED => Ok(Error::FileCloseFailed),
 
             // 0x8000-0x8fff: Custom Attestation support
-            sgx_status_t::SGX_ERROR_UNSUPPORTED_ATT_KEY_ID => Error::UnsupportedAttKeyId,
+            sgx_status_t::SGX_ERROR_UNSUPPORTED_ATT_KEY_ID => Ok(Error::UnsupportedAttKeyId),
             sgx_status_t::SGX_ERROR_ATT_KEY_CERTIFICATION_FAILURE => {
-                Error::AttKeyCertificationFailure
+                Ok(Error::AttKeyCertificationFailure)
             }
-            sgx_status_t::SGX_ERROR_ATT_KEY_UNINITIALIZED => Error::AttKeyUninitialized,
-            sgx_status_t::SGX_ERROR_INVALID_ATT_KEY_CERT_DATA => Error::InvalidAttKeyCertData,
-            sgx_status_t::SGX_ERROR_PLATFORM_CERT_UNAVAILABLE => Error::PlatformCertUnavailable,
+            sgx_status_t::SGX_ERROR_ATT_KEY_UNINITIALIZED => Ok(Error::AttKeyUninitialized),
+            sgx_status_t::SGX_ERROR_INVALID_ATT_KEY_CERT_DATA => Ok(Error::InvalidAttKeyCertData),
+            sgx_status_t::SGX_ERROR_PLATFORM_CERT_UNAVAILABLE => Ok(Error::PlatformCertUnavailable),
 
             // 0xf000-0xffff: Internal-to-SGX errors
             sgx_status_t::SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED => {
-                Error::EnclaveCreateInterrupted
+                Ok(Error::EnclaveCreateInterrupted)
             }
 
             // Map all unknowns to the unexpected error
-            _ => Error::Unexpected,
+            _ => Ok(Error::Unexpected),
         }
     }
 }
+
+impl ResultFrom<sgx_status_t> for Error {}
+impl ResultInto<Error> for sgx_status_t {}
 
 #[cfg(test)]
 mod test {
@@ -344,34 +357,43 @@ mod test {
     use super::*;
 
     #[parameterized(
-    unexpected = { sgx_status_t::SGX_ERROR_UNEXPECTED, Error::Unexpected },
-    memory_map = { sgx_status_t::SGX_ERROR_MEMORY_MAP_FAILURE, Error::MemoryMapFailure },
-    invalid_function = { sgx_status_t::SGX_ERROR_INVALID_FUNCTION, Error::InvalidFunction },
-    stack_overrun = { sgx_status_t::SGX_ERROR_STACK_OVERRUN, Error::StackOverrun },
-    undefined_symbol = { sgx_status_t::SGX_ERROR_UNDEFINED_SYMBOL, Error::UndefinedSymbol },
-    invalid_launch_token = { sgx_status_t::SGX_ERROR_INVALID_LAUNCH_TOKEN, Error::InvalidLaunchToken },
-    mac_mismatch = { sgx_status_t::SGX_ERROR_MAC_MISMATCH, Error::MacMismatch },
-    invalid_keyname = { sgx_status_t::SGX_ERROR_INVALID_KEYNAME, Error::InvalidKeyname },
-    service_unavailable = { sgx_status_t::SGX_ERROR_SERVICE_UNAVAILABLE, Error::ServiceUnavailable },
-    unsupported_config = { sgx_status_t::SGX_ERROR_UNSUPPORTED_CONFIG, Error::UnsupportedConfig },
-    no_privilege = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, Error::NoPrivilege },
-    pcl_encrypted = { sgx_status_t::SGX_ERROR_PCL_ENCRYPTED, Error::PclEncrypted },
-    pcl_guid_mismatch = { sgx_status_t::SGX_ERROR_PCL_GUID_MISMATCH, Error::PclGuidMismatch },
-    file_bad_status = { sgx_status_t::SGX_ERROR_FILE_BAD_STATUS, Error::FileBadStatus },
-    file_close_failed = { sgx_status_t::SGX_ERROR_FILE_CLOSE_FAILED, Error::FileCloseFailed },
-    unsupported_att_key_id = { sgx_status_t::SGX_ERROR_UNSUPPORTED_ATT_KEY_ID, Error::UnsupportedAttKeyId },
-    platform_cert_unavailable = { sgx_status_t::SGX_ERROR_PLATFORM_CERT_UNAVAILABLE, Error::PlatformCertUnavailable },
-    interrupted = { sgx_status_t::SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED, Error::EnclaveCreateInterrupted },
+        unexpected = { sgx_status_t::SGX_ERROR_UNEXPECTED, Error::Unexpected },
+        memory_map = { sgx_status_t::SGX_ERROR_MEMORY_MAP_FAILURE, Error::MemoryMapFailure },
+        invalid_function = { sgx_status_t::SGX_ERROR_INVALID_FUNCTION, Error::InvalidFunction },
+        stack_overrun = { sgx_status_t::SGX_ERROR_STACK_OVERRUN, Error::StackOverrun },
+        undefined_symbol = { sgx_status_t::SGX_ERROR_UNDEFINED_SYMBOL, Error::UndefinedSymbol },
+        invalid_launch_token = { sgx_status_t::SGX_ERROR_INVALID_LAUNCH_TOKEN, Error::InvalidLaunchToken },
+        mac_mismatch = { sgx_status_t::SGX_ERROR_MAC_MISMATCH, Error::MacMismatch },
+        invalid_keyname = { sgx_status_t::SGX_ERROR_INVALID_KEYNAME, Error::InvalidKeyname },
+        service_unavailable = { sgx_status_t::SGX_ERROR_SERVICE_UNAVAILABLE, Error::ServiceUnavailable },
+        unsupported_config = { sgx_status_t::SGX_ERROR_UNSUPPORTED_CONFIG, Error::UnsupportedConfig },
+        no_privilege = { sgx_status_t::SGX_ERROR_NO_PRIVILEGE, Error::NoPrivilege },
+        pcl_encrypted = { sgx_status_t::SGX_ERROR_PCL_ENCRYPTED, Error::PclEncrypted },
+        pcl_guid_mismatch = { sgx_status_t::SGX_ERROR_PCL_GUID_MISMATCH, Error::PclGuidMismatch },
+        file_bad_status = { sgx_status_t::SGX_ERROR_FILE_BAD_STATUS, Error::FileBadStatus },
+        file_close_failed = { sgx_status_t::SGX_ERROR_FILE_CLOSE_FAILED, Error::FileCloseFailed },
+        unsupported_att_key_id = { sgx_status_t::SGX_ERROR_UNSUPPORTED_ATT_KEY_ID, Error::UnsupportedAttKeyId },
+        platform_cert_unavailable = { sgx_status_t::SGX_ERROR_PLATFORM_CERT_UNAVAILABLE, Error::PlatformCertUnavailable },
+        interrupted = { sgx_status_t::SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED, Error::EnclaveCreateInterrupted },
     )]
     fn from_sgx_to_error(sgx_status: sgx_status_t, expected: Error) {
-        let error: Error = sgx_status.into();
-        assert_eq!(error, expected);
+        assert_eq!(
+            Error::try_from(sgx_status).expect("Could not convert SGX Status to an error"),
+            expected
+        );
     }
 
     #[test]
     fn unknown_sgx_error_maps_to_unexpected() {
         let unknown = sgx_status_t(0x8000);
-        let error: Error = unknown.into();
-        assert_eq!(error, Error::Unexpected);
+        assert_eq!(
+            Error::try_from(unknown).expect("Could not parse an unknown SGX Status"),
+            Error::Unexpected
+        );
+    }
+
+    #[test]
+    fn success_is_not_an_error() {
+        assert!(sgx_status_t::SGX_SUCCESS.into_result().is_ok())
     }
 }

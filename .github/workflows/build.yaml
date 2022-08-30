@@ -115,12 +115,12 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() && ${{ github.event_name }} == 'push'
     needs:
       - rustfmt
+      - markdown-lint
       - clippy
       - nono
-      - markdown-lint
       - build
       - test
       - doc
@@ -128,4 +128,12 @@ jobs:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
         with:
+          username: "Github Actions"
+          status: Failure
+          nodetail: true
+          title: "Workflow: ${{ github.workflow }}"
+          url: ${{ github.repository_url }}/actions/runs/${{ github.run_id }}
+          description: |
+            [@${{ github.pusher }}](${{ github.url }}/${{ github.pusher }}] was the last one to touch ${{ github.repository }}, is all I'm saying...
+          avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
           webhook: ${{ secrets.DISCORD_WEBHOOK }}

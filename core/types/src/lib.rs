@@ -13,7 +13,7 @@ mod svn;
 
 pub use crate::{
     attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
-    error::{Error, FfiError},
+    error::{Error, FfiError, Result},
     key_request::{KeyName, KeyPolicy, KeyRequest, KeyRequestBuilder},
     svn::{ConfigSvn, CpuSvn, IsvSvn},
 };

@@ -337,8 +337,8 @@ dependencies = [
  "mc-sgx-capable-sys",
  "mc-sgx-capable-sys-types",
  "mc-sgx-capable-types",
- "mc-sgx-core-sys-types",
  "mc-sgx-core-types",
+ "mc-sgx-util",
  "yare",
 ]
 
@@ -369,6 +369,7 @@ dependencies = [
  "displaydoc",
  "mc-sgx-capable-sys-types",
  "mc-sgx-core-types",
+ "mc-sgx-util",
  "serde",
  "yare",
 ]
@@ -395,6 +396,7 @@ version = "0.1.0"
 dependencies = [
  "bitflags",
  "mc-sgx-core-sys-types",
+ "mc-sgx-util",
  "rand",
  "rand_core",
  "serde",
@@ -580,6 +582,10 @@ dependencies = [
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
 ]
+
+[[package]]
+name = "mc-sgx-util"
+version = "0.1.0"
 
 [[package]]
 name = "memchr"
