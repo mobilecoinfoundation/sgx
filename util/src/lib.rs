@@ -74,7 +74,7 @@ pub trait ResultFrom<ST>: TryFrom<ST> {
 /// // Pick up the default implementation of [`ResultInto`]
 /// impl ResultInto<AnError> for a_status_t {}
 /// ```
-///
+/// 
 /// That is, users should not attach this to a bindgen-generated status type,
 /// they should attach [`ResultFrom`] to the intended error wrapper associated
 /// with it, and they will get this for free.
