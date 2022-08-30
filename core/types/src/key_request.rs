@@ -166,24 +166,11 @@ impl KeyRequestBuilder {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Key128bit(sgx_key_128bit_t);
 
 new_type_accessors_impls! {
     Key128bit, sgx_key_128bit_t;
-}
-
-impl Key128bit {
-    /// The underlying size of the key array.
-    // Note: The SGX headers do not have a header for this, they use 16
-    // directly.
-    pub const SIZE: usize = 16;
-}
-
-impl Default for Key128bit {
-    fn default() -> Self {
-        Self([0; Self::SIZE])
-    }
 }
 
 #[cfg(test)]
