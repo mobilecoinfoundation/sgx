@@ -14,12 +14,35 @@ pub enum MrSignerKeyHash {
     Sha384([u8; 48]),
 }
 
-#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
-#[repr(transparent)]
-pub struct AlgorithmId(u32);
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[non_exhaustive]
+#[repr(u16)]
+pub enum Algorithm {
+    #[default]
+    /// Epid 2.0, Anonymous
+    Epid,
 
-new_type_accessors_impls! {
-    AlgorithmId, u32;
+    /// Reserved
+    Reserved,
+
+    /// ECDSA-256 with P-256 curve, Non Anonymous
+    EcdsaP256,
+
+    /// ECDSA-384 with P-384 curve, Non Anonymous (Not currently supported)
+    EcdsaP384,
+}
+
+impl TryFrom<u32> for Algorithm {
+    type Error = FfiError;
+    fn try_from(algorithm: u32) -> Result<Algorithm, FfiError> {
+        match algorithm {
+            0 => Ok(Algorithm::Epid),
+            1 => Ok(Algorithm::Reserved),
+            2 => Ok(Algorithm::EcdsaP256),
+            3 => Ok(Algorithm::EcdsaP384),
+            v => Err(FfiError::UnknownEnumValue(v.into())),
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
@@ -115,8 +138,8 @@ impl QuoteLibAttestationKeyId {
     }
 
     /// The algorithm ID
-    pub fn algorithm_id(&self) -> AlgorithmId {
-        self.0.algorithm_id.into()
+    pub fn algorithm_id(&self) -> Result<Algorithm, FfiError> {
+        self.0.algorithm_id.try_into()
     }
 }
 
@@ -227,7 +250,7 @@ mod test {
         assert_eq!(key.product_id(), ExtendedProductId::default());
         assert_eq!(key.config_id(), ConfigId::default());
         assert_eq!(key.family_id(), FamilyId::default());
-        assert_eq!(key.algorithm_id(), AlgorithmId::default());
+        assert_eq!(key.algorithm_id().unwrap(), Algorithm::default());
     }
 
     #[test]
@@ -241,7 +264,7 @@ mod test {
             extended_prod_id: [6u8; 16],
             config_id: [7u8; 64],
             family_id: [8u8; 16],
-            algorithm_id: 9,
+            algorithm_id: Algorithm::Reserved as u32,
         };
         let key: QuoteLibAttestationKeyId = sgx_key.into();
         assert_eq!(key.id(), Id(1));
@@ -253,7 +276,7 @@ mod test {
         assert_eq!(key.product_id(), ExtendedProductId::from([6u8; 16]));
         assert_eq!(key.config_id(), ConfigId::from([7u8; 64]));
         assert_eq!(key.family_id(), FamilyId::from([8u8; 16]));
-        assert_eq!(key.algorithm_id(), AlgorithmId::from(9));
+        assert_eq!(key.algorithm_id().unwrap(), Algorithm::Reserved);
     }
 
     #[parameterized(
@@ -279,5 +302,14 @@ mod test {
             QuoteSignature::try_from(sgx_quote_sign_type_t(raw_value)),
             result
         );
+    }
+
+    #[parameterized(
+    epid = {0, Ok(Algorithm::Epid)},
+    ecdsa_p384 = {3, Ok(Algorithm::EcdsaP384)},
+    out_of_bounds = {4, Err(FfiError::UnknownEnumValue(4))},
+    )]
+    fn try_from_algorithm(value: u32, result: Result<Algorithm, FfiError>) {
+        assert_eq!(Algorithm::try_from(value), result);
     }
 }
