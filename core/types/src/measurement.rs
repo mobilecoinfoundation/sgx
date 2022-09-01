@@ -33,7 +33,9 @@ impl_newtype_for_bytestruct! {
 /// enclave-vs-author attestation policy.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Measurement {
+    /// A MRENCLAVE measurement
     MrEnclave(MrEnclave),
+    /// A MRSIGNER measurement
     MrSigner(MrSigner),
 }
 

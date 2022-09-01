@@ -24,6 +24,8 @@ impl_newtype_for_bytestruct! {
     KeyId, sgx_key_id_t, SGX_KEYID_SIZE, id;
 }
 
+/// Key Name
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum KeyName {
@@ -44,6 +46,7 @@ pub enum KeyName {
 }
 
 bitflags! {
+    /// Policy to use for the key derivation
     pub struct KeyPolicy: u16 {
         /// Derive key using the enclave's ENCLAVE measurement register
         const MRENCLAVE = SGX_KEYPOLICY_MRENCLAVE;
@@ -65,13 +68,17 @@ bitflags! {
     }
 }
 
-#[repr(transparent)]
+/// Key request
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct KeyRequest(sgx_key_request_t);
 new_type_accessors_impls! {
     KeyRequest, sgx_key_request_t;
 }
 
+/// A builder for creating a [`KeyRequest`]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct KeyRequestBuilder(sgx_key_request_t);
 
 impl KeyRequestBuilder {
@@ -215,11 +222,15 @@ mod test {
         let request = KeyRequestBuilder::new(&mut csprng)
             .key_name(KeyName::Provision)
             .key_policy(KeyPolicy::MRENCLAVE | KeyPolicy::NO_ISV_PROD_ID)
-            .isv_svn(&IsvSvn::new(2))
+            .isv_svn(&IsvSvn::from(2))
             .cpu_svn(&CpuSvn::from([3; CpuSvn::SIZE]))
-            .attributes(&Attributes::default().set_flags(4).set_transform(6))
+            .attributes(
+                &Attributes::default()
+                    .set_flags(4)
+                    .set_extended_features_mask(6),
+            )
             .miscellaneous_select(&7.into())
-            .config_svn(&ConfigSvn::new(8))
+            .config_svn(&ConfigSvn::from(8))
             .build();
 
         assert_eq!(request.0.key_name, 1);

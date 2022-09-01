@@ -55,6 +55,7 @@ macro_rules! impl_newtype_for_bytestruct {
         }
 
         impl $wrapper {
+            #[doc="Size of the internal array"]
             pub const SIZE: usize = $size;
         }
 
