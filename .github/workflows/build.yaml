@@ -205,8 +205,15 @@ jobs:
           toolchain: nightly-2022-07-22
           override: true
           components: llvm-tools-preview
-      - uses: actions-rs/tarpaulin@v0.1
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - uses: actions-rs/cargo@v1
+        with:
+          command: llvm-cov
+          # The FFI bindings crates always report 100% because they have no code
+          args: --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
       - uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
 
   notify:
     runs-on: ubuntu-latest
