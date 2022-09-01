@@ -241,6 +241,7 @@ mod test {
         bytes.copy_from_slice(alias_bytes);
         bytes
     }
+
     fn base_quote_1() -> sgx_quote_t {
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 18;
