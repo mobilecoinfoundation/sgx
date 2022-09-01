@@ -69,7 +69,10 @@ mod test {
     fn from_target_info_t() {
         let info = sgx_target_info_t {
             mr_enclave: MrEnclave::from([1u8; MrEnclave::SIZE]).into(),
-            attributes: Attributes::default().set_flags(2).set_transform(3).into(),
+            attributes: Attributes::default()
+                .set_flags(2)
+                .set_extended_features_mask(3)
+                .into(),
             reserved1: [4u8; SGX_TARGET_INFO_RESERVED1_BYTES],
             config_svn: 5,
             misc_select: 6,
@@ -86,10 +89,12 @@ mod test {
         );
         assert_eq!(
             info.attributes(),
-            Attributes::default().set_flags(2).set_transform(3)
+            Attributes::default()
+                .set_flags(2)
+                .set_extended_features_mask(3)
         );
-        assert_eq!(info.config_svn(), ConfigSvn::new(5));
-        assert_eq!(info.miscellaneous_select(), MiscellaneousSelect::new(6));
+        assert_eq!(info.config_svn(), ConfigSvn::from(5));
+        assert_eq!(info.miscellaneous_select(), MiscellaneousSelect::from(6));
         assert_eq!(info.config_id(), ConfigId::from([8; SGX_CONFIGID_SIZE]));
     }
 }
