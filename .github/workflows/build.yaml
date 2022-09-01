@@ -196,6 +196,7 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
+      - uses: ./.github/actions/sgxsdk
       - uses: ./.github/actions/dcap-libs
       - uses: actions-rs/toolchain@v1
         with:
@@ -204,19 +205,8 @@ jobs:
           toolchain: nightly-2022-07-22
           override: true
           components: llvm-tools-preview
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-llvm-cov
-          version: latest
-          use-tool-cache: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: llvm-cov
-          args: --release --workspace --lcov --features sim --output-path lcov.info
+      - uses: actions-rs/tarpaulin@v0.1
       - uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          files: lcov.info
 
   notify:
     runs-on: ubuntu-latest
