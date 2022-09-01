@@ -39,10 +39,7 @@ impl Default for sgx_ql_att_key_id_t {
         Self {
             id: Default::default(),
             version: Default::default(),
-            // This is supposed to represent the length of the hash as SHA256
-            // or SHA384.  SHA384 is currently not supported by Intel so default
-            // to 32 or SHA256
-            mrsigner_length: 32,
+            mrsigner_length: Default::default(),
             mrsigner: [0u8; 48],
             prod_id: Default::default(),
             extended_prod_id: Default::default(),

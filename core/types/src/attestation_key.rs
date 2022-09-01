@@ -214,10 +214,7 @@ mod test {
         let key = QuoteLibAttestationKeyId::default();
         assert_eq!(key.id(), Id::default());
         assert_eq!(key.version(), Version::default());
-        assert_eq!(
-            key.mr_signer_key_hash(),
-            Ok(MrSignerKeyHash::Sha256([0u8; 32]))
-        );
+        assert_eq!(key.mr_signer_key_hash(), Err(FfiError::InvalidInputLength));
         assert_eq!(key.product_id(), ExtendedProductId::default());
         assert_eq!(key.config_id(), ConfigId::default());
         assert_eq!(key.family_id(), FamilyId::default());
