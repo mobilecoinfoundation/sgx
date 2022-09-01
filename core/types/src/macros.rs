@@ -71,11 +71,11 @@ macro_rules! impl_newtype_for_bytestruct {
         }
 
         impl<'bytes> TryFrom<&'bytes [u8]> for $wrapper {
-            type Error = $crate::error::FfiError;
+            type Error = $crate::FfiError;
 
             fn try_from(src: &[u8]) -> core::result::Result<Self, Self::Error> {
                 if src.len() < $size {
-                    return Err($crate::error::FfiError::InvalidInputLength);
+                    return Err($crate::FfiError::InvalidInputLength);
                 }
 
                 let mut retval = $wrapper::default();
@@ -86,7 +86,7 @@ macro_rules! impl_newtype_for_bytestruct {
 
         #[cfg(feature="alloc")]
         impl TryFrom<$crate::macros::Vec<u8>> for $wrapper {
-            type Error = $crate::error::FfiError;
+            type Error = $crate::FfiError;
 
             fn try_from(src: $crate::macros::Vec<u8>) -> core::result::Result<Self, Self::Error> {
                 Self::try_from(src.as_slice())
