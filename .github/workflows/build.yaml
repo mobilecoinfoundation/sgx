@@ -212,7 +212,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: llvm-cov
-          args: --release --workspace --lcov --features sim,alloc --output-path lcov.info
+          args: --release --workspace --lcov --features sim --output-path lcov.info
       - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
