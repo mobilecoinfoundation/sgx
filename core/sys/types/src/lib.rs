@@ -32,6 +32,7 @@ default_for_byte_struct! {
     sgx_measurement_t, m, SGX_HASH_SIZE;
     sgx_cpu_svn_t, svn, SGX_CPUSVN_SIZE;
     sgx_key_id_t, id, SGX_KEYID_SIZE;
+    sgx_platform_info_t, platform_info, SGX_PLATFORM_INFO_SIZE;
 }
 
 impl Default for sgx_ql_att_key_id_t {
