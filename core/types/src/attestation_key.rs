@@ -176,7 +176,7 @@ pub struct ExtendedAttestationKeyId(sgx_att_key_id_ext_t);
 
 impl ExtendedAttestationKeyId {
     // The base attestation key
-    pub fn base_attestation_key(&self) -> QuoteLibAttestationKeyId {
+    pub fn base_key_id(&self) -> QuoteLibAttestationKeyId {
         self.0.base.into()
     }
 
@@ -214,10 +214,7 @@ mod test {
     #[test]
     fn default_extended_attestation_key_id() {
         let key = ExtendedAttestationKeyId::default();
-        assert_eq!(
-            key.base_attestation_key(),
-            QuoteLibAttestationKeyId::default()
-        );
+        assert_eq!(key.base_key_id(), QuoteLibAttestationKeyId::default());
         assert_eq!(key.service_provider_id(), ServiceProviderId([0u8; 16]));
         assert_eq!(key.key_type(), 0);
     }
@@ -233,7 +230,7 @@ mod test {
             reserved: [3u8; 80],
         };
         let key: ExtendedAttestationKeyId = sgx_key.into();
-        assert_eq!(key.base_attestation_key(), base_key);
+        assert_eq!(key.base_key_id(), base_key);
         assert_eq!(key.service_provider_id(), ServiceProviderId([10u8; 16]));
         assert_eq!(key.key_type(), 5);
     }
