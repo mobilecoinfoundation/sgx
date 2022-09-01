@@ -6,4 +6,4 @@
 
 mod diffie_hellman;
 
-pub use diffie_hellman::Session;
+pub use diffie_hellman::{EnclaveId, Role, Session};

@@ -532,8 +532,10 @@ dependencies = [
 name = "mc-sgx-tservice-types"
 version = "0.1.0"
 dependencies = [
+ "mc-sgx-core-sys-types",
  "mc-sgx-core-types",
  "mc-sgx-tservice-sys-types",
+ "yare",
 ]
 
 [[package]]

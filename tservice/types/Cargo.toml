@@ -19,3 +19,7 @@ serde = [ "mc-sgx-core-types/serde" ]
 [dependencies]
 mc-sgx-core-types = { path = "../../core/types", version = "=0.1.0" }
 mc-sgx-tservice-sys-types = { path = "../sys/types", version = "=0.1.0" }
+
+[dev-dependencies]
+yare = "1.0.2"
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }

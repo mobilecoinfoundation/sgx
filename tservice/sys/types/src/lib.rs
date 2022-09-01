@@ -21,3 +21,20 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 default_for_byte_struct! {
     sgx_dh_session_t, sgx_dh_session, SGX_DH_SESSION_DATA_SIZE;
 }
+
+impl Default for sgx_dh_session_enclave_identity_t {
+    fn default() -> Self {
+        Self {
+            cpu_svn: Default::default(),
+            misc_select: Default::default(),
+            reserved_1: Default::default(),
+            attributes: Default::default(),
+            mr_enclave: Default::default(),
+            reserved_2: Default::default(),
+            mr_signer: Default::default(),
+            reserved_3: [0u8; 96],
+            isv_prod_id: Default::default(),
+            isv_svn: Default::default(),
+        }
+    }
+}
