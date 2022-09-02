@@ -21,7 +21,7 @@ mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
 mc-sgx-tcrypto-sys-types = { path = "types", version = "=0.1.0" }
 
 [dev-dependencies]
-sha2 = "0.10.2"
+sha2 = "0.10.3"
 
 [build-dependencies]
 bindgen = "0.60.1"
