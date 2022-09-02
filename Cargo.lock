@@ -497,6 +497,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-tcrypto-types"
+version = "0.1.0"
+dependencies = [
+ "mc-sgx-core-types",
+ "mc-sgx-tcrypto-sys-types",
+]
+
+[[package]]
 name = "mc-sgx-trts-sys"
 version = "0.1.0"
 dependencies = [

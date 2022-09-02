@@ -34,6 +34,8 @@ const CRYPTO_TYPES: &[&str] = &[
     "sgx_sha_state_handle_t",
 ];
 
+const CRYPTO_CONSTS: &[&str] = &["SGX_ECP256_KEY_SIZE"];
+
 fn main() {
     let callback = SgxParseCallbacks::default()
         .enum_types([
@@ -41,7 +43,8 @@ fn main() {
             "sgx_rsa_key_type_t",
             "sgx_generic_ecresult_t",
         ])
-        .derive_copy(["sgx_ec256_public_t", "rsa_params_t"]);
+        .derive_copy(["sgx_ec256_public_t", "rsa_params_t"])
+        .derive_default(["sgx_ec256_public_t"]);
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
@@ -53,6 +56,10 @@ fn main() {
 
     for t in CRYPTO_TYPES {
         builder = builder.allowlist_type(t);
+    }
+
+    for c in CRYPTO_CONSTS.iter() {
+        builder = builder.allowlist_var(c)
     }
 
     let out_path = mc_sgx_core_build::build_output_dir();
