@@ -10,8 +10,11 @@ use mc_sgx_util::{ResultFrom, ResultInto};
 use serde::{Deserialize, Serialize};
 
 /// Errors seen when converting to, or from, rust for the SGX types
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum FfiError {
+    /// When the provided bytes or slice are too small to support converting
+    /// to the type.
+    InvalidInputLength,
     /// Enum out of range
     /// Happens when a value that is not represented by the known C enum values.
     UnknownEnumValue(i64),

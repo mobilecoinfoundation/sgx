@@ -47,6 +47,12 @@ new_type_accessors_impls! {
     MiscellaneousSelect, sgx_misc_select_t;
 }
 
+impl MiscellaneousSelect {
+    pub fn new(select: u32) -> Self {
+        Self(select)
+    }
+}
+
 #[repr(transparent)]
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct MiscellaneousAttribute(sgx_misc_attribute_t);

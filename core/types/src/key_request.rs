@@ -197,7 +197,7 @@ mod test {
             .key_name(KeyName::Provision)
             .key_policy(KeyPolicy::MRENCLAVE | KeyPolicy::NO_ISV_PROD_ID)
             .isv_svn(&IsvSvn::new(2))
-            .cpu_svn(&CpuSvn::new(&[3; CpuSvn::SVN_SIZE]))
+            .cpu_svn(&CpuSvn::from([3; CpuSvn::SIZE]))
             .attributes(&Attributes::default().set_flags(4).set_transform(6))
             .miscellaneous_select(&7.into())
             .config_svn(&ConfigSvn::new(8))
