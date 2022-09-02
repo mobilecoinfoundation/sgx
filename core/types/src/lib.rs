@@ -5,6 +5,7 @@
 
 extern crate alloc;
 
+mod attestation_key;
 mod attributes;
 mod config_id;
 mod error;
@@ -16,6 +17,7 @@ mod svn;
 mod target_info;
 
 pub use crate::{
+    attestation_key::{ExtendedAttestationKeyId, QuoteLibAttestationKeyId},
     attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
     config_id::ConfigId,
     error::{Error, FfiError, Result},
