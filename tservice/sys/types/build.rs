@@ -25,6 +25,8 @@ const SERVICE_TYPES: &[&str] = &[
     "tee_mac_t",
 ];
 
+const SERVICE_CONSTS: &[&str] = &["SGX_DH_SESSION_DATA_SIZE"];
+
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
@@ -51,6 +53,10 @@ fn main() {
 
     for t in SERVICE_TYPES {
         builder = builder.allowlist_type(t);
+    }
+
+    for c in SERVICE_CONSTS.iter() {
+        builder = builder.allowlist_var(c)
     }
 
     let out_path = mc_sgx_core_build::build_output_dir();
