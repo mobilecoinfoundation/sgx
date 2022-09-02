@@ -10,7 +10,7 @@ fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
 
-    let callback = SgxParseCallbacks::default().enum_types(["sgx_qv_path_type_t"].iter());
+    let callback = SgxParseCallbacks::default().enum_types(["sgx_qv_path_type_t"]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))

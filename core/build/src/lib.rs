@@ -79,6 +79,9 @@ pub struct SgxParseCallbacks {
     // These are usually small types or packed types
     copyable_types: Vec<String>,
 
+    // types that need to derive `Default`
+    default_types: Vec<String>,
+
     // types that are enums
     enum_types: Vec<String>,
 
@@ -99,10 +102,13 @@ impl SgxParseCallbacks {
     /// * `enum_types` - Types that are enums.
     pub fn enum_types<'a, E, I>(mut self, enum_types: I) -> Self
     where
-        I: Iterator<Item = &'a E>,
+        I: IntoIterator<Item = &'a E>,
         E: ToString + 'a + ?Sized,
     {
-        let enum_types = enum_types.map(ToString::to_string).collect::<Vec<_>>();
+        let enum_types = enum_types
+            .into_iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>();
         self.enum_types.extend(enum_types.clone());
 
         // Enum types (from C interfaces) are small enough to always be
@@ -118,11 +124,25 @@ impl SgxParseCallbacks {
     /// * `copyable_types` - Types to derive copy for.
     pub fn derive_copy<'a, E, I>(mut self, copyable_types: I) -> Self
     where
-        I: Iterator<Item = &'a E>,
+        I: IntoIterator<Item = &'a E>,
         E: ToString + 'a + ?Sized,
     {
         self.copyable_types
-            .extend(copyable_types.map(ToString::to_string));
+            .extend(copyable_types.into_iter().map(ToString::to_string));
+        self
+    }
+
+    /// Types to derive default for
+    ///
+    /// # Arguments
+    /// * `default_types` - Types to derive default for.
+    pub fn derive_default<'a, E, I>(mut self, default_types: I) -> Self
+    where
+        I: IntoIterator<Item = &'a E>,
+        E: ToString + 'a + ?Sized,
+    {
+        self.default_types
+            .extend(default_types.into_iter().map(ToString::to_string));
         self
     }
 
@@ -133,11 +153,11 @@ impl SgxParseCallbacks {
     ///   the dynamic size certain traits like `Eq` can't be derived.
     pub fn dynamically_sized_types<'a, E, I>(mut self, dynamically_sized_types: I) -> Self
     where
-        I: Iterator<Item = &'a E>,
+        I: IntoIterator<Item = &'a E>,
         E: ToString + 'a + ?Sized,
     {
         self.dynamically_sized_types
-            .extend(dynamically_sized_types.map(ToString::to_string));
+            .extend(dynamically_sized_types.into_iter().map(ToString::to_string));
         self
     }
 }
@@ -156,6 +176,10 @@ impl ParseCallbacks for SgxParseCallbacks {
             return vec![];
         }
         let mut attributes = vec!["Debug"];
+        if self.default_types.iter().any(|n| *n == name) {
+            attributes.push("Default");
+        }
+
         if !self.enum_types.iter().any(|n| *n == name) {
             attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
         }

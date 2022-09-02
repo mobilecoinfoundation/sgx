@@ -30,25 +30,19 @@ fn main() {
     cargo_emit::rerun_if_changed!(include_path);
 
     let callback = SgxParseCallbacks::default()
-        .enum_types(["sgx_dh_session_role_t"].iter())
-        .derive_copy(
-            [
-                "sgx_dh_msg1_t",
-                "sgx_dh_msg2_t",
-                "sgx_dh_session_enclave_identity_t",
-                "tee_attributes_t",
-            ]
-            .iter(),
-        )
-        .dynamically_sized_types(
-            [
-                "sgx_dh_msg3_body_t",
-                "sgx_aes_gcm_data_t",
-                "sgx_dh_msg3_t",
-                "sgx_sealed_data_t",
-            ]
-            .iter(),
-        );
+        .enum_types(["sgx_dh_session_role_t"])
+        .derive_copy([
+            "sgx_dh_msg1_t",
+            "sgx_dh_msg2_t",
+            "sgx_dh_session_enclave_identity_t",
+            "tee_attributes_t",
+        ])
+        .dynamically_sized_types([
+            "sgx_dh_msg3_body_t",
+            "sgx_aes_gcm_data_t",
+            "sgx_dh_msg3_t",
+            "sgx_sealed_data_t",
+        ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))

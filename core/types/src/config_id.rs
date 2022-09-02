@@ -13,6 +13,7 @@ new_type_accessors_impls! {
     ConfigId, sgx_config_id_t;
 }
 
+// Pure array type larger than 32 so must implement default at the newtype level
 impl Default for ConfigId {
     fn default() -> Self {
         Self::from([0; SGX_CONFIGID_SIZE])

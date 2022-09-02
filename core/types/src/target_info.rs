@@ -3,16 +3,13 @@
 
 use crate::{
     config_id::ConfigId, new_type_accessors_impls, Attributes, ConfigSvn, Measurement,
-    MiscellaneousSelect, MrEnclave,
+    MiscellaneousSelect,
 };
-use mc_sgx_core_sys_types::{
-    sgx_target_info_t, SGX_TARGET_INFO_RESERVED1_BYTES, SGX_TARGET_INFO_RESERVED2_BYTES,
-    SGX_TARGET_INFO_RESERVED3_BYTES,
-};
+use mc_sgx_core_sys_types::sgx_target_info_t;
 
 /// The target info
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct TargetInfo(sgx_target_info_t);
 
 impl TargetInfo {
@@ -46,25 +43,14 @@ new_type_accessors_impls! {
     TargetInfo, sgx_target_info_t;
 }
 
-impl Default for TargetInfo {
-    fn default() -> Self {
-        Self(sgx_target_info_t {
-            mr_enclave: MrEnclave::default().into(),
-            attributes: Attributes::default().into(),
-            reserved1: [0u8; SGX_TARGET_INFO_RESERVED1_BYTES],
-            config_svn: ConfigSvn::default().into(),
-            misc_select: MiscellaneousSelect::default().into(),
-            reserved2: [0u8; SGX_TARGET_INFO_RESERVED2_BYTES],
-            config_id: ConfigId::default().into(),
-            reserved3: [0u8; SGX_TARGET_INFO_RESERVED3_BYTES],
-        })
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use mc_sgx_core_sys_types::{SGX_CONFIGID_SIZE, SGX_HASH_SIZE};
+    use crate::MrEnclave;
+    use mc_sgx_core_sys_types::{
+        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_TARGET_INFO_RESERVED1_BYTES,
+        SGX_TARGET_INFO_RESERVED2_BYTES, SGX_TARGET_INFO_RESERVED3_BYTES,
+    };
 
     #[test]
     fn default_target_info() {

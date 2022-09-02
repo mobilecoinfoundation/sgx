@@ -3,13 +3,11 @@
 
 use crate::{
     config_id::ConfigId, impl_newtype_for_bytestruct, key_request::KeyId, new_type_accessors_impls,
-    Attributes, ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
+    Attributes, ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect,
 };
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
-    sgx_report_data_t, sgx_report_t, SGX_ISVEXT_PROD_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES,
-    SGX_REPORT_BODY_RESERVED2_BYTES, SGX_REPORT_BODY_RESERVED3_BYTES,
-    SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
+    sgx_report_data_t, sgx_report_t, SGX_REPORT_DATA_SIZE,
 };
 
 /// MAC
@@ -22,7 +20,7 @@ new_type_accessors_impls! {
 }
 
 /// Report Data
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ReportData(sgx_report_data_t);
 
@@ -40,18 +38,12 @@ new_type_accessors_impls! {
 }
 
 /// Extended Product ID
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
 #[repr(transparent)]
 pub struct ExtendedProductId(sgx_isvext_prod_id_t);
 
 new_type_accessors_impls! {
     ExtendedProductId, sgx_isvext_prod_id_t;
-}
-
-impl Default for ExtendedProductId {
-    fn default() -> Self {
-        Self([0; SGX_ISVEXT_PROD_ID_SIZE])
-    }
 }
 
 /// ISV Product ID
@@ -65,7 +57,7 @@ new_type_accessors_impls! {
 
 /// The main body of a report from SGX
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct ReportBody(sgx_report_body_t);
 
 impl ReportBody {
@@ -134,37 +126,8 @@ new_type_accessors_impls! {
     ReportBody, sgx_report_body_t;
 }
 
-// Implementing default to make it easier to pass an `sgx_report_body_t` to the
-// sgx functions.
-// ```
-// let mut report: sgx_report_body_t = Report::default().into()
-// let return_value = unsafe{ sgx_some_call(&report as *mut _) }
-// ```
-impl Default for ReportBody {
-    fn default() -> Self {
-        Self(sgx_report_body_t {
-            cpu_svn: CpuSvn::default().into(),
-            misc_select: MiscellaneousSelect::default().into(),
-            reserved1: [0u8; SGX_REPORT_BODY_RESERVED1_BYTES],
-            isv_ext_prod_id: ExtendedProductId::default().into(),
-            attributes: Attributes::default().into(),
-            mr_enclave: MrEnclave::default().into(),
-            reserved2: [0u8; SGX_REPORT_BODY_RESERVED2_BYTES],
-            mr_signer: MrSigner::default().into(),
-            reserved3: [0u8; SGX_REPORT_BODY_RESERVED3_BYTES],
-            config_id: ConfigId::default().into(),
-            isv_prod_id: IsvProductId::default().into(),
-            isv_svn: IsvSvn::default().into(),
-            config_svn: ConfigSvn::default().into(),
-            reserved4: [0u8; SGX_REPORT_BODY_RESERVED4_BYTES],
-            isv_family_id: FamilyId::default().into(),
-            report_data: ReportData::default().into(),
-        })
-    }
-}
-
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Report(sgx_report_t);
 
 impl Report {
@@ -188,23 +151,16 @@ new_type_accessors_impls! {
     Report, sgx_report_t;
 }
 
-impl Default for Report {
-    fn default() -> Self {
-        Self(sgx_report_t {
-            body: ReportBody::default().into(),
-            key_id: KeyId::default().into(),
-            mac: Mac::default().into(),
-        })
-    }
-}
-
 #[cfg(test)]
 mod test {
     extern crate std;
     use super::*;
-    use crate::key_request::KeyId;
+    use crate::{key_request::KeyId, MrEnclave, MrSigner};
     use mc_sgx_core_sys_types::{
-        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISV_FAMILY_ID_SIZE, SGX_KEYID_SIZE, SGX_MAC_SIZE,
+        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISVEXT_PROD_ID_SIZE, SGX_ISV_FAMILY_ID_SIZE,
+        SGX_KEYID_SIZE, SGX_MAC_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES,
+        SGX_REPORT_BODY_RESERVED2_BYTES, SGX_REPORT_BODY_RESERVED3_BYTES,
+        SGX_REPORT_BODY_RESERVED4_BYTES,
     };
 
     #[test]

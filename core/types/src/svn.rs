@@ -33,7 +33,7 @@ impl IsvSvn {
 }
 
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CpuSvn(sgx_cpu_svn_t);
 
 impl_newtype_for_bytestruct! {
