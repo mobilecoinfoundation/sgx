@@ -242,7 +242,10 @@ mod test {
             misc_select: 2,
             reserved1: [3u8; SGX_REPORT_BODY_RESERVED1_BYTES],
             isv_ext_prod_id: [4u8; SGX_ISVEXT_PROD_ID_SIZE],
-            attributes: Attributes::default().set_flags(5).set_transform(6).into(),
+            attributes: Attributes::default()
+                .set_flags(5)
+                .set_extended_features_mask(6)
+                .into(),
             mr_enclave: MrEnclave::from([7u8; MrEnclave::SIZE]).into(),
             reserved2: [8u8; SGX_REPORT_BODY_RESERVED2_BYTES],
             mr_signer: MrSigner::from([9u8; MrSigner::SIZE]).into(),
@@ -265,7 +268,10 @@ mod test {
             misc_select: 22,
             reserved1: [32u8; SGX_REPORT_BODY_RESERVED1_BYTES],
             isv_ext_prod_id: [42u8; SGX_ISVEXT_PROD_ID_SIZE],
-            attributes: Attributes::default().set_flags(52).set_transform(62).into(),
+            attributes: Attributes::default()
+                .set_flags(52)
+                .set_extended_features_mask(62)
+                .into(),
             mr_enclave: MrEnclave::from([72u8; MrEnclave::SIZE]).into(),
             reserved2: [82u8; SGX_REPORT_BODY_RESERVED2_BYTES],
             mr_signer: MrSigner::from([92u8; MrSigner::SIZE]).into(),
@@ -282,7 +288,12 @@ mod test {
         }
     }
 
+    #[allow(unsafe_code)]
     fn report_body_to_bytes(body: sgx_report_body_t) -> [u8; mem::size_of::<sgx_report_body_t>()] {
+        // SAFETY: This is a test only function. The size of `body` is used for
+        // reinterpretation of `body` into a byte slice. The slice is copied
+        // from prior to the leaving of this function ensuring the raw pointer
+        // is not persisted.
         let alias_bytes: &[u8] = unsafe {
             slice::from_raw_parts(
                 &body as *const sgx_report_body_t as *const u8,
@@ -320,14 +331,16 @@ mod test {
         let bytes = report_body_to_bytes(report_body_1());
         let body = ReportBody::from(bytes);
         assert_eq!(body.cpu_svn(), CpuSvn::from([1u8; CpuSvn::SIZE]));
-        assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::new(2));
+        assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::from(2));
         assert_eq!(
             body.isv_extended_product_id(),
             ExtendedProductId([4u8; SGX_ISVEXT_PROD_ID_SIZE])
         );
         assert_eq!(
             body.attributes(),
-            Attributes::default().set_flags(5).set_transform(6)
+            Attributes::default()
+                .set_flags(5)
+                .set_extended_features_mask(6)
         );
         assert_eq!(
             body.mr_enclave(),
@@ -339,8 +352,8 @@ mod test {
         );
         assert_eq!(body.config_id(), ConfigId::from([11u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(12));
-        assert_eq!(body.isv_svn(), IsvSvn::new(13));
-        assert_eq!(body.config_svn(), ConfigSvn::new(14));
+        assert_eq!(body.isv_svn(), IsvSvn::from(13));
+        assert_eq!(body.config_svn(), ConfigSvn::from(14));
         assert_eq!(
             body.isv_family_id(),
             FamilyId([16u8; SGX_ISV_FAMILY_ID_SIZE])
@@ -358,14 +371,16 @@ mod test {
         let bytes = report_body_to_bytes(report_body_2());
         let body = ReportBody::from(bytes);
         assert_eq!(body.cpu_svn(), CpuSvn::from([12u8; CpuSvn::SIZE]));
-        assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::new(22));
+        assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::from(22));
         assert_eq!(
             body.isv_extended_product_id(),
             ExtendedProductId([42u8; SGX_ISVEXT_PROD_ID_SIZE])
         );
         assert_eq!(
             body.attributes(),
-            Attributes::default().set_flags(52).set_transform(62)
+            Attributes::default()
+                .set_flags(52)
+                .set_extended_features_mask(62)
         );
         assert_eq!(
             body.mr_enclave(),
@@ -377,8 +392,8 @@ mod test {
         );
         assert_eq!(body.config_id(), ConfigId::from([112u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(122));
-        assert_eq!(body.isv_svn(), IsvSvn::new(132));
-        assert_eq!(body.config_svn(), ConfigSvn::new(142));
+        assert_eq!(body.isv_svn(), IsvSvn::from(132));
+        assert_eq!(body.config_svn(), ConfigSvn::from(142));
         assert_eq!(
             body.isv_family_id(),
             FamilyId([162u8; SGX_ISV_FAMILY_ID_SIZE])

@@ -2,6 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 #![no_std]
+#![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -19,7 +20,7 @@ mod svn;
 mod target_info;
 
 pub use crate::{
-    attestation_key::{ExtendedAttestationKeyId, QuoteLibAttestationKeyId},
+    attestation_key::{AttestationKeyId, ExtendedAttestationKeyId},
     attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
     config_id::ConfigId,
     error::{Error, FfiError, Result},

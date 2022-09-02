@@ -2,6 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 #![no_std]
+#![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
 mod diffie_hellman;
 

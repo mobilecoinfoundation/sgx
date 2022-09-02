@@ -86,11 +86,13 @@ impl TryFrom<sgx_quote_sign_type_t> for QuoteSignatureKind {
     }
 }
 
+/// Attestation key from th quoting library.  contains the quoting enclaves ID
+/// and the attestation algorithm
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct QuoteLibAttestationKeyId(sgx_ql_att_key_id_t);
+pub struct AttestationKeyId(sgx_ql_att_key_id_t);
 
-impl QuoteLibAttestationKeyId {
+impl AttestationKeyId {
     /// The ID
     pub fn id(&self) -> Id {
         self.0.id.into()
@@ -144,9 +146,10 @@ impl QuoteLibAttestationKeyId {
 }
 
 new_type_accessors_impls! {
-    QuoteLibAttestationKeyId, sgx_ql_att_key_id_t;
+    AttestationKeyId, sgx_ql_att_key_id_t;
 }
 
+/// Service Provider ID
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ServiceProviderId([u8; 16]);
@@ -155,22 +158,23 @@ new_type_accessors_impls! {
     ServiceProviderId, [u8; 16];
 }
 
+/// Extended Attestation Key ID
 #[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ExtendedAttestationKeyId(sgx_att_key_id_ext_t);
 
 impl ExtendedAttestationKeyId {
-    // The base attestation key
-    pub fn base_key_id(&self) -> QuoteLibAttestationKeyId {
+    /// The base attestation key
+    pub fn base_key_id(&self) -> AttestationKeyId {
         self.0.base.into()
     }
 
-    // Service provider id
+    /// Service provider id
     pub fn service_provider_id(&self) -> ServiceProviderId {
         self.0.spid.into()
     }
 
-    // Key type
+    /// Key type
     pub fn key_type(&self) -> u16 {
         self.0.att_key_type
     }
@@ -188,14 +192,14 @@ mod test {
     #[test]
     fn default_extended_attestation_key_id() {
         let key = ExtendedAttestationKeyId::default();
-        assert_eq!(key.base_key_id(), QuoteLibAttestationKeyId::default());
+        assert_eq!(key.base_key_id(), AttestationKeyId::default());
         assert_eq!(key.service_provider_id(), ServiceProviderId([0u8; 16]));
         assert_eq!(key.key_type(), 0);
     }
 
     #[test]
     fn extended_attestation_key_id_from_sgx() {
-        let mut base_key = QuoteLibAttestationKeyId::default();
+        let mut base_key = AttestationKeyId::default();
         base_key.0.id = 20;
         let sgx_key = sgx_att_key_id_ext_t {
             base: base_key.clone().into(),
@@ -210,8 +214,8 @@ mod test {
     }
 
     #[test]
-    fn default_quote_lib_attestation_key_id() {
-        let key = QuoteLibAttestationKeyId::default();
+    fn default_attestation_key_id() {
+        let key = AttestationKeyId::default();
         assert_eq!(key.id(), Id::default());
         assert_eq!(key.version(), Version::default());
         assert_eq!(key.mr_signer_key_hash(), Err(FfiError::InvalidInputLength));
@@ -222,7 +226,7 @@ mod test {
     }
 
     #[test]
-    fn quote_lib_attestation_key_id_from_sgx() {
+    fn attestation_key_id_from_sgx() {
         let sgx_key = sgx_ql_att_key_id_t {
             id: 1,
             version: 2,
@@ -234,7 +238,7 @@ mod test {
             family_id: [8u8; 16],
             algorithm_id: Algorithm::Reserved as u32,
         };
-        let key: QuoteLibAttestationKeyId = sgx_key.into();
+        let key: AttestationKeyId = sgx_key.into();
         assert_eq!(key.id(), Id(1));
         assert_eq!(key.version(), Version(2));
         assert_eq!(
@@ -255,7 +259,7 @@ mod test {
     too_large_384 = {49},
     )]
     fn invalid_mr_signer_length(length: u16) {
-        let mut key = QuoteLibAttestationKeyId::default();
+        let mut key = AttestationKeyId::default();
         key.0.mrsigner_length = length;
         assert_eq!(key.mr_signer_key_hash(), Err(FfiError::InvalidInputLength));
     }

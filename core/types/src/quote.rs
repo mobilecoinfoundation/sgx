@@ -225,11 +225,28 @@ mod test {
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{sgx_quote_t, sgx_report_body_t, sgx_report_t, sgx_target_info_t};
 
-    fn base_quote_1() -> [u8; mem::size_of::<sgx_quote_t>()] {
+    #[allow(unsafe_code)]
+    fn quote_to_bytes(report: sgx_quote_t) -> [u8; mem::size_of::<sgx_quote_t>()] {
+        // SAFETY: This is a test only function. The size of `report` is used
+        // for reinterpretation of `report` into a byte slice. The slice is
+        // copied from prior to the leaving of this function ensuring the raw
+        // pointer is not persisted.
+        let alias_bytes: &[u8] = unsafe {
+            slice::from_raw_parts(
+                &report as *const sgx_quote_t as *const u8,
+                mem::size_of::<sgx_quote_t>(),
+            )
+        };
+        let mut bytes: [u8; mem::size_of::<sgx_quote_t>()] = [0; mem::size_of::<sgx_quote_t>()];
+        bytes.copy_from_slice(alias_bytes);
+        bytes
+    }
+
+    fn base_quote_1() -> sgx_quote_t {
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 18;
 
-        let quote = sgx_quote_t {
+        sgx_quote_t {
             version: 11,
             sign_type: 0,
             epid_group_id: [13u8; 4],
@@ -240,23 +257,14 @@ mod test {
             report_body,
             signature_len: 19,
             signature: Default::default(),
-        };
-        let alias_bytes: &[u8] = unsafe {
-            slice::from_raw_parts(
-                &quote as *const sgx_quote_t as *const u8,
-                mem::size_of::<sgx_quote_t>(),
-            )
-        };
-        let mut bytes: [u8; mem::size_of::<sgx_quote_t>()] = [0; mem::size_of::<sgx_quote_t>()];
-        bytes.copy_from_slice(alias_bytes);
-        bytes
+        }
     }
 
-    fn base_quote_2() -> [u8; mem::size_of::<sgx_quote_t>()] {
+    fn base_quote_2() -> sgx_quote_t {
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 28;
 
-        let quote = sgx_quote_t {
+        sgx_quote_t {
             version: 21,
             sign_type: 1,
             epid_group_id: [23u8; 4],
@@ -267,16 +275,7 @@ mod test {
             report_body,
             signature_len: 29,
             signature: Default::default(),
-        };
-        let alias_bytes: &[u8] = unsafe {
-            slice::from_raw_parts(
-                &quote as *const sgx_quote_t as *const u8,
-                mem::size_of::<sgx_quote_t>(),
-            )
-        };
-        let mut bytes: [u8; mem::size_of::<sgx_quote_t>()] = [0; mem::size_of::<sgx_quote_t>()];
-        bytes.copy_from_slice(alias_bytes);
-        bytes
+        }
     }
 
     #[test]
@@ -303,7 +302,7 @@ mod test {
 
     #[test]
     fn quote_from_bytes_1x() {
-        let quote_bytes = base_quote_1();
+        let quote_bytes = quote_to_bytes(base_quote_1());
         let quote = Quote::from(quote_bytes.as_slice());
         assert_eq!(quote.version(), 11.into());
         assert_eq!(
@@ -329,7 +328,7 @@ mod test {
 
     #[test]
     fn quote_from_bytes_2x() {
-        let quote_bytes = base_quote_2();
+        let quote_bytes = quote_to_bytes(base_quote_2());
         let quote = Quote::from(quote_bytes.as_slice());
         assert_eq!(quote.version(), 21.into());
         assert_eq!(
