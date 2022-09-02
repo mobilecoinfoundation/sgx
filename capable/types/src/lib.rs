@@ -14,7 +14,7 @@ pub type Result<T> = CoreResult<T, Error>;
 
 /// An enumeration of errors which could occur when attempting to enable SGX
 /// through software.
-#[derive(Copy, Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[non_exhaustive]
 pub enum Error {
