@@ -25,7 +25,7 @@ const SERVICE_TYPES: &[&str] = &[
     "tee_mac_t",
 ];
 
-const SERVICE_CONSTS: &[&str] = &["SGX_DH_SESSION_DATA_SIZE"];
+const SERVICE_CONSTS: &[&str] = &["SGX_DH_SESSION_DATA_SIZE", "SGX_SEAL_TAG_SIZE"];
 
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
@@ -44,7 +44,8 @@ fn main() {
             "sgx_aes_gcm_data_t",
             "sgx_dh_msg3_t",
             "sgx_sealed_data_t",
-        ]);
+        ])
+        .derive_default(["sgx_sealed_data_t", "sgx_aes_gcm_data_t"]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .clang_arg(&format!("-I{}", include_path))

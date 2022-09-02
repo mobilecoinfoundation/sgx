@@ -227,8 +227,8 @@ mod test {
 
     #[allow(unsafe_code)]
     fn quote_to_bytes(report: sgx_quote_t) -> [u8; mem::size_of::<sgx_quote_t>()] {
-        // SAFETY: This is a test only function. The size of `report` is used
-        // for reinterpretation of `report` into a byte slice. The slice is
+        // SAFETY: This is a test only function. The size of `quote` is used
+        // for reinterpretation of `quote` into a byte slice. The slice is
         // copied from prior to the leaving of this function ensuring the raw
         // pointer is not persisted.
         let alias_bytes: &[u8] = unsafe {

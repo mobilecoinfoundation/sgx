@@ -99,3 +99,20 @@ impl Default for sgx_target_info_t {
         }
     }
 }
+
+impl Default for sgx_key_request_t {
+    fn default() -> Self {
+        Self {
+            key_name: Default::default(),
+            key_policy: Default::default(),
+            isv_svn: Default::default(),
+            reserved1: Default::default(),
+            cpu_svn: Default::default(),
+            attribute_mask: Default::default(),
+            key_id: Default::default(),
+            misc_mask: Default::default(),
+            config_svn: Default::default(),
+            reserved2: [0u8; SGX_KEY_REQUEST_RESERVED2_BYTES],
+        }
+    }
+}

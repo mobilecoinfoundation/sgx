@@ -168,26 +168,28 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 
     fn add_derives(&self, name: &str) -> Vec<String> {
-        if self.dynamically_sized_types.iter().any(|n| *n == name) {
-            // For dynamically sized types we don't even derive Debug, because
-            // they are often times packed and packed types can't derive Debug
-            // without deriving Copy, however by the dynamic nature one can't
-            // derive Copy
-            return vec![];
-        }
-        let mut attributes = vec!["Debug"];
+        let mut attributes = vec![];
+
         if self.default_types.iter().any(|n| *n == name) {
             attributes.push("Default");
-        }
-
-        if !self.enum_types.iter().any(|n| *n == name) {
-            attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
         }
 
         // The [enum_types] method adds enums to the [copyable_types]
         if self.copyable_types.iter().any(|n| *n == name) {
             attributes.push("Copy");
         }
+
+        if !self.dynamically_sized_types.iter().any(|n| *n == name) {
+            // For dynamically sized types we don't even derive Debug, because
+            // they are often times packed and packed types can't derive Debug
+            // without deriving Copy, however by the dynamic nature one can't
+            // derive Copy
+            attributes.push("Debug");
+            if !self.enum_types.iter().any(|n| *n == name) {
+                attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
+            }
+        };
+
         attributes.into_iter().map(String::from).collect::<Vec<_>>()
     }
 
