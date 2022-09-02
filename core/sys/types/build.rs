@@ -79,6 +79,7 @@ const CORE_CONSTS: &[&str] = &[
     "SGX_TARGET_INFO_RESERVED2_BYTES",
     "SGX_TARGET_INFO_RESERVED3_BYTES",
     "SGX_MAC_SIZE",
+    "SGX_PLATFORM_INFO_SIZE",
 ];
 
 fn main() {
@@ -106,6 +107,8 @@ fn main() {
             "sgx_attributes_t",
             "sgx_basename_t",
             "sgx_quote_nonce_t",
+            "sgx_update_info_bit_t",
+            "sgx_qe_report_info_t",
         ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
