@@ -168,7 +168,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release --locked --features sim
+          args: --release --locked --features "sim alloc"
   doc:
     runs-on: ubuntu-20.04
     needs:

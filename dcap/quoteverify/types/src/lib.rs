@@ -3,8 +3,6 @@
 #![doc = include_str!("../README.md")]
 #![no_std]
 
-extern crate alloc;
-
 use mc_sgx_core_types::FfiError;
 use mc_sgx_dcap_quoteverify_sys_types::sgx_qv_path_type_t;
 

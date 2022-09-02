@@ -1,5 +1,6 @@
 // Copyright (c) 2018-2022 The MobileCoin Foundation
 
+#[cfg(feature = "alloc")]
 pub(crate) use alloc::vec::Vec;
 
 /// Boilerplate macro to fill in any trait implementations required by
@@ -83,6 +84,7 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
+        #[cfg(feature="alloc")]
         impl TryFrom<$crate::macros::Vec<u8>> for $wrapper {
             type Error = $crate::error::FfiError;
 
@@ -103,7 +105,6 @@ macro_rules! impl_newtype_for_bytestruct {
 #[cfg(test)]
 mod test {
     use crate::FfiError;
-    use alloc::vec;
     use yare::parameterized;
 
     const FIELD_SIZE: usize = 24;
@@ -136,9 +137,16 @@ mod test {
     too_small = { FIELD_SIZE - 1, Err(FfiError::InvalidInputLength) },
     )]
     fn try_from(size: usize, result: Result<Outer, FfiError>) {
-        let zero_vec = vec![0; size];
-        assert_eq!(Outer::try_from(zero_vec.as_slice()), result);
-        assert_eq!(Outer::try_from(zero_vec), result);
+        let buffer = [0; FIELD_SIZE * 2];
+        let slice = &buffer[..size];
+        assert_eq!(Outer::try_from(slice), result);
+
+        #[cfg(feature = "alloc")]
+        {
+            use alloc::vec;
+            let zero_vec = vec![0; size];
+            assert_eq!(Outer::try_from(zero_vec), result);
+        }
     }
 
     #[test]
