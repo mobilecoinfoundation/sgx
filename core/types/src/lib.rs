@@ -13,6 +13,7 @@ mod error;
 mod key_request;
 mod macros;
 mod measurement;
+mod quote;
 mod report;
 mod svn;
 mod target_info;
