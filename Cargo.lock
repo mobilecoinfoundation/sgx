@@ -395,6 +395,7 @@ name = "mc-sgx-core-types"
 version = "0.1.0"
 dependencies = [
  "bitflags",
+ "displaydoc",
  "mc-sgx-core-sys-types",
  "mc-sgx-util",
  "rand",
