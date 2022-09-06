@@ -1,7 +1,7 @@
 [package]
 name = "mc-sgx-tcrypto-sys"
 # When updating version, update the deps.rs link in README.md
-version = "0.1.0"
+version = "0.2.0-pre0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]
 description = "FFI bindings for `sgx_tcrypto`."
@@ -17,8 +17,8 @@ rust-version = "1.62.1"
 doctest = false
 
 [dependencies]
-mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.1.0" }
-mc-sgx-tcrypto-sys-types = { path = "types", version = "=0.1.0" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.2.0-pre0" }
+mc-sgx-tcrypto-sys-types = { path = "types", version = "=0.2.0-pre0" }
 
 [dev-dependencies]
 sha2 = "0.10.3"
@@ -26,4 +26,4 @@ sha2 = "0.10.3"
 [build-dependencies]
 bindgen = "0.60.1"
 cargo-emit = "0.2.1"
-mc-sgx-core-build = { path = "../../core/build", version = "=0.1.0" }
+mc-sgx-core-build = { path = "../../core/build", version = "=0.2.0-pre0" }
