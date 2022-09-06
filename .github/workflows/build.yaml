@@ -189,6 +189,32 @@ jobs:
           command: doc
           args: --release --locked --no-deps --features sim
 
+  coverage:
+    runs-on: ubuntu-20.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/sgxsdk
+      - uses: ./.github/actions/dcap-libs
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          # FIXME: replace with stable ASAP
+          toolchain: nightly-2022-07-22
+          override: true
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - uses: actions-rs/cargo@v1
+        with:
+          command: llvm-cov
+          # The FFI bindings crates always report 100% because they have no code
+          args: --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
+      - uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
+
   notify:
     runs-on: ubuntu-latest
     if: failure() && ${{ github.event_name }} == 'push'
@@ -201,6 +227,7 @@ jobs:
       - build
       - test
       - doc
+      - coverage
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1

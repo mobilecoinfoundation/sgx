@@ -8,7 +8,7 @@ fn main() {
 
     let link_path = mc_sgx_core_build::sgx_library_string();
     cargo_emit::rerun_if_changed!(link_path);
-    cargo_emit::rustc_link_search!("{}", link_path);
+    cargo_emit::rustc_link_search!(link_path);
     cargo_emit::rustc_link_lib!("static=sgx_capable");
 
     mc_sgx_core_build::sgx_builder()
