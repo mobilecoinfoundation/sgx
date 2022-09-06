@@ -2,6 +2,8 @@
 
 //! Types used for sealing and unsealing of secrets
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 use core::{mem, result::Result as CoreResult};
 use mc_sgx_core_types::FfiError;
 use mc_sgx_tservice_sys_types::{sgx_aes_gcm_data_t, sgx_sealed_data_t};
@@ -49,23 +51,78 @@ impl<'a> AesGcmData<'a> {
 
 /// Sealed data
 ///
-/// An opaque wrapper around `&[u8]` which is meant to be interpreted as
+/// An opaque wrapper around `AsRef<[u8]>` which is meant to be interpreted as
 /// [`mc-sgx-tservice-sys-types::sgx_sealed_data_t`].
 /// The [`mc-sgx-tservice-sys-types::sgx_sealed_data_t`] is a dynamically sized
 /// type.
 /// There is no need to directly access any of the underlying types members.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct SealedData<'a> {
-    bytes: &'a [u8],
+pub struct SealedData<T> {
+    bytes: T,
 }
 
-impl<'a> TryFrom<&'a [u8]> for SealedData<'a> {
+// Unable to do
+// ```rust
+//  impl<T: AsRef<[u8]> TryFrom<T> for SealedData<T>;
+// ```
+// because of https://github.com/rust-lang/rust/issues/50133
+// So we implement the 2 versions of slice with a lifetime and Vec
+impl<'a> TryFrom<&'a [u8]> for SealedData<&'a [u8]> {
     type Error = FfiError;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let offset = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
         let aes_gcm_bytes = bytes.get(offset..).ok_or(FfiError::InvalidInputLength)?;
         AesGcmData::try_from(aes_gcm_bytes)?;
         Ok(Self { bytes })
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl TryFrom<Vec<u8>> for SealedData<Vec<u8>> {
+    type Error = FfiError;
+    fn try_from(bytes: Vec<u8>) -> Result<Self> {
+        let offset = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
+        let aes_gcm_bytes = bytes.get(offset..).ok_or(FfiError::InvalidInputLength)?;
+        AesGcmData::try_from(aes_gcm_bytes)?;
+        Ok(Self { bytes })
+    }
+}
+
+/// Unsealed Data
+///
+/// A plain old data type (POD) of the component pieces of the data stored in
+/// [`sgx_sealed_data_t`]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct UnsealedData<T> {
+    /// The data to be encrypted/sealed
+    pub data: T,
+
+    /// The MAC text that will not be encrypted
+    pub mac: Option<T>,
+}
+
+impl<T: AsRef<[u8]>> UnsealedData<T> {
+    /// An [`UnsealedData`] from the components
+    ///
+    /// # Arguments
+    /// * `data` - The data to be encrypted/sealed
+    /// * `mac` - The MAC text.  Will not be encrypted
+    pub fn new(data: T, mac: Option<T>) -> Self {
+        Self { data, mac }
+    }
+
+    /// The length of the combined [`Unsealed::data`] and [`Unsealed::mac`]
+    pub fn len(&self) -> usize {
+        let mac_length = match &self.mac {
+            None => 0,
+            Some(text) => text.as_ref().len(),
+        };
+        mac_length + self.data.as_ref().len()
+    }
+
+    /// Is the unsealed data empty?
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
