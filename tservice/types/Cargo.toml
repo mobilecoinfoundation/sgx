@@ -14,7 +14,7 @@ rust-version = "1.62.1"
 
 [features]
 default = []
-serde = [ "mc-sgx-core-types/serde" ]
+serde = ["mc-sgx-core-types/serde"]
 alloc = []
 
 [dependencies]
@@ -22,4 +22,5 @@ mc-sgx-core-types = { path = "../../core/types", version = "=0.2.0-pre0" }
 mc-sgx-tservice-sys-types = { path = "../sys/types", version = "=0.2.0-pre0" }
 
 [dev-dependencies]
+test_utils = { path = "../test_utils" }
 yare = "1.0.2"

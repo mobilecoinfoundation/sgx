@@ -90,6 +90,50 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     }
 }
 
+pub trait Unseal<T> {
+    /// The length (in bytes) needed to hold the decrypted text
+    fn decrypted_text_len(&self) -> Result<usize>;
+
+    /// Unseal the data in `self`
+    fn unseal(&self) -> Result<T>;
+}
+
+impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
+    fn decrypted_text_len(&self) -> Result<usize> {
+        let result = unsafe {
+            mc_sgx_tservice_sys::sgx_get_encrypt_txt_len(
+                self.as_ref().as_ptr() as *const sgx_sealed_data_t
+            )
+        };
+        match result {
+            // Per the documentation, UINT32_MAX indicates an error
+            u32::MAX => Err(Error::Unexpected),
+            size => Ok(size as usize),
+        }
+    }
+
+    fn unseal(&self) -> Result<Vec<u8>> {
+        let data_length = self.decrypted_text_len()?;
+        let mut data = vec![0; data_length];
+
+        let mut data_length = data_length as u32;
+        let mut mac_length = 0;
+        unsafe {
+            mc_sgx_tservice_sys::sgx_unseal_data(
+                self.as_ref().as_ptr() as *const sgx_sealed_data_t,
+                ptr::null_mut(),
+                &mut mac_length,
+                data.as_mut_ptr(),
+                &mut data_length,
+            )
+        }
+        .into_result()?;
+
+
+        Ok(data)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -109,5 +153,25 @@ mod test {
         let builder = SealedBuilder::new(b"1234567".as_slice());
         let expected_size = mem::size_of::<sgx_sealed_data_t>() + builder.data.len();
         assert_eq!(builder.sealed_size(), Ok(expected_size));
+    }
+
+    #[test]
+    fn decrypted_text_len_short() {
+        let sgx_sealed_data = sgx_sealed_data_t::default();
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data, b"short", Some(b"one"));
+        let data = Sealed::try_from(bytes.as_slice()).unwrap();
+        assert_eq!(data.decrypted_text_len(), Ok(5));
+    }
+
+    #[test]
+    fn decrypted_text_len_long() {
+        let sgx_sealed_data = sgx_sealed_data_t::default();
+        let bytes = test_utils::sealed_data_to_bytes(
+            sgx_sealed_data,
+            b"12345678901234567890",
+            Some(b"where"),
+        );
+        let data = Sealed::try_from(bytes.as_slice()).unwrap();
+        assert_eq!(data.decrypted_text_len(), Ok(20));
     }
 }
