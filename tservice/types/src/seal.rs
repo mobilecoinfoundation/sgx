@@ -1,107 +1,71 @@
 // Copyright (c) 2022 The MobileCoin Foundation
+
 //! Types used for sealing and unsealing of secrets
 
-use mc_sgx_core_types::KeyRequest;
+use core::{mem, result::Result as CoreResult};
+use mc_sgx_core_types::FfiError;
+use mc_sgx_tservice_sys_types::{sgx_aes_gcm_data_t, sgx_sealed_data_t};
+
+pub type Result<T> = CoreResult<T, FfiError>;
 
 /// AES GCM(Galois/Counter mode) Data
 ///
-/// Wraps up a `&[u8]` since [mc-sgx-tservice-sys-types::sgx_aes_gcm_data_t] is
-/// a dynamically sized type
+/// Wraps up a `&[u8]` since [`mc-sgx-tservice-sys-types::sgx_aes_gcm_data_t`]
+/// is a dynamically sized type
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct AesGcmData<'a> {
+struct AesGcmData<'a> {
     bytes: &'a [u8],
 }
 
-impl<'a> From<&'a [u8]> for AesGcmData<'a> {
-    fn from(bytes: &'a [u8]) -> Self {
-        Self { bytes }
+impl<'a> TryFrom<&'a [u8]> for AesGcmData<'a> {
+    type Error = FfiError;
+    fn try_from(bytes: &'a [u8]) -> Result<Self> {
+        let payload_size = Self::payload_size(bytes)?;
+        if bytes.len() < payload_size + mem::size_of::<sgx_aes_gcm_data_t>() {
+            Err(FfiError::InvalidInputLength)
+        } else {
+            Ok(Self { bytes })
+        }
     }
 }
 
 impl<'a> AesGcmData<'a> {
-    const PAYLOAD_OFFSET: usize = 32;
-
     /// The size of the payload (encrypted data + mac text)
-    fn payload_size(&self) -> usize {
-        let size = u32::from_le_bytes(
-            self.bytes[..4]
-                .try_into()
-                .expect("Failed to extract `payload_size`"),
-        );
-        size as usize
-    }
+    ///
+    /// This represents the dynamic data at the end of the
+    /// [`mc-sgx-tservice-sys-types::sgx_aes_gcm_data_t`].
+    fn payload_size(bytes: &[u8]) -> Result<usize> {
+        const SIZE: usize = mem::size_of::<u32>();
 
-    /// The GMAC tag of the payload
-    pub fn gmac_tag(&self) -> [u8; 16] {
-        self.bytes[16..32]
-            .try_into()
-            .expect("Failed to extract `payload_tag`")
-    }
+        let mut size_bytes: [u8; SIZE] = [0; SIZE];
+        let bytes = bytes.get(..SIZE).ok_or(FfiError::InvalidInputLength)?;
+        size_bytes.copy_from_slice(bytes);
 
-    /// The payload.  This includes the encrypted data and the MAC text
-    pub fn payload(&self) -> &'a [u8] {
-        let end = self.payload_size() + Self::PAYLOAD_OFFSET;
-        self.bytes
-            .get(Self::PAYLOAD_OFFSET..end)
-            .expect("AesGcmData not large enough to contain the payload.")
+        let size = u32::from_le_bytes(size_bytes);
+
+        Ok(size as usize)
     }
 }
 
 /// Sealed data
 ///
-/// Wraps up a `&[u8]` since [mc-sgx-tservice-sys-types::sgx_sealed_data_t]
-/// is a dynamically sized type
+/// An opaque wrapper around `&[u8]` which is meant to be interpreted as
+/// [`mc-sgx-tservice-sys-types::sgx_sealed_data_t`].
+/// The [`mc-sgx-tservice-sys-types::sgx_sealed_data_t`] is a dynamically sized
+/// type.
+/// There is no need to directly access any of the underlying types members.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct SealedData<'a> {
     bytes: &'a [u8],
 }
 
-impl<'a> SealedData<'a> {
-    /// The key request used to seal the data
-    pub fn key_request(&self) -> KeyRequest {
-        let bytes: [u8; 512] = self.bytes[..512]
-            .try_into()
-            .expect("SealedData bytes aren't big enough to hold `key_request`");
-        KeyRequest::from(&bytes)
-    }
-
-    // The offset within the `aes_data` for where the MAC starts.
-    // None when there is no MAC data.
-    fn mac_offset(&self) -> Option<usize> {
-        let offset = u32::from_le_bytes(
-            self.bytes[512..516]
-                .try_into()
-                .expect("Failed to extract `plain_text_offset` from SealedData"),
-        );
-        match offset {
-            0 => None,
-            v => Some(v as usize),
-        }
-    }
-
-    /// The AES GCM data
-    pub fn aes_gcm_data(&self) -> AesGcmData<'a> {
-        AesGcmData::from(&self.bytes[528..])
-    }
-
-    /// The MAC text of the sealed data
-    pub fn mac_text(&self) -> Option<&'a [u8]> {
-        let offset = self.mac_offset();
-        let payload = self.aes_gcm_data().payload();
-        offset.map(|o| &payload[o..])
-    }
-
-    /// The encrypted data
-    pub fn encrypted_data(&self) -> &'a [u8] {
-        let offset = self.mac_offset();
-        let payload = self.aes_gcm_data().payload();
-        &payload[..offset.unwrap_or(payload.len())]
-    }
-}
-
-impl<'a> From<&'a [u8]> for SealedData<'a> {
-    fn from(bytes: &'a [u8]) -> Self {
-        Self { bytes }
+impl<'a> TryFrom<&'a [u8]> for SealedData<'a> {
+    type Error = FfiError;
+    fn try_from(bytes: &'a [u8]) -> Result<Self> {
+        let offset = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
+        let aes_gcm_bytes = bytes.get(offset..).ok_or(FfiError::InvalidInputLength)?;
+        AesGcmData::try_from(aes_gcm_bytes)?;
+        Ok(Self { bytes })
     }
 }
 
@@ -109,8 +73,8 @@ impl<'a> From<&'a [u8]> for SealedData<'a> {
 mod test {
     use super::*;
     use core::{mem, slice};
-    use mc_sgx_core_sys_types::sgx_key_request_t;
-    use mc_sgx_tservice_sys_types::{sgx_aes_gcm_data_t, sgx_sealed_data_t, SGX_SEAL_TAG_SIZE};
+    use mc_sgx_tservice_sys_types::sgx_aes_gcm_data_t;
+    use yare::parameterized;
 
     // The buffer size of the byte types.
     // Extra trailing bytes (256) to store the _payload_
@@ -174,28 +138,6 @@ mod test {
         bytes
     }
 
-    fn sealed_data_1() -> sgx_sealed_data_t {
-        let mut key_request = sgx_key_request_t::default();
-        key_request.key_name = 1;
-        sgx_sealed_data_t {
-            key_request,
-            plain_text_offset: 0, //overridden in [`sealed_data_to_bytes()`]
-            reserved: [2u8; 12],
-            aes_data: Default::default(),
-        }
-    }
-
-    fn sealed_data_2() -> sgx_sealed_data_t {
-        let mut key_request = sgx_key_request_t::default();
-        key_request.key_name = 9;
-        sgx_sealed_data_t {
-            key_request,
-            plain_text_offset: 0, //overridden in [`sealed_data_to_bytes()`]
-            reserved: [8u8; 12],
-            aes_data: Default::default(),
-        }
-    }
-
     /// Converts [`sgx_aes_gcm_data_t`] to bytes.
     ///
     /// The returned bytes will be larger than the size of
@@ -235,82 +177,121 @@ mod test {
         bytes
     }
 
-    fn aes_gcm_data_1() -> sgx_aes_gcm_data_t {
-        sgx_aes_gcm_data_t {
-            payload_size: 0, // replaced when converted to bytes
-            reserved: [2u8; 12],
-            payload_tag: [3u8; SGX_SEAL_TAG_SIZE],
-            payload: Default::default(),
-        }
-    }
-
-    fn aes_gcm_data_2() -> sgx_aes_gcm_data_t {
-        sgx_aes_gcm_data_t {
-            payload_size: 0, // replaced when converted to bytes
-            reserved: [7u8; 12],
-            payload_tag: [6u8; SGX_SEAL_TAG_SIZE],
-            payload: Default::default(),
-        }
+    #[parameterized
+    (
+    short = {b"short"},
+    long = {b"0123456789"},
+    )
+    ]
+    fn aes_data_from_bytes(payload: &[u8]) {
+        let bytes = aes_gcm_data_to_bytes(sgx_aes_gcm_data_t::default(), payload);
+        assert_eq!(
+            AesGcmData::payload_size(bytes.as_slice()).unwrap(),
+            payload.len()
+        );
     }
 
     #[test]
-    fn sealed_data_1_from_bytes() {
-        let mac = b"MAC contents";
-        let encrypted_data = b"9876543";
-        let bytes = sealed_data_to_bytes(sealed_data_1(), encrypted_data, Some(mac));
-        let sealed_data = SealedData::from(bytes.as_slice());
-
-        let mut key_request = sgx_key_request_t::default();
-        key_request.key_name = 1;
-        assert_eq!(sealed_data.key_request(), KeyRequest::from(key_request));
-        assert_eq!(sealed_data.mac_text(), Some(mac.as_slice()));
-        assert_eq!(sealed_data.encrypted_data(), encrypted_data.as_slice());
+    fn buffer_just_big_enough_for_aes_gcm_data() {
+        let bytes = aes_gcm_data_to_bytes(sgx_aes_gcm_data_t::default(), b"");
+        let size = mem::size_of::<sgx_aes_gcm_data_t>();
+        assert!(AesGcmData::try_from(&bytes[..size]).is_ok());
     }
 
     #[test]
-    fn sealed_data_2_from_bytes() {
-        let mac = b"If you ever drop your keys into a river of molten lava, let'em go...because man, they're gone! - Jack Handey";
-        let encrypted_data = b"123456";
-        let bytes = sealed_data_to_bytes(sealed_data_2(), encrypted_data, Some(mac));
-        let sealed_data = SealedData::from(bytes.as_slice());
-
-        let mut key_request = sgx_key_request_t::default();
-        key_request.key_name = 9;
-        assert_eq!(sealed_data.key_request(), KeyRequest::from(key_request));
-        assert_eq!(sealed_data.mac_text(), Some(mac.as_slice()));
-        assert_eq!(sealed_data.encrypted_data(), encrypted_data.as_slice());
+    fn buffer_too_small_for_aes_gcm_data() {
+        let bytes = aes_gcm_data_to_bytes(sgx_aes_gcm_data_t::default(), b"");
+        let size = mem::size_of::<sgx_aes_gcm_data_t>() - 1;
+        assert_eq!(
+            AesGcmData::try_from(&bytes[..size]),
+            Err(FfiError::InvalidInputLength)
+        );
     }
 
     #[test]
-    fn sealed_data_no_mac_text() {
-        let encrypted_data = b"123456";
-        let bytes = sealed_data_to_bytes(sealed_data_2(), encrypted_data, None);
-        let sealed_data = SealedData::from(bytes.as_slice());
-
-        let mut key_request = sgx_key_request_t::default();
-        key_request.key_name = 9;
-        assert_eq!(sealed_data.key_request(), KeyRequest::from(key_request));
-        assert_eq!(sealed_data.mac_text(), None);
-        assert_eq!(sealed_data.encrypted_data(), encrypted_data.as_slice());
+    fn buffer_just_big_enough_for_payload() {
+        let bytes = aes_gcm_data_to_bytes(sgx_aes_gcm_data_t::default(), b"1234");
+        let size = mem::size_of::<sgx_aes_gcm_data_t>() + b"1234".len();
+        assert!(AesGcmData::try_from(&bytes[..size]).is_ok());
     }
 
     #[test]
-    fn aes_data_1_from_bytes() {
-        let payload = b"payload 1";
-        let bytes = aes_gcm_data_to_bytes(aes_gcm_data_1(), payload);
-        let aes_data = AesGcmData::from(bytes.as_slice());
+    fn buffer_too_small_for_payload() {
+        let bytes = aes_gcm_data_to_bytes(sgx_aes_gcm_data_t::default(), b"1234");
+        let size = (mem::size_of::<sgx_aes_gcm_data_t>() + b"1234".len()) - 1;
+        assert_eq!(
+            AesGcmData::try_from(&bytes[..size]),
+            Err(FfiError::InvalidInputLength)
+        );
+    }
 
-        assert_eq!(aes_data.gmac_tag(), [3u8; SGX_SEAL_TAG_SIZE]);
-        assert_eq!(aes_data.payload(), payload.as_slice());
+    #[parameterized
+    (
+    short = {b"short", Some(b"mac text")},
+    long = {b"0123456789", Some(b"9876543210")},
+    no_mac = {b"0123456789", None},
+    )
+    ]
+    fn sealed_data_try_from_bytes(encrypted_data: &[u8], mac_text: Option<&[u8]>) {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), encrypted_data, mac_text);
+        assert!(SealedData::try_from(bytes.as_slice()).is_ok());
     }
 
     #[test]
-    fn aes_data_2_from_bytes() {
-        let payload = b"a different contents";
-        let bytes = aes_gcm_data_to_bytes(aes_gcm_data_2(), payload);
-        let aes_data = AesGcmData::from(bytes.as_slice());
+    fn buffer_just_big_enough_for_sealed_data() {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let size = mem::size_of::<sgx_sealed_data_t>();
+        assert!(SealedData::try_from(&bytes[..size]).is_ok());
+    }
 
-        assert_eq!(aes_data.gmac_tag(), [6u8; SGX_SEAL_TAG_SIZE]);
-        assert_eq!(aes_data.payload(), payload.as_slice());
+    #[test]
+    fn buffer_too_small_for_sealed_data() {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let size = mem::size_of::<sgx_sealed_data_t>() - 1;
+        assert_eq!(
+            SealedData::try_from(&bytes[..size]),
+            Err(FfiError::InvalidInputLength)
+        );
+    }
+
+    #[test]
+    fn buffer_just_big_enough_for_sealed_payload() {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
+        let payload_size = b"12".len() + b"34".len();
+        let size = mem::size_of::<sgx_sealed_data_t>() + payload_size;
+        assert!(SealedData::try_from(&bytes[..size]).is_ok());
+    }
+
+    #[test]
+    fn buffer_too_small_for_sealed_payload() {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
+        let payload_size = b"12".len() + b"34".len();
+        let size = (mem::size_of::<sgx_sealed_data_t>() + payload_size) - 1;
+        assert_eq!(
+            SealedData::try_from(&bytes[..size]),
+            Err(FfiError::InvalidInputLength)
+        );
+    }
+
+    #[test]
+    fn sealed_data_just_big_enough_to_pass_on_aes_gcm() {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let size = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
+
+        // This will still fail, as the AesGcmData::TryFrom will fail.
+        assert_eq!(
+            SealedData::try_from(&bytes[..size]),
+            Err(FfiError::InvalidInputLength)
+        );
+    }
+
+    #[test]
+    fn sealed_data_to_small_for_aes_gcm() {
+        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let size = (mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>()) - 1;
+        assert_eq!(
+            SealedData::try_from(&bytes[..size]),
+            Err(FfiError::InvalidInputLength)
+        );
     }
 }

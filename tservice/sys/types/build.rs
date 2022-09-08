@@ -25,7 +25,7 @@ const SERVICE_TYPES: &[&str] = &[
     "tee_mac_t",
 ];
 
-const SERVICE_CONSTS: &[&str] = &["SGX_DH_SESSION_DATA_SIZE", "SGX_SEAL_TAG_SIZE"];
+const SERVICE_CONSTS: &[&str] = &["SGX_DH_SESSION_DATA_SIZE"];
 
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();

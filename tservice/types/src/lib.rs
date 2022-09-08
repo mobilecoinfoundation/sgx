@@ -6,4 +6,4 @@
 
 mod seal;
 
-pub use crate::seal::{AesGcmData, SealedData};
+pub use crate::seal::SealedData;
