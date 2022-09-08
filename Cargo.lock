@@ -511,6 +511,7 @@ dependencies = [
 name = "mc-sgx-tservice"
 version = "0.2.0-pre0"
 dependencies = [
+ "mc-sgx-core-sys-types",
  "mc-sgx-core-types",
  "mc-sgx-tservice-sys",
  "mc-sgx-tservice-sys-types",

@@ -90,6 +90,9 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     }
 }
 
+/// Unseal data.
+///
+/// Functionality to convert sealed (encrypted) data to unsealed, unencrypted
 pub trait Unseal: AsRef<[u8]> {
     /// The length (in bytes) needed to hold the decrypted text
     fn decrypted_text_len(&self) -> Result<usize> {

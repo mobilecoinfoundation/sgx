@@ -197,6 +197,7 @@ impl From<[u8; mem::size_of::<sgx_report_body_t>()]> for ReportBody {
     }
 }
 
+/// An enclave Report
 #[repr(transparent)]
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Report(sgx_report_t);

@@ -6,6 +6,10 @@
 
 extern crate alloc;
 
+mod report;
 mod seal;
 
-pub use crate::seal::SealedBuilder;
+pub use crate::{
+    report::Report,
+    seal::{SealedBuilder, Unseal},
+};
