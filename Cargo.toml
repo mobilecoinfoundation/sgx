@@ -15,6 +15,7 @@ members = [
     "dcap/quoteverify/types",
     "dcap/sys/types",
     "dcap/tvl/sys",
+    "dcap/types",
     "tcrypto/sys",
     "tcrypto/sys/types",
     "trts/sys",
