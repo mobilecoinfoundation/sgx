@@ -170,17 +170,35 @@ pub enum Error {
     /// TCB up to date but SW Hardening needed
     TcbConfigurationAndSwHardeningNeeded =
         quote3_error_t::SGX_QL_TCB_CONFIGURATION_AND_SW_HARDENING_NEEDED.0,
-    /// TCB up to date but Configuration and SW Hardening needed
+    /**
+     * The platform has been configured to use the out-of-process
+     * implementation of quote generation
+     */
     UnsupportedMode = quote3_error_t::SGX_QL_UNSUPPORTED_MODE.0,
-    /// ?
+    /**
+     * Can't open SGX device (this error happens only when running in
+     * out-of-process mode)
+     */
     NoDevice = quote3_error_t::SGX_QL_NO_DEVICE.0,
-    /// ?
+    /**
+     * AESM didn't respond or the requested service is not supported (this
+     * error happens only when running in out-of-process mode)
+     */
     ServiceUnavailable = quote3_error_t::SGX_QL_SERVICE_UNAVAILABLE.0,
-    /// ?
+    /**
+     * Network connection or proxy setting issue is encountered (this error
+     * happens only when running in out-of-process mode)
+     */
     NetworkFailure = quote3_error_t::SGX_QL_NETWORK_FAILURE.0,
-    /// ?
+    /**
+     * The request to out-of-process service has timed out (this error
+     * happens only when running in out-of-process mode
+     */
     ServiceTimeout = quote3_error_t::SGX_QL_SERVICE_TIMEOUT.0,
-    /// ?
+    /**
+     * The requested service is temporarily not available (this error
+     * happens only when running in out-of-process mode)
+     */
     Busy = quote3_error_t::SGX_QL_ERROR_BUSY.0,
     /// Unexpected error from the cache service
     UnknownMessageResponse = quote3_error_t::SGX_QL_UNKNOWN_MESSAGE_RESPONSE.0,
