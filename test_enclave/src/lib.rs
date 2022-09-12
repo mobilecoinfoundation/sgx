@@ -8,8 +8,7 @@ pub static ENCLAVE_KSS: &'static [u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/libenclave_kss.signed.so"));
 pub static ENCLAVE_PCL: &'static [u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/libenclave_pcl.signed.so"));
-pub static ENCLAVE_PCL_KEY: &'static [u8] = 
-    include_bytes!("pcl_key.bin");
+pub static ENCLAVE_PCL_KEY: &'static [u8] = include_bytes!("pcl_key.bin");
 
 use mc_sgx_core_sys_types::sgx_status_t;
 use mc_sgx_urts_sys_types::sgx_enclave_id_t;
