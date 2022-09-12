@@ -7,13 +7,3 @@ use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_config_id_t, sgx_config_svn_t, sgx_misc_select_t,
 };
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-
-// temporary
-impl Default for sgx_kss_config_t {
-    fn default() -> Self {
-        sgx_kss_config_t {
-            config_id: [0; 64],
-            config_svn: 0,
-        }
-    }
-}

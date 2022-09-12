@@ -9,6 +9,40 @@ SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_PCL_
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
 use std::{mem::MaybeUninit, os::raw::c_int, ptr, io::Read, fs::File, path::Path, ffi::c_void};
 
+/// Structure defining configuration for Key Sharing and Separation
+pub struct KssConfig {
+    pub config_id: [u8; 64],
+    pub config_svn: u16,
+}
+
+// We can't derive Default because Default isn't implemented for [u8; 64] in current Rust
+impl Default for KssConfig {
+    fn default() -> Self {
+        KssConfig {
+            config_id: [0; 64],
+            config_svn: 0,
+        }
+    }
+}
+
+impl From<KssConfig> for sgx_kss_config_t {
+    fn from(input: KssConfig) -> sgx_kss_config_t {
+        sgx_kss_config_t {
+            config_id: input.config_id,
+            config_svn: input.config_svn,
+        }
+    }
+}
+
+impl From<sgx_kss_config_t> for KssConfig {
+    fn from(input: sgx_kss_config_t) -> KssConfig {
+        KssConfig {
+            config_id: input.config_id,
+            config_svn: input.config_svn,
+        }
+    }
+}
+
 /// Struct for interfacing with the SGX SDK.  This should be used in
 /// sgx calls as `ecall_some_function(*enclave.get_id(), ...)`.
 ///
@@ -28,6 +62,12 @@ pub struct EnclaveBuilder {
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
+    
+    // Sealed key to use with Intel Protected Code Loader. None if PCL disabled.
+    pcl_key: Option<Vec<u8>>,
+    
+    // Configuration to use with Key Separation & Sharing. None if KSS disabled.
+    kss_config: Option<KssConfig>,
 }
 
 impl EnclaveBuilder {
@@ -55,6 +95,42 @@ impl EnclaveBuilder {
         self
     }
 
+    /// Enable Intel's Protected Code Loader for the enclave
+    /// 
+    /// # Arguments
+    /// 
+    /// * `key` - The sealed PCL key to use for loading the enclave
+    #[must_use]
+    pub fn pcl(mut self, key: Vec<u8>) -> EnclaveBuilder {
+        self.pcl_key = Some(key);
+        self
+    }
+
+    /// Disable Intel's Protected Code Loader for the enclave
+    #[must_use]
+    pub fn no_pcl(mut self) -> EnclaveBuilder {
+        self.pcl_key = None;
+        self
+    }
+    
+    /// Enable Key Separation & Sharing for the enclave
+    /// 
+    /// # Arguments
+    /// 
+    /// * `config` - The KSS configuration to use when loading the enclave
+    #[must_use]
+    pub fn kss(mut self, config: KssConfig) -> EnclaveBuilder {
+        self.kss_config = Some(config);
+        self
+    }
+    
+    /// Disable Key Separation & Sharing for the enclave
+    #[must_use]
+    pub fn no_kss(mut self) -> EnclaveBuilder {
+        self.kss_config = None;
+        self
+    }
+
     /// Create the enclave
     ///
     /// Will talk to the SGX SDK to create the enclave.  Once the enclave has
@@ -71,7 +147,7 @@ impl EnclaveBuilder {
         
         if let Some(kss_config) = self.kss_config {
             ex_features |= SGX_CREATE_ENCLAVE_EX_KSS;
-            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX as usize] = &kss_config as *const sgx_kss_config_t as *const c_void;
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX as usize] = &kss_config.into() as *const sgx_kss_config_t as *const c_void;
         }
         
         unsafe {
@@ -215,7 +291,7 @@ mod tests {
 
     #[test]
     fn creating_enclave_with_kss_fails_when_not_enabled() {
-        let builder = EnclaveBuilder::from(ENCLAVE).kss(sgx_kss_config_t::default());
+        let builder = EnclaveBuilder::from(ENCLAVE).kss(KssConfig::default());
         assert_eq!(
             builder.create(),
             Err(Error::FeatureNotSupported)
@@ -224,7 +300,7 @@ mod tests {
 
     #[test]
     fn creating_enclave_with_kss_succeeds_when_enabled() {
-        let builder = EnclaveBuilder::from(ENCLAVE_KSS).kss(sgx_kss_config_t::default());
+        let builder = EnclaveBuilder::from(ENCLAVE_KSS).kss(KssConfig::default());
         assert!(builder.create().is_ok());
     }
 
