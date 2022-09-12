@@ -39,9 +39,24 @@ fn main() {
     let root_dir = root_dir();
     let edger_files = build_enclave_definitions(root_dir.join(EDGER_FILE));
 
-    build_enclave_binary([root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()], ENCLAVE_CONFIG, ENCLAVE_NAME, None);
-    build_enclave_binary([root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()], ENCLAVE_CONFIG_KSS, ENCLAVE_NAME_KSS, None);
-    build_enclave_binary([root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()], ENCLAVE_CONFIG_PCL, ENCLAVE_NAME_PCL, Some(ENCLAVE_PCL_KEY));
+    build_enclave_binary(
+        [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
+        ENCLAVE_CONFIG,
+        ENCLAVE_NAME,
+        None,
+    );
+    build_enclave_binary(
+        [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
+        ENCLAVE_CONFIG_KSS,
+        ENCLAVE_NAME_KSS,
+        None,
+    );
+    build_enclave_binary(
+        [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
+        ENCLAVE_CONFIG_PCL,
+        ENCLAVE_NAME_PCL,
+        Some(ENCLAVE_PCL_KEY),
+    );
     build_untrusted_library(&edger_files.untrusted);
 
     let mut untrusted_header = edger_files.untrusted.clone();
@@ -163,7 +178,10 @@ where
 ///
 /// # Returns
 /// The full path to resultant shared library file.
-fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P, keyfile: Option<&str>) -> PathBuf {
+fn build_dynamic_enclave_binary<P: AsRef<Path>>(
+    static_enclave: P,
+    keyfile: Option<&str>,
+) -> PathBuf {
     let mut dynamic_enclave = PathBuf::from(static_enclave.as_ref());
     dynamic_enclave.set_extension("so");
     let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
@@ -196,8 +214,7 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P, keyfile: Opti
     if let Some(_) = keyfile {
         if cfg!(feature = "sim") {
             command.arg("-lsgx_pclsim");
-        }
-        else {
+        } else {
             command.arg("-lsgx_pcl");
         }
     }
@@ -265,7 +282,7 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P, config: &str) -> Pat
 fn encrypt_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P, key: &str) -> PathBuf {
     let mut encrypted_binary = PathBuf::from(unsigned_enclave.as_ref());
     encrypted_binary.set_extension(".enc");
-    
+
     let bin_path = mc_sgx_core_build::sgx_bin_x64_dir().join("sgx_encrypt");
     let mut command = Command::new(bin_path);
     command
@@ -276,7 +293,9 @@ fn encrypt_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P, key: &str) -> Pat
         .arg("-k")
         .arg(key)
         .arg("-d");
-    let status = command.status().expect("Failed to execute enclave encryptor");
+    let status = command
+        .status()
+        .expect("Failed to execute enclave encryptor");
     match status.code().unwrap() {
         0 => (),
         code => panic!("sgx_encrypt exited with code {}", code),
