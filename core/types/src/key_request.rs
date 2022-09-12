@@ -159,8 +159,8 @@ impl KeyRequestBuilder {
     /// # Arguments
     ///
     /// * `attributes` - The attributes to use
-    pub fn attributes(mut self, attributes: &Attributes) -> Self {
-        self.0.attribute_mask = attributes.clone().into();
+    pub fn attributes(mut self, attributes: Attributes) -> Self {
+        self.0.attribute_mask = attributes.into();
         self
     }
 
@@ -225,7 +225,7 @@ mod test {
             .isv_svn(&IsvSvn::from(2))
             .cpu_svn(&CpuSvn::from([3; CpuSvn::SIZE]))
             .attributes(
-                &Attributes::default()
+                Attributes::default()
                     .set_flags(4)
                     .set_extended_features_mask(6),
             )
