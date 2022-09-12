@@ -3,11 +3,14 @@
 #![doc = include_str!("../README.md")]
 
 use mc_sgx_core_types::{Error, TargetInfo};
-use mc_sgx_util::ResultInto;
-use mc_sgx_urts_sys::{sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
-SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX};
+use mc_sgx_urts_sys::{
+    sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
+    SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX, SGX_CREATE_ENCLAVE_EX_PCL,
+    SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX,
+};
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
-use std::{mem::MaybeUninit, os::raw::c_int, ptr, io::Read, fs::File, path::Path, ffi::c_void};
+use mc_sgx_util::ResultInto;
+use std::{ffi::c_void, fs::File, io::Read, mem::MaybeUninit, os::raw::c_int, path::Path, ptr};
 
 /// Structure defining configuration for Key Sharing and Separation
 pub struct KssConfig {
@@ -15,7 +18,8 @@ pub struct KssConfig {
     pub config_svn: u16,
 }
 
-// We can't derive Default because Default isn't implemented for [u8; 64] in current Rust
+// We can't derive Default because Default isn't implemented for [u8; 64] in
+// current Rust
 impl Default for KssConfig {
     fn default() -> Self {
         // There are no restrictions on these values, so use 0 as default
@@ -63,10 +67,10 @@ pub struct EnclaveBuilder {
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
-    
+
     // Sealed key to use with Intel Protected Code Loader. None if PCL disabled.
     pcl_key: Option<Vec<u8>>,
-    
+
     // Configuration to use with Key Separation & Sharing. None if KSS disabled.
     kss_config: Option<KssConfig>,
 }
@@ -95,9 +99,9 @@ impl EnclaveBuilder {
     }
 
     /// Enable Intel's Protected Code Loader for the enclave
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `key` - The sealed PCL key to use for loading the enclave
     #[must_use]
     pub fn pcl(mut self, key: Vec<u8>) -> EnclaveBuilder {
@@ -111,18 +115,18 @@ impl EnclaveBuilder {
         self.pcl_key = None;
         self
     }
-    
+
     /// Enable Key Separation & Sharing for the enclave
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `config` - The KSS configuration to use when loading the enclave
     #[must_use]
     pub fn kss(mut self, config: KssConfig) -> EnclaveBuilder {
         self.kss_config = Some(config);
         self
     }
-    
+
     /// Disable Key Separation & Sharing for the enclave
     #[must_use]
     pub fn no_kss(mut self) -> EnclaveBuilder {
@@ -133,22 +137,25 @@ impl EnclaveBuilder {
     /// Create the enclave
     ///
     /// Will talk to the SGX SDK to create the enclave.  Once the enclave has
-    /// been created then calls into the enclave can be made using the enclave ID.
+    /// been created then calls into the enclave can be made using the enclave
+    /// ID.
     pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let mut ex_features = 0;
-        let mut ex_features_p :[*const c_void; 32] = [ptr::null(); 32];
-        
+        let mut ex_features_p: [*const c_void; 32] = [ptr::null(); 32];
+
         if let Some(pcl_key) = self.pcl_key {
             ex_features |= SGX_CREATE_ENCLAVE_EX_PCL;
-            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX as usize] = pcl_key.as_ptr() as *const c_void;
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX as usize] =
+                pcl_key.as_ptr() as *const c_void;
         }
-        
+
         if let Some(kss_config) = self.kss_config {
             ex_features |= SGX_CREATE_ENCLAVE_EX_KSS;
-            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX as usize] = &kss_config.into() as *const sgx_kss_config_t as *const c_void;
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX as usize] =
+                &kss_config.into() as *const sgx_kss_config_t as *const c_void;
         }
-        
+
         unsafe {
             // Per the API reference `buffer` is an input, however the signature
             // lacks the const qualifier.  Through testing it has been shown
@@ -176,9 +183,9 @@ impl EnclaveBuilder {
                 &mut ex_features_p as *mut *const c_void,
             )
         }
-            .into_result()
-            .map_err(Error::from)
-            .map(|_| Enclave { id: enclave_id})
+        .into_result()
+        .map_err(Error::from)
+        .map(|_| Enclave { id: enclave_id })
     }
 }
 
@@ -233,16 +240,15 @@ impl Enclave {
     /// Returns the target info for the enclave.
     pub fn get_target_info(&self) -> Result<TargetInfo, Error> {
         let mut target_info = MaybeUninit::uninit();
-        unsafe {
-            sgx_get_target_info(self.id, target_info.as_mut_ptr())
-        }
+        unsafe { sgx_get_target_info(self.id, target_info.as_mut_ptr()) }
             .into_result()
             .map_err(Error::from)
             .map(|_| unsafe { target_info.assume_init() }.into())
     }
 
     /// Returns a reference to the enclave ID.
-    /// Returns by reference because enclave ID will not be valid after the enclave is dropped.
+    /// Returns by reference because enclave ID will not be valid after the
+    /// enclave is dropped.
     pub fn get_id(&self) -> &sgx_enclave_id_t {
         &self.id
     }
@@ -265,17 +271,14 @@ impl Drop for Enclave {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{Write, Seek};
-    use test_enclave::{ecall_add_2, ENCLAVE, ENCLAVE_KSS};
+    use std::io::{Seek, Write};
     use tempfile::{tempfile, NamedTempFile};
+    use test_enclave::{ecall_add_2, ENCLAVE, ENCLAVE_KSS};
 
     #[test]
     fn fail_to_create_enclave_with_bogus_bytes() {
         let builder = EnclaveBuilder::from(b"garbage bytes");
-        assert_eq!(
-            builder.create(),
-            Err(Error::InvalidEnclave)
-        );
+        assert_eq!(builder.create(), Err(Error::InvalidEnclave));
     }
 
     #[test]
@@ -287,19 +290,13 @@ mod tests {
     #[test]
     fn creating_plaintext_enclave_fails_with_pcl() {
         let builder = EnclaveBuilder::from(ENCLAVE).pcl(b"some garbage".to_vec());
-        assert_eq!(
-            builder.create(),
-            Err(Error::PclNotEncrypted)
-        );
+        assert_eq!(builder.create(), Err(Error::PclNotEncrypted));
     }
 
     #[test]
     fn creating_enclave_with_kss_fails_when_not_enabled() {
         let builder = EnclaveBuilder::from(ENCLAVE).kss(KssConfig::default());
-        assert_eq!(
-            builder.create(),
-            Err(Error::FeatureNotSupported)
-        );
+        assert_eq!(builder.create(), Err(Error::FeatureNotSupported));
     }
 
     #[test]
@@ -309,7 +306,8 @@ mod tests {
     }
 
     // TODO: Need to test successful PCL enclave creation
-    // TODO: Need to test that PCL enclave creation fails with correct enclave but wrong key
+    // TODO: Need to test that PCL enclave creation fails with correct enclave but
+    // wrong key
 
     #[test]
     fn create_enclave_builder_from_vector() {
@@ -347,7 +345,7 @@ mod tests {
         unsafe { ecall_add_2(*id, 3, &mut sum) }
             .into_result()
             .unwrap();
-        
+
         assert_eq!(sum, 3 + 2);
     }
 
