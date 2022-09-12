@@ -18,6 +18,7 @@ pub struct KssConfig {
 // We can't derive Default because Default isn't implemented for [u8; 64] in current Rust
 impl Default for KssConfig {
     fn default() -> Self {
+        // There are no restrictions on these values, so use 0 as default
         KssConfig {
             config_id: [0; 64],
             config_svn: 0,
@@ -303,6 +304,9 @@ mod tests {
         let builder = EnclaveBuilder::from(ENCLAVE_KSS).kss(KssConfig::default());
         assert!(builder.create().is_ok());
     }
+
+    // TODO: Need to test successful PCL enclave creation
+    // TODO: Need to test that PCL enclave creation fails with correct enclave but wrong key
 
     #[test]
     fn create_enclave_builder_from_vector() {
