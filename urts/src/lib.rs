@@ -2,9 +2,8 @@
 
 #![doc = include_str!("../README.md")]
 
-use mc_sgx_core_types::Error;
+use mc_sgx_core_types::{Error, TargetInfo};
 use mc_sgx_util::ResultInto;
-use mc_sgx_core_sys_types::sgx_target_info_t;
 use mc_sgx_urts_sys::{sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
 SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX};
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
@@ -152,14 +151,14 @@ impl From<Vec<u8>> for EnclaveBuilder {
 
 impl Enclave {
     /// Returns the target info for the enclave.
-    pub fn get_target_info(&self) -> Result<sgx_target_info_t, Error> {
+    pub fn get_target_info(&self) -> Result<TargetInfo, Error> {
         let mut target_info = MaybeUninit::uninit();
         unsafe {
             sgx_get_target_info(self.id, target_info.as_mut_ptr())
         }
             .into_result()
             .map_err(Error::from)
-            .map(|_| unsafe { target_info.assume_init() })
+            .map(|_| unsafe { target_info.assume_init() }.into())
     }
 
     /// Returns a reference to the enclave ID.
@@ -267,6 +266,12 @@ mod tests {
             .unwrap();
         
         assert_eq!(sum, 3 + 2);
+    }
+
+    #[test]
+    fn get_target_info_succeeds() {
+        let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
+        let _ = enclave.get_target_info().unwrap();
     }
 
     #[test]
