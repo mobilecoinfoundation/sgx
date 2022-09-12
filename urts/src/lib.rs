@@ -3,7 +3,8 @@
 #![doc = include_str!("../README.md")]
 
 use mc_sgx_core_types::Error;
-use mc_sgx_core_sys_types::{sgx_status_t, sgx_target_info_t};
+use mc_sgx_util::ResultInto;
+use mc_sgx_core_sys_types::sgx_target_info_t;
 use mc_sgx_urts_sys::{sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
 SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX};
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
@@ -63,7 +64,6 @@ impl EnclaveBuilder {
         let mut ex_features_p :[*const c_void; 32] = [ptr::null(); 32];
         
         if let Some(pcl_key) = self.pcl_key {
-            eprintln!("yep sgx enabled");
             ex_features |= SGX_CREATE_ENCLAVE_EX_PCL;
             ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX as usize] = pcl_key.as_ptr() as *const c_void;
         }
@@ -73,42 +73,36 @@ impl EnclaveBuilder {
             ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX as usize] = &kss_config as *const sgx_kss_config_t as *const c_void;
         }
         
-        let result = 
-                unsafe {
-                    // Per the API reference `buffer` is an input, however the signature
-                    // lacks the const qualifier.  Through testing it has been shown
-                    // that `sgx_create_enclave_from_buffer_ex()` *will* modify the
-                    // `buffer` parameter.  This can be seen by copying the input bytes
-                    // and comparing before and after.
-                    //
-                    //      let mut buffer = self.bytes.to_vec();
-                    //      println!("Pre comparing {}", buffer.as_slice() == self.bytes);
-                    //      let result = unsafe {sgx_create_enclave_from_buffer_ex(...)};
-                    //      println!("Post comparing {}", buffer.as_slice() == self.bytes);
-                    //
-                    // The modification that `sgx_create_enclave_from_buffer_ex()`
-                    // makes to the `buffer` is such that if one were to re-use the
-                    // modified buffer in another call to
-                    // `sgx_create_enclave_from_buffer_ex()` then
-                    // `SGX_ERROR_INVALID_ENCLAVE_ID` would be returned.
-                    sgx_create_enclave_from_buffer_ex(
-                        self.bytes.as_mut_ptr(),
-                        self.bytes.len(),
-                        self.debug as c_int,
-                        &mut enclave_id,
-                        ptr::null_mut(),
-                        ex_features,
-                        &mut ex_features_p as *mut *const c_void,
-                    )
-                };
-
-        match result {
-            sgx_status_t::SGX_SUCCESS => Ok(Enclave { id: enclave_id }),
-            error => {
-                eprintln!("error {:?}", error);
-                Err(error.into())
-            },
+        unsafe {
+            // Per the API reference `buffer` is an input, however the signature
+            // lacks the const qualifier.  Through testing it has been shown
+            // that `sgx_create_enclave_from_buffer_ex()` *will* modify the
+            // `buffer` parameter.  This can be seen by copying the input bytes
+            // and comparing before and after.
+            //
+            //      let mut buffer = self.bytes.to_vec();
+            //      println!("Pre comparing {}", buffer.as_slice() == self.bytes);
+            //      let result = unsafe {sgx_create_enclave_from_buffer_ex(...)};
+            //      println!("Post comparing {}", buffer.as_slice() == self.bytes);
+            //
+            // The modification that `sgx_create_enclave_from_buffer_ex()`
+            // makes to the `buffer` is such that if one were to re-use the
+            // modified buffer in another call to
+            // `sgx_create_enclave_from_buffer_ex()` then
+            // `SGX_ERROR_INVALID_ENCLAVE_ID` would be returned.
+            sgx_create_enclave_from_buffer_ex(
+                self.bytes.as_mut_ptr(),
+                self.bytes.len(),
+                self.debug as c_int,
+                &mut enclave_id,
+                ptr::null_mut(),
+                ex_features,
+                &mut ex_features_p as *mut *const c_void,
+            )
         }
+            .into_result()
+            .map_err(Error::from)
+            .map(|_| Enclave { id: enclave_id})
     }
 }
 
@@ -163,13 +157,12 @@ impl Enclave {
     /// Returns the target info for the enclave.
     pub fn get_target_info(&self) -> Result<sgx_target_info_t, Error> {
         let mut target_info = MaybeUninit::uninit();
-        let result = unsafe {
+        unsafe {
             sgx_get_target_info(self.id, target_info.as_mut_ptr())
-        };
-        match result {
-            sgx_status_t::SGX_SUCCESS => Ok(unsafe { target_info.assume_init() }),
-            error => Err(error.into()),
         }
+            .into_result()
+            .map_err(Error::from)
+            .map(|_| unsafe { target_info.assume_init() })
     }
 
     /// Returns a reference to the enclave ID.
@@ -197,7 +190,7 @@ impl Drop for Enclave {
 mod tests {
     use super::*;
     use std::io::{Write, Seek};
-    use test_enclave::{ecall_add_2, ENCLAVE, ENCLAVE_KSS, ENCLAVE_PCL, ENCLAVE_PCL_KEY};
+    use test_enclave::{ecall_add_2, ENCLAVE, ENCLAVE_KSS};
     use tempfile::{tempfile, NamedTempFile};
 
     #[test]
@@ -205,7 +198,7 @@ mod tests {
         let builder = EnclaveBuilder::from(b"garbage bytes");
         assert_eq!(
             builder.create(),
-            Err(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE.into())
+            Err(Error::InvalidEnclave)
         );
     }
 
@@ -220,7 +213,7 @@ mod tests {
         let builder = EnclaveBuilder::from(ENCLAVE).pcl(b"some garbage".to_vec());
         assert_eq!(
             builder.create(),
-            Err(sgx_status_t::SGX_ERROR_PCL_NOT_ENCRYPTED.into())
+            Err(Error::PclNotEncrypted)
         );
     }
 
@@ -229,7 +222,7 @@ mod tests {
         let builder = EnclaveBuilder::from(ENCLAVE).kss(sgx_kss_config_t::default());
         assert_eq!(
             builder.create(),
-            Err(sgx_status_t::SGX_ERROR_FEATURE_NOT_SUPPORTED.into())
+            Err(Error::FeatureNotSupported)
         );
     }
 
@@ -237,14 +230,6 @@ mod tests {
     fn creating_enclave_with_kss_succeeds_when_enabled() {
         let builder = EnclaveBuilder::from(ENCLAVE_KSS).kss(sgx_kss_config_t::default());
         assert!(builder.create().is_ok());
-    }
-
-    #[test]
-    fn creating_enclave_with_pcl_succeeds_when_enabled_with_correct_key() {
-        let builder = EnclaveBuilder::from(ENCLAVE_PCL).pcl(ENCLAVE_PCL_KEY.to_vec());
-        let result = builder.create();
-        eprintln!("{:?}", result);
-        assert!(result.is_ok());
     }
 
     #[test]
@@ -276,10 +261,14 @@ mod tests {
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.
         let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
+        let id = enclave.get_id();
+        println!("{:X}", id);
 
         let mut sum: c_int = 3;
-        let result = unsafe { ecall_add_2(*enclave.get_id(), 3, &mut sum) };
-        assert_eq!(result, sgx_status_t::SGX_SUCCESS);
+        unsafe { ecall_add_2(*id, 3, &mut sum) }
+            .into_result()
+            .unwrap();
+        
         assert_eq!(sum, 3 + 2);
     }
 

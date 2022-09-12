@@ -13,10 +13,11 @@ repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
 [dependencies]
-mc-sgx-urts-sys = { path = "sys", version = "=0.1.0" }
-mc-sgx-core-types = { path = "../core/types", version = "=0.1.0" }
-mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.1.0" }
-mc-sgx-urts-sys-types = { path = "sys/types", version = "=0.1.0" }
+mc-sgx-urts-sys = { path = "sys", version = "=0.2.0-pre0" }
+mc-sgx-util = { path = "../util", version = "=0.2.0-pre0" }
+mc-sgx-core-types = { path = "../core/types", version = "=0.2.0-pre0" }
+mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.0-pre0" }
+mc-sgx-urts-sys-types = { path = "sys/types", version = "=0.2.0-pre0" }
 
 [features]
 sim = ["mc-sgx-urts-sys/sim", "test_enclave/sim"]
