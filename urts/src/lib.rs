@@ -49,7 +49,7 @@ impl From<sgx_kss_config_t> for KssConfig {
 }
 
 /// Struct for interfacing with the SGX SDK.  This should be used in
-/// sgx calls as `ecall_some_function(*enclave.get_id(), ...)`.
+/// sgx calls as `ecall_some_function(*enclave.id(), ...)`.
 ///
 /// Avoid storing the de-referenced ID of the enclave.  The de-referenced
 /// ID of the enclave will result in failures to the SGX SDK after the
@@ -234,7 +234,7 @@ impl From<Vec<u8>> for EnclaveBuilder {
 
 impl Enclave {
     /// Returns the target info for the enclave.
-    pub fn get_target_info(&self) -> Result<TargetInfo, Error> {
+    pub fn target_info(&self) -> Result<TargetInfo, Error> {
         let mut target_info = MaybeUninit::uninit();
         unsafe { sgx_get_target_info(self.id, target_info.as_mut_ptr()) }
             .into_result()
@@ -245,7 +245,7 @@ impl Enclave {
     /// Returns a reference to the enclave ID.
     /// Returns by reference because enclave ID will not be valid after the
     /// enclave is dropped.
-    pub fn get_id(&self) -> &sgx_enclave_id_t {
+    pub fn id(&self) -> &sgx_enclave_id_t {
         &self.id
     }
 }
@@ -334,7 +334,7 @@ mod tests {
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.
         let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
-        let id = enclave.get_id();
+        let id = enclave.id();
 
         let mut sum: c_int = 3;
         unsafe { ecall_add_2(*id, 3, &mut sum) }
@@ -345,9 +345,9 @@ mod tests {
     }
 
     #[test]
-    fn get_target_info_succeeds() {
+    fn target_info_succeeds() {
         let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
-        let _ = enclave.get_target_info().unwrap();
+        let _ = enclave.target_info().unwrap();
     }
 
     #[test]
