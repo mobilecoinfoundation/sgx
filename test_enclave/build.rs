@@ -212,7 +212,11 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(
         .arg("--whole-archive")
         .arg(&trts);
     if let Some(_) = keyfile {
-        command.arg(&format!("-lsgx_pcl{}", sgx_suffix));
+        if cfg!(feature = "sim") {
+            command.arg("-lsgx_pclsim");
+        } else {
+            command.arg("-lsgx_pcl");
+        }
     }
     command
         .arg("--no-whole-archive")
