@@ -8,4 +8,4 @@ extern crate alloc;
 
 mod seal;
 
-pub use crate::seal::{Seal, Unsealed};
+pub use crate::seal::SealedBuilder;
