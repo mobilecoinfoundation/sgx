@@ -119,6 +119,7 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
 /// * `files` - The source files to include in the binary
 /// * `config` - The configuration file to use for signing the binary
 /// * `name` - The enclave name to use for generating output files
+/// * `keyfile` - The key file used for encrypting the enclave
 ///
 /// # Returns
 /// The full path to resultant binary file.  This binary will be signed and
@@ -175,7 +176,7 @@ where
 /// # Arguments
 ///
 /// * `static_enclave` - The static enclave binary
-///
+/// * `keyfile` - The key file used to encrypt the enclave
 /// # Returns
 /// The full path to resultant shared library file.
 fn build_dynamic_enclave_binary<P: AsRef<Path>>(
@@ -212,11 +213,7 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(
         .arg("--whole-archive")
         .arg(&trts);
     if let Some(_) = keyfile {
-        if cfg!(feature = "sim") {
-            command.arg("-lsgx_pclsim");
-        } else {
-            command.arg("-lsgx_pcl");
-        }
+        command.arg(&format!("-lsgx_pcl{}", sgx_suffix));
     }
     command
         .arg("--no-whole-archive")
