@@ -32,7 +32,6 @@ const ENCLAVE_NAME_KSS: &str = "enclave_kss";
 const ENCLAVE_NAME_PCL: &str = "enclave_pcl";
 const ENCLAVE_CONFIG: &str = "src/config.xml";
 const ENCLAVE_CONFIG_KSS: &str = "src/config_kss.xml";
-const ENCLAVE_CONFIG_PCL: &str = "src/config_pcl.xml";
 const ENCLAVE_PCL_KEY: &str = "src/pcl_key.bin";
 
 fn main() {
@@ -53,7 +52,7 @@ fn main() {
     );
     build_enclave_binary(
         [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
-        ENCLAVE_CONFIG_PCL,
+        ENCLAVE_CONFIG,
         ENCLAVE_NAME_PCL,
         Some(ENCLAVE_PCL_KEY),
     );
