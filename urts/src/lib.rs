@@ -87,14 +87,10 @@ impl EnclaveBuilder {
         file.try_into()
     }
 
-    /// Toggle debugging of the enclave on or off.  The default is off.
-    ///
-    /// # Arguments
-    ///
-    /// * `debug` - `true` to enable enclave debugging, `false` to disable it.
+    /// Enable debugging of the enclave
     #[must_use]
-    pub fn debug(mut self, debug: bool) -> EnclaveBuilder {
-        self.debug = debug;
+    pub fn debug(mut self) -> EnclaveBuilder {
+        self.debug = true;
         self
     }
 
@@ -109,13 +105,6 @@ impl EnclaveBuilder {
         self
     }
 
-    /// Disable Intel's Protected Code Loader for the enclave
-    #[must_use]
-    pub fn no_pcl(mut self) -> EnclaveBuilder {
-        self.pcl_key = None;
-        self
-    }
-
     /// Enable Key Separation & Sharing for the enclave
     ///
     /// # Arguments
@@ -124,13 +113,6 @@ impl EnclaveBuilder {
     #[must_use]
     pub fn kss(mut self, config: KssConfig) -> EnclaveBuilder {
         self.kss_config = Some(config);
-        self
-    }
-
-    /// Disable Key Separation & Sharing for the enclave
-    #[must_use]
-    pub fn no_kss(mut self) -> EnclaveBuilder {
-        self.kss_config = None;
         self
     }
 
@@ -336,7 +318,7 @@ mod tests {
         // Note: the `debug()` was added to ensure proper builder behavior of
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.
-        let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
+        let enclave = EnclaveBuilder::from(ENCLAVE).debug().create().unwrap();
         let id = enclave.id();
 
         let mut sum: c_int = 3;
@@ -349,7 +331,7 @@ mod tests {
 
     #[test]
     fn target_info_succeeds() {
-        let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
+        let enclave = EnclaveBuilder::from(ENCLAVE).debug().create().unwrap();
         let _ = enclave.target_info().unwrap();
     }
 
@@ -364,7 +346,7 @@ mod tests {
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let builder = EnclaveBuilder::from(b"").debug(true);
+        let builder = EnclaveBuilder::from(b"").debug();
         assert_eq!(builder.debug as c_int, 1);
     }
 }
