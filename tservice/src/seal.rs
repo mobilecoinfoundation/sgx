@@ -116,19 +116,25 @@ impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
         let data_length = self.decrypted_text_len()?;
         let mut data = vec![0; data_length];
 
-        let mut data_length = data_length as u32;
-        let mut mac_length = 0;
+        let mut data_length_u32 = data_length as u32;
+        let mut mac_length_u32 = 0;
         unsafe {
             mc_sgx_tservice_sys::sgx_unseal_data(
                 self.as_ref().as_ptr() as *const sgx_sealed_data_t,
                 ptr::null_mut(),
-                &mut mac_length,
+                &mut mac_length_u32,
                 data.as_mut_ptr(),
-                &mut data_length,
+                &mut data_length_u32,
             )
         }
         .into_result()?;
 
+        // While the lengths can be modified by `sgx_unseal_data`, we asked the
+        // SGX interface at the top of the function for the required sizes.
+        // If the sizes are different than we have unexpected behavior.
+        if data_length != data_length_u32 as usize || mac_length_u32 != 0 {
+            return Err(Error::Unexpected);
+        }
 
         Ok(data)
     }
