@@ -171,9 +171,9 @@ impl EnclaveBuilder {
 }
 
 impl From<Vec<u8>> for EnclaveBuilder {
-    fn from(input: Vec<u8>) -> EnclaveBuilder {
+    fn from(bytes: Vec<u8>) -> EnclaveBuilder {
         EnclaveBuilder {
-            bytes: input,
+            bytes,
             debug: false,
             pcl_key: None,
             kss_config: None,
