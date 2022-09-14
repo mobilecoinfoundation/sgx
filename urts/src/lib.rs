@@ -148,13 +148,13 @@ impl EnclaveBuilder {
 
         if let Some(pcl_key) = self.pcl_key {
             ex_features |= SGX_CREATE_ENCLAVE_EX_PCL;
-            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX as usize] =
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX] =
                 pcl_key.as_ptr() as *const c_void;
         }
 
         if let Some(kss_config) = self.kss_config {
             ex_features |= SGX_CREATE_ENCLAVE_EX_KSS;
-            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX as usize] =
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX] =
                 &kss_config.into() as *const sgx_kss_config_t as *const c_void;
         }
 
@@ -186,7 +186,6 @@ impl EnclaveBuilder {
             )
         }
         .into_result()
-        .map_err(Error::from)
         .map(|_| Enclave { id: enclave_id })
     }
 }
@@ -336,7 +335,6 @@ mod tests {
         // of similar behavior.
         let enclave = EnclaveBuilder::from(ENCLAVE).debug(true).create().unwrap();
         let id = enclave.get_id();
-        println!("{:X}", id);
 
         let mut sum: c_int = 3;
         unsafe { ecall_add_2(*id, 3, &mut sum) }
