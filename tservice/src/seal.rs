@@ -144,6 +144,7 @@ impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
 mod test {
     use super::*;
     use core::mem;
+    use mc_sgx_tservice_types::test_utils;
 
     #[test]
     fn sealed_data_size() {

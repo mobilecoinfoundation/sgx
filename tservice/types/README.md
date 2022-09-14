@@ -9,6 +9,17 @@
 
 Rust wrappers for types used by the `libsgx_tservice` library.
 
+## Features
+
+### alloc
+
+Provides vector implementation of [`Sealed`].
+
+### test-utils
+
+Provides utility functions to assist with testing the `libsgx_tservice` rust
+interface.
+
 [chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
 [chat-link]: https://mobilecoin.chat
 [license-image]: https://img.shields.io/crates/l/mc-sgx-tservice-types?style=flat-square

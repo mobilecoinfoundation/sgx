@@ -97,6 +97,7 @@ impl TryFrom<Vec<u8>> for Sealed<Vec<u8>> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_utils;
     use core::{mem, slice};
     use mc_sgx_tservice_sys_types::sgx_aes_gcm_data_t;
     use yare::parameterized;

@@ -1,7 +1,5 @@
 // Copyright (c) 2022 The MobileCoin Foundation
-#![doc = include_str!("../README.md")]
-#![no_std]
-#![deny(missing_docs, missing_debug_implementations)]
+//! Module used to assist unit tests that utilize the [`Sealed`] type
 
 use core::{mem, slice};
 use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
@@ -44,6 +42,7 @@ pub fn sealed_data_to_bytes(
     // used for reinterpretation of `sealed_data` into a byte slice. The
     // slice is copied from prior to the leaving of this function ensuring
     // the raw pointer is not persisted.
+    #[allow(unsafe_code)]
     let alias_bytes: &[u8] = unsafe {
         slice::from_raw_parts(
             &sealed_data as *const sgx_sealed_data_t as *const u8,

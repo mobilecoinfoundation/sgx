@@ -516,7 +516,6 @@ dependencies = [
  "mc-sgx-tservice-sys-types",
  "mc-sgx-tservice-types",
  "mc-sgx-util",
- "test_utils",
 ]
 
 [[package]]
@@ -547,7 +546,6 @@ version = "0.2.0-pre0"
 dependencies = [
  "mc-sgx-core-types",
  "mc-sgx-tservice-sys-types",
- "test_utils",
  "yare",
 ]
 
@@ -919,13 +917,6 @@ dependencies = [
  "mc-sgx-urts-sys-types",
  "rand",
  "rsa",
-]
-
-[[package]]
-name = "test_utils"
-version = "0.2.0-pre0"
-dependencies = [
- "mc-sgx-tservice-sys-types",
 ]
 
 [[package]]

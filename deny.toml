@@ -36,14 +36,7 @@ deny = [
     # https://github.com/briansmith/ring/issues/774
     { name = "ring" },
 ]
-skip = [
-    # Currently cargo deny doesn't allow excluding path dependencies from
-    # wildcard checks https://github.com/EmbarkStudios/cargo-deny/issues/448
-    # however for non published `dev-dependencies` one must omit the version
-    # or `cargo package` will fail trying to find the dependency on crates.io
-    { name = "mc-sgx-tservice"},
-    { name = "mc-sgx-tservice-types"},
-]
+skip = []
 skip-tree = []
 
 [sources]

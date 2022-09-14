@@ -30,9 +30,6 @@ members = [
 ]
 exclude = [
     "test_enclave",
-    # See https://github.com/rust-lang/cargo/issues/6745, this doesn't actually
-    # work, but leaving here to convey intention
-    "tservice/test_utils",
 ]
 
 [profile.dev]
