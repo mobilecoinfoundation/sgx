@@ -9,4 +9,4 @@ extern crate alloc;
 
 mod seal;
 
-pub use crate::seal::{SealedData, UnsealedData};
+pub use crate::seal::Sealed;
