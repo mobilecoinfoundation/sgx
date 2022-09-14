@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// These errors correspond to error elements of
 /// [`quote3_error_t`](mc_sgx_dcap_sys_types::quote3_error_t).
 #[derive(Copy, Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "alloc", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 #[repr(u32)]
 pub enum Error {
