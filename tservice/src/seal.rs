@@ -90,15 +90,8 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     }
 }
 
-pub trait Unseal<T> {
+pub trait Unseal: AsRef<[u8]> {
     /// The length (in bytes) needed to hold the decrypted text
-    fn decrypted_text_len(&self) -> Result<usize>;
-
-    /// Unseal the data in `self`
-    fn unseal(&self) -> Result<T>;
-}
-
-impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
     fn decrypted_text_len(&self) -> Result<usize> {
         let result = unsafe {
             mc_sgx_tservice_sys::sgx_get_encrypt_txt_len(
@@ -112,9 +105,19 @@ impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
         }
     }
 
-    fn unseal(&self) -> Result<Vec<u8>> {
+    /// Unseal the data in `self`
+    ///
+    /// Returns the unsealed data into the provided `buffer`.  The returned
+    /// slice will be the exact size of the unsealed data.
+    ///
+    /// # Arguments
+    /// * `buffer` - The buffer to output the unsealed data into.  `buffer`
+    ///   needs to be at least as big as [`decrypted_text_len`].
+    fn unseal<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8]> {
         let data_length = self.decrypted_text_len()?;
-        let mut data = vec![0; data_length];
+        if buffer.len() < data_length {
+            return Err(Error::InvalidParameter);
+        }
 
         let mut data_length_u32 = data_length as u32;
         let mut mac_length_u32 = 0;
@@ -123,7 +126,7 @@ impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
                 self.as_ref().as_ptr() as *const sgx_sealed_data_t,
                 ptr::null_mut(),
                 &mut mac_length_u32,
-                data.as_mut_ptr(),
+                buffer.as_mut_ptr(),
                 &mut data_length_u32,
             )
         }
@@ -136,9 +139,19 @@ impl<T: AsRef<[u8]>> Unseal<Vec<u8>> for Sealed<T> {
             return Err(Error::Unexpected);
         }
 
+        Ok(&mut buffer[..data_length])
+    }
+
+    /// Unseal the data in `self`
+    fn unseal_to_vec(&self) -> Result<Vec<u8>> {
+        let data_length = self.decrypted_text_len()?;
+        let mut data = vec![0; data_length];
+        self.unseal(data.as_mut_slice())?;
         Ok(data)
     }
 }
+
+impl<T: AsRef<[u8]>> Unseal for Sealed<T> {}
 
 #[cfg(test)]
 mod test {
