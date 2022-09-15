@@ -486,6 +486,7 @@ dependencies = [
  "mc-sgx-util",
  "rand_core",
  "serde",
+ "yare",
 ]
 
 [[package]]
