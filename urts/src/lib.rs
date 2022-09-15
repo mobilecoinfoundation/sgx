@@ -6,7 +6,7 @@ use mc_sgx_core_types::{Error, TargetInfo};
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
     SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX, SGX_CREATE_ENCLAVE_EX_PCL,
-    SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX,
+    SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX, MAX_EX_FEATURES_COUNT,
 };
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
 use mc_sgx_util::ResultInto;
@@ -124,7 +124,7 @@ impl EnclaveBuilder {
     pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let mut ex_features = 0;
-        let mut ex_features_p: [*const c_void; 32] = [ptr::null(); 32];
+        let mut ex_features_p: [*const c_void; MAX_EX_FEATURES_COUNT] = [ptr::null(); MAX_EX_FEATURES_COUNT];
 
         if let Some(pcl_key) = self.pcl_key {
             ex_features |= SGX_CREATE_ENCLAVE_EX_PCL;

@@ -194,7 +194,7 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 
     fn int_macro(&self, name: &str, _value: i64) -> Option<IntKind> {
-        const USIZE_SUFFIXES: &[&str] = &["_SIZE", "_BYTES", "_IDX"];
+        const USIZE_SUFFIXES: &[&str] = &["_SIZE", "_BYTES", "_IDX", "_COUNT"];
         if USIZE_SUFFIXES.iter().any(|suffix| name.ends_with(suffix)) {
             Some(IntKind::Custom {
                 name: "usize",
