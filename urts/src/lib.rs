@@ -183,23 +183,13 @@ impl From<Vec<u8>> for EnclaveBuilder {
 
 impl From<&[u8]> for EnclaveBuilder {
     fn from(input: &[u8]) -> EnclaveBuilder {
-        EnclaveBuilder {
-            bytes: input.to_vec(),
-            debug: false,
-            pcl_key: None,
-            kss_config: None,
-        }
+        input.to_vec().into()
     }
 }
 
 impl<const N: usize> From<&[u8; N]> for EnclaveBuilder {
     fn from(input: &[u8; N]) -> EnclaveBuilder {
-        EnclaveBuilder {
-            bytes: input.to_vec(),
-            debug: false,
-            pcl_key: None,
-            kss_config: None,
-        }
+        input.to_vec().into()
     }
 }
 
