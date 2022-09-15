@@ -2,7 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 
-use mc_sgx_core_types::{Error, TargetInfo};
+use mc_sgx_core_types::{Error, TargetInfo, ConfigId, ConfigSvn};
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
     SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX, SGX_CREATE_ENCLAVE_EX_PCL,
@@ -13,38 +13,28 @@ use mc_sgx_util::ResultInto;
 use std::{ffi::c_void, fs::File, io::Read, mem::MaybeUninit, os::raw::c_int, path::Path, ptr};
 
 /// Structure defining configuration for Key Sharing and Separation
-pub struct KssConfig {
-    pub config_id: [u8; 64],
-    pub config_svn: u16,
-}
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+pub struct KssConfig(sgx_kss_config_t);
 
-// We can't derive Default because Default isn't implemented for [u8; 64] in
-// current Rust
-impl Default for KssConfig {
-    fn default() -> Self {
-        // There are no restrictions on these values, so use 0 as default
-        KssConfig {
-            config_id: [0; 64],
-            config_svn: 0,
-        }
+impl KssConfig {
+    pub fn new(config_id: ConfigId, config_svn: ConfigSvn) -> KssConfig {
+        KssConfig(sgx_kss_config_t {
+            config_id: config_id.into(),
+            config_svn: config_svn.into(),
+        })
     }
 }
 
 impl From<KssConfig> for sgx_kss_config_t {
     fn from(input: KssConfig) -> sgx_kss_config_t {
-        sgx_kss_config_t {
-            config_id: input.config_id,
-            config_svn: input.config_svn,
-        }
+        input.0
     }
 }
 
 impl From<sgx_kss_config_t> for KssConfig {
     fn from(input: sgx_kss_config_t) -> KssConfig {
-        KssConfig {
-            config_id: input.config_id,
-            config_svn: input.config_svn,
-        }
+        KssConfig(input)
     }
 }
 
