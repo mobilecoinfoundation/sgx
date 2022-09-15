@@ -2,11 +2,11 @@
 
 #![doc = include_str!("../README.md")]
 
-use mc_sgx_core_types::{Error, TargetInfo, ConfigId, ConfigSvn};
+use mc_sgx_core_types::{ConfigId, ConfigSvn, Error, TargetInfo};
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
-    SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX, SGX_CREATE_ENCLAVE_EX_PCL,
-    SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX, MAX_EX_FEATURES_COUNT,
+    MAX_EX_FEATURES_COUNT, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX,
+    SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX,
 };
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
 use mc_sgx_util::ResultInto;
@@ -116,12 +116,12 @@ impl EnclaveBuilder {
     pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
         let mut ex_features = 0;
-        let mut ex_features_p: [*const c_void; MAX_EX_FEATURES_COUNT] = [ptr::null(); MAX_EX_FEATURES_COUNT];
+        let mut ex_features_p: [*const c_void; MAX_EX_FEATURES_COUNT] =
+            [ptr::null(); MAX_EX_FEATURES_COUNT];
 
         if let Some(pcl_key) = self.pcl_key {
             ex_features |= SGX_CREATE_ENCLAVE_EX_PCL;
-            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX] =
-                pcl_key.as_ptr() as *const c_void;
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX] = pcl_key.as_ptr() as *const c_void;
         }
 
         if let Some(kss_config) = self.kss_config {
@@ -198,8 +198,7 @@ impl Enclave {
     /// Returns the target info for the enclave.
     pub fn target_info(&self) -> Result<TargetInfo, Error> {
         let mut target_info = TargetInfo::default().into();
-        unsafe { sgx_get_target_info(self.id, &mut target_info) }
-            .into_result()?;
+        unsafe { sgx_get_target_info(self.id, &mut target_info) }.into_result()?;
         Ok(target_info.into())
     }
 
