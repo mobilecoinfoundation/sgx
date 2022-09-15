@@ -535,6 +535,7 @@ version = "0.2.0-pre0"
 dependencies = [
  "mc-sgx-core-types",
  "mc-sgx-tservice-sys-types",
+ "yare",
 ]
 
 [[package]]

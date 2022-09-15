@@ -4,6 +4,6 @@
 #![no_std]
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
-mod diffie_hellman;
+mod seal;
 
-pub use diffie_hellman::Session;
+pub use crate::seal::SealedData;
