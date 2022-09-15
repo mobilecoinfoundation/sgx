@@ -15,8 +15,9 @@ pub struct SealedBuilder<T> {
     /// The data to be encrypted/sealed
     data: T,
 
-    /// The MAC text that will not be encrypted
-    mac: Option<T>,
+    /// The AAD(additional authenticated data) to use in the sealing.
+    /// The Intel docs often refer to this as _MAC text_
+    aad: Option<T>,
 }
 
 impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
@@ -24,7 +25,6 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     ///
     /// # Arguments
     /// * `data` - The data to be encrypted/sealed
-    /// * `mac` - The MAC text.  Will not be encrypted
     pub fn new(data: T) -> Self {
         Self {
             data,
@@ -37,15 +37,15 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
         let sealed_size = self.sealed_size()?;
         let mut sealed_data = vec![0; sealed_size];
 
-        let (mac_pointer, mac_length) = match self.mac.as_ref() {
+        let (aad_pointer, aad_length) = match self.aad.as_ref() {
             Some(text) => (text.as_ref().as_ptr(), text.as_ref().len() as u32),
             None => (ptr::null(), 0),
         };
 
         unsafe {
             mc_sgx_tservice_sys::sgx_seal_data(
-                mac_length,
-                mac_pointer,
+                aad_length,
+                aad_pointer,
                 self.data.as_ref().len() as u32,
                 self.data.as_ref().as_ptr(),
                 sealed_data.len() as u32,
@@ -57,27 +57,27 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
         Sealed::try_from(sealed_data).map_err(|_| Error::Unexpected)
     }
 
-    /// MAC text to add to the sealed data
+    /// The AAD(additional authenticated data) to use in the sealing.
     ///
-    /// The MAC text is also referred to as AAD(Additional Authenticated data)
+    /// The Intel docs also refers to AAD as _MAC text_
     ///
     /// # Arguments
-    /// * `mac_text` - The MAC text to add to the sealed data
-    pub fn mac_text(mut self, mac_text: T) -> Self {
-        self.mac = Some(mac_text);
+    /// * `aad` - The AAD to add to the sealed data
+    pub fn aad(mut self, aad: T) -> Self {
+        self.aad = Some(aad);
         self
     }
 
     /// Returns the size needed to seal the data
     fn sealed_size(&self) -> Result<usize> {
-        let mac_length = match &self.mac {
-            Some(mac) => mac.as_ref().len() as u32,
+        let aad_length = match &self.aad {
+            Some(aad) => aad.as_ref().len() as u32,
             None => 0,
         };
 
         let result = unsafe {
             mc_sgx_tservice_sys::sgx_calc_sealed_data_size(
-                mac_length,
+                aad_length,
                 self.data.as_ref().len() as u32,
             )
         };
@@ -97,14 +97,14 @@ mod test {
 
     #[test]
     fn sealed_data_size() {
-        let builder = SealedBuilder::new(b"12345678".as_slice()).mac_text(b"123".as_slice());
+        let builder = SealedBuilder::new(b"12345678".as_slice()).aad(b"123".as_slice());
         let expected_size =
-            mem::size_of::<sgx_sealed_data_t>() + builder.data.len() + builder.mac.unwrap().len();
+            mem::size_of::<sgx_sealed_data_t>() + builder.data.len() + builder.aad.unwrap().len();
         assert_eq!(builder.sealed_size(), Ok(expected_size));
     }
 
     #[test]
-    fn sealed_data_size_no_mac() {
+    fn sealed_data_size_no_aad() {
         let builder = SealedBuilder::new(b"1234567".as_slice());
         let expected_size = mem::size_of::<sgx_sealed_data_t>() + builder.data.len();
         assert_eq!(builder.sealed_size(), Ok(expected_size));
