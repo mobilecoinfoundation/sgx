@@ -10,7 +10,7 @@ use mc_sgx_urts_sys::{
 };
 use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
 use mc_sgx_util::ResultInto;
-use std::{ffi::c_void, fs::File, io::Read, mem::MaybeUninit, os::raw::c_int, path::Path, ptr};
+use std::{ffi::c_void, fs::File, io::Read, os::raw::c_int, path::Path, ptr};
 
 /// Structure defining configuration for Key Sharing and Separation
 #[repr(transparent)]
@@ -200,11 +200,10 @@ impl TryFrom<File> for EnclaveBuilder {
 impl Enclave {
     /// Returns the target info for the enclave.
     pub fn target_info(&self) -> Result<TargetInfo, Error> {
-        let mut target_info = MaybeUninit::uninit();
-        unsafe { sgx_get_target_info(self.id, target_info.as_mut_ptr()) }
-            .into_result()
-            .map_err(Error::from)
-            .map(|_| unsafe { target_info.assume_init() }.into())
+        let mut target_info = TargetInfo::default().into();
+        unsafe { sgx_get_target_info(self.id, &mut target_info) }
+            .into_result()?;
+        Ok(target_info.into())
     }
 
     /// Returns a reference to the enclave ID.
