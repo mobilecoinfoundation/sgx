@@ -11,6 +11,14 @@ const URTS_FUNCTIONS: &[&str] = &[
     "sgx_get_target_info",
 ];
 
+const URTS_CONSTANTS: &[&str] = &[
+    "SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX",
+    "SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX",
+    "SGX_CREATE_ENCLAVE_EX_PCL",
+    "SGX_CREATE_ENCLAVE_EX_KSS",
+    "MAX_EX_FEATURES_COUNT",
+];
+
 fn main() {
     let include_path = mc_sgx_core_build::sgx_include_string();
     cargo_emit::rerun_if_changed!(include_path);
