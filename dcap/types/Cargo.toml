@@ -15,7 +15,8 @@ rust-version = "1.62.1"
 [features]
 default = []
 serde = [
-    "dep:serde"
+    "dep:serde",
+    "mc-sgx-core-types/serde"
 ]
 alloc = []
 
