@@ -21,7 +21,7 @@ pub struct SealedBuilder<T> {
 }
 
 impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
-    /// A [`SealedBuilder`] from
+    /// Construct a [`SealedBuilder`] from unsealed data
     ///
     /// # Arguments
     /// * `data` - The data to be encrypted/sealed
@@ -33,7 +33,7 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     }
 
     /// Build the [`Sealed`] object
-    pub fn build(self) -> Result<Sealed<Vec<u8>>> {
+    pub fn build(&self) -> Result<Sealed<Vec<u8>>> {
         let sealed_size = self.sealed_size()?;
         let mut sealed_data = vec![0; sealed_size];
 
@@ -63,7 +63,7 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     ///
     /// # Arguments
     /// * `aad` - The AAD to add to the sealed data
-    pub fn aad(mut self, aad: T) -> Self {
+    pub fn aad(&mut self, aad: T) -> &mut Self {
         self.aad = Some(aad);
         self
     }
@@ -97,7 +97,8 @@ mod test {
 
     #[test]
     fn sealed_data_size() {
-        let builder = SealedBuilder::new(b"12345678".as_slice()).aad(b"123".as_slice());
+        let mut builder = SealedBuilder::new(b"12345678".as_slice());
+        builder.aad(b"123".as_slice());
         let expected_size =
             mem::size_of::<sgx_sealed_data_t>() + builder.data.len() + builder.aad.unwrap().len();
         assert_eq!(builder.sealed_size(), Ok(expected_size));
