@@ -28,12 +28,14 @@ impl<T: Sized> EnclaveMemory<T> for T {
     fn is_within_enclave(item: &T) -> bool {
         let start = item as *const _ as *const c_void;
         let size = mem::size_of::<T>();
-        matches!(unsafe { sgx_is_within_enclave(start, size) }, 1)
+        let result = unsafe { sgx_is_within_enclave(start, size) };
+        result == 1
     }
 
     fn is_outside_enclave(item: &T) -> bool {
         let start = item as *const _ as *const c_void;
         let size = mem::size_of::<T>();
-        matches!(unsafe { sgx_is_outside_enclave(start, size) }, 1)
+        let result = unsafe { sgx_is_outside_enclave(start, size) };
+        result == 1
     }
 }
