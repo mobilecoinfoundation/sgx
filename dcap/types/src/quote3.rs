@@ -348,7 +348,8 @@ impl TryFrom<quote3_error_t> for Error {
             }
             quote3_error_t::SGX_QL_TDX_MODULE_MISMATCH => Ok(Error::TdxModuleMismatch),
             quote3_error_t::SGX_QL_ERROR_MAX => Ok(Error::Max),
-            _ => Err(()),
+            // Map all unknowns to the unexpected error
+            _ => Ok(Error::Unexpected),
         }
     }
 }
