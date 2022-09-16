@@ -1,9 +1,10 @@
 // Copyright (c) 2022 The MobileCoin Foundation
+
 // ! This module provides types related to Quote v3
 
 use displaydoc::Display;
 use mc_sgx_dcap_sys_types::quote3_error_t;
-
+use mc_sgx_util::{ResultFrom, ResultInto};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -109,7 +110,7 @@ pub enum Error {
     /// The format of the PCK certificate is unsupported
     UnsupportedPckCertFormat = quote3_error_t::SGX_QL_PCK_CERT_UNSUPPORTED_FORMAT.0,
     /**
-     * There was an error verifying the PCK certificate signature chain 
+     * There was an error verifying the PCK certificate signature chain
      * (including PCK certificate revocation)
      */
     PckCertChain = quote3_error_t::SGX_QL_PCK_CERT_CHAIN_ERROR.0,
@@ -167,7 +168,7 @@ pub enum Error {
     QvlQveMismatch = quote3_error_t::SGX_QL_ERROR_QVL_QVE_MISMATCH.0,
     /// TCB up to date but SW Hardening needed
     TcbSwHardeningNeeded = quote3_error_t::SGX_QL_TCB_SW_HARDENING_NEEDED.0,
-    /// TCB up to date but Configuration and SW Hardening needed 
+    /// TCB up to date but Configuration and SW Hardening needed
     TcbConfigurationAndSwHardeningNeeded =
         quote3_error_t::SGX_QL_TCB_CONFIGURATION_AND_SW_HARDENING_NEEDED.0,
     /**
@@ -235,7 +236,7 @@ impl TryFrom<quote3_error_t> for Error {
     fn try_from(value: quote3_error_t) -> Result<Self, Self::Error> {
         match value {
             quote3_error_t::SGX_QL_SUCCESS => Err(()),
-            
+
             quote3_error_t::SGX_QL_ERROR_UNEXPECTED => Ok(Error::Unexpected),
             quote3_error_t::SGX_QL_ERROR_INVALID_PARAMETER => Ok(Error::InvalidParameter),
             quote3_error_t::SGX_QL_ERROR_OUT_OF_MEMORY => Ok(Error::OutOfMemory),
@@ -248,7 +249,7 @@ impl TryFrom<quote3_error_t> for Error {
             quote3_error_t::SGX_QL_ERROR_PUB_KEY_ID_MISMATCH => Ok(Error::PubKeyIdMismatch),
             quote3_error_t::SGX_QL_ERROR_INVALID_PCE_SIG_SCHEME => Ok(Error::InvalidPceSigScheme),
             quote3_error_t::SGX_QL_ATT_KEY_BLOB_ERROR => Ok(Error::AttestationKeyBlob),
-            quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID => Ok(Error::UnsupportedAttKeyId),
+            quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID => Ok(Error::UnsupportedAttestationKeyId),
             quote3_error_t::SGX_QL_UNSUPPORTED_LOADING_POLICY => {
                 Ok(Error::UnsupportedLoadingPolicy)
             }
@@ -362,6 +363,9 @@ impl From<Error> for quote3_error_t {
     }
 }
 
+impl ResultFrom<quote3_error_t> for Error {}
+impl ResultInto<Error> for quote3_error_t {}
+
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -380,7 +384,7 @@ mod test {
         pub_key_id_mismatch = { quote3_error_t::SGX_QL_ERROR_PUB_KEY_ID_MISMATCH, Error::PubKeyIdMismatch },
         invalid_pce_sig_scheme = { quote3_error_t::SGX_QL_ERROR_INVALID_PCE_SIG_SCHEME, Error::InvalidPceSigScheme },
         attestation_key_blob = { quote3_error_t::SGX_QL_ATT_KEY_BLOB_ERROR, Error::AttestationKeyBlob },
-        unsupported_att_key_id = { quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID, Error::UnsupportedAttKeyId },
+        unsupported_att_key_id = { quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID, Error::UnsupportedAttestationKeyId },
         unsupported_loading_policy = { quote3_error_t::SGX_QL_UNSUPPORTED_LOADING_POLICY, Error::UnsupportedLoadingPolicy },
         interface_unavailable = { quote3_error_t::SGX_QL_INTERFACE_UNAVAILABLE, Error::InterfaceUnavailable },
         platform_lib_unavailable = { quote3_error_t::SGX_QL_PLATFORM_LIB_UNAVAILABLE, Error::PlatformLibUnavailable },
