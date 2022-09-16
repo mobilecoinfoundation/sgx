@@ -37,7 +37,7 @@ pub enum Error {
     /// There is a problem with the attestation key blob
     AttestationKeyBlob = quote3_error_t::SGX_QL_ATT_KEY_BLOB_ERROR.0,
     /// Unsupported attestation key ID
-    UnsupportedAttKeyId = quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID.0,
+    UnsupportedAttestationKeyId = quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID.0,
     /// Unsupported enclave loading policy
     UnsupportedLoadingPolicy = quote3_error_t::SGX_QL_UNSUPPORTED_LOADING_POLICY.0,
     /// Unable to load the QE enclave
@@ -48,7 +48,7 @@ pub enum Error {
     AttestationKeyNotInitialized = quote3_error_t::SGX_QL_ATT_KEY_NOT_INITIALIZED.0,
     /// The certification data retrieved from the platform library is invalid
     InvalidCertDataInAttestationKey = quote3_error_t::SGX_QL_ATT_KEY_CERT_DATA_INVALID.0,
-    /// The platform library doesn't have any platform cert data
+    /// The platform library doesn't have any platform certification data
     NoPlatformCertData = quote3_error_t::SGX_QL_NO_PLATFORM_CERT_DATA.0,
     /// Not enough memory in the EPC to load the enclave
     OutOfEpc = quote3_error_t::SGX_QL_OUT_OF_EPC.0,
@@ -106,11 +106,11 @@ pub enum Error {
      * REPORT the Quote
      */
     UnsupportedQeReportFormat = quote3_error_t::SGX_QL_QE_REPORT_UNSUPPORTED_FORMAT.0,
-    /// The format of the PCK Cert is unsupported
+    /// The format of the PCK certificate is unsupported
     UnsupportedPckCertFormat = quote3_error_t::SGX_QL_PCK_CERT_UNSUPPORTED_FORMAT.0,
     /**
-     * There was an error verifying the PCK Cert signature chain (including
-     * PCK Cert revocation)
+     * There was an error verifying the PCK certificate signature chain 
+     * (including PCK certificate revocation)
      */
     PckCertChain = quote3_error_t::SGX_QL_PCK_CERT_CHAIN_ERROR.0,
     /// The format of the TCBInfo structure is unsupported
@@ -153,21 +153,21 @@ pub enum Error {
     TcbConfigurationNeeded = quote3_error_t::SGX_QL_TCB_CONFIGURATION_NEEDED.0,
     /// ?
     UnableToGetCollateral = quote3_error_t::SGX_QL_UNABLE_TO_GET_COLLATERAL.0,
-    /// ?
-    InvalidPrivilege = quote3_error_t::SGX_QL_ERROR_INVALID_PRIVILEGE.0,
     /// No enough privilege to perform the operation
-    NoQveIdentityData = quote3_error_t::SGX_QL_NO_QVE_IDENTITY_DATA.0,
+    InvalidPrivilege = quote3_error_t::SGX_QL_ERROR_INVALID_PRIVILEGE.0,
     /// The platform does not have the QVE identity data available.
+    NoQveIdentityData = quote3_error_t::SGX_QL_NO_QVE_IDENTITY_DATA.0,
+    /// ?
     UnsupportedCrlFormat = quote3_error_t::SGX_QL_CRL_UNSUPPORTED_FORMAT.0,
     /// ?
     QeIdentityChainError = quote3_error_t::SGX_QL_QEIDENTITY_CHAIN_ERROR.0,
     /// ?
     TcbInfoChainError = quote3_error_t::SGX_QL_TCBINFO_CHAIN_ERROR.0,
-    /// ?
-    QvlQveMismatch = quote3_error_t::SGX_QL_ERROR_QVL_QVE_MISMATCH.0,
     /// QvE returned supplemental data version mismatched between QVL and QvE
-    TcbSwHardeningNeeded = quote3_error_t::SGX_QL_TCB_SW_HARDENING_NEEDED.0,
+    QvlQveMismatch = quote3_error_t::SGX_QL_ERROR_QVL_QVE_MISMATCH.0,
     /// TCB up to date but SW Hardening needed
+    TcbSwHardeningNeeded = quote3_error_t::SGX_QL_TCB_SW_HARDENING_NEEDED.0,
+    /// TCB up to date but Configuration and SW Hardening needed 
     TcbConfigurationAndSwHardeningNeeded =
         quote3_error_t::SGX_QL_TCB_CONFIGURATION_AND_SW_HARDENING_NEEDED.0,
     /**
@@ -234,6 +234,8 @@ impl TryFrom<quote3_error_t> for Error {
 
     fn try_from(value: quote3_error_t) -> Result<Self, Self::Error> {
         match value {
+            quote3_error_t::SGX_QL_SUCCESS => Err(()),
+            
             quote3_error_t::SGX_QL_ERROR_UNEXPECTED => Ok(Error::Unexpected),
             quote3_error_t::SGX_QL_ERROR_INVALID_PARAMETER => Ok(Error::InvalidParameter),
             quote3_error_t::SGX_QL_ERROR_OUT_OF_MEMORY => Ok(Error::OutOfMemory),
@@ -356,104 +358,7 @@ impl TryFrom<quote3_error_t> for Error {
 
 impl From<Error> for quote3_error_t {
     fn from(src: Error) -> quote3_error_t {
-        match src {
-            Error::Unexpected => quote3_error_t::SGX_QL_ERROR_UNEXPECTED,
-            Error::InvalidParameter => quote3_error_t::SGX_QL_ERROR_INVALID_PARAMETER,
-            Error::OutOfMemory => quote3_error_t::SGX_QL_ERROR_OUT_OF_MEMORY,
-            Error::EcdsaIdMismatch => quote3_error_t::SGX_QL_ERROR_ECDSA_ID_MISMATCH,
-            Error::PathnameBufferOverflow => quote3_error_t::SGX_QL_PATHNAME_BUFFER_OVERFLOW_ERROR,
-            Error::FileAccess => quote3_error_t::SGX_QL_FILE_ACCESS_ERROR,
-            Error::StoredKey => quote3_error_t::SGX_QL_ERROR_STORED_KEY,
-            Error::PubKeyIdMismatch => quote3_error_t::SGX_QL_ERROR_PUB_KEY_ID_MISMATCH,
-            Error::InvalidPceSigScheme => quote3_error_t::SGX_QL_ERROR_INVALID_PCE_SIG_SCHEME,
-            Error::AttestationKeyBlob => quote3_error_t::SGX_QL_ATT_KEY_BLOB_ERROR,
-            Error::UnsupportedAttKeyId => quote3_error_t::SGX_QL_UNSUPPORTED_ATT_KEY_ID,
-            Error::UnsupportedLoadingPolicy => quote3_error_t::SGX_QL_UNSUPPORTED_LOADING_POLICY,
-            Error::InterfaceUnavailable => quote3_error_t::SGX_QL_INTERFACE_UNAVAILABLE,
-            Error::PlatformLibUnavailable => quote3_error_t::SGX_QL_PLATFORM_LIB_UNAVAILABLE,
-            Error::AttestationKeyNotInitialized => quote3_error_t::SGX_QL_ATT_KEY_NOT_INITIALIZED,
-            Error::InvalidCertDataInAttestationKey => {
-                quote3_error_t::SGX_QL_ATT_KEY_CERT_DATA_INVALID
-            }
-            Error::NoPlatformCertData => quote3_error_t::SGX_QL_NO_PLATFORM_CERT_DATA,
-            Error::OutOfEpc => quote3_error_t::SGX_QL_OUT_OF_EPC,
-            Error::Report => quote3_error_t::SGX_QL_ERROR_REPORT,
-            Error::EnclaveLost => quote3_error_t::SGX_QL_ENCLAVE_LOST,
-            Error::InvalidReport => quote3_error_t::SGX_QL_INVALID_REPORT,
-            Error::EnclaveLoad => quote3_error_t::SGX_QL_ENCLAVE_LOAD_ERROR,
-            Error::UnableToGenerateQeReport => quote3_error_t::SGX_QL_UNABLE_TO_GENERATE_QE_REPORT,
-            Error::KeyCertification => quote3_error_t::SGX_QL_KEY_CERTIFCATION_ERROR,
-            Error::Network => quote3_error_t::SGX_QL_NETWORK_ERROR,
-            Error::Message => quote3_error_t::SGX_QL_MESSAGE_ERROR,
-            Error::NoQuoteCollateralData => quote3_error_t::SGX_QL_NO_QUOTE_COLLATERAL_DATA,
-            Error::UnsupportedQuoteCertificationData => {
-                quote3_error_t::SGX_QL_QUOTE_CERTIFICATION_DATA_UNSUPPORTED
-            }
-            Error::UnsupportedQuoteFormat => quote3_error_t::SGX_QL_QUOTE_FORMAT_UNSUPPORTED,
-            Error::UnableToGenerateReport => quote3_error_t::SGX_QL_UNABLE_TO_GENERATE_REPORT,
-            Error::InvalidQeReportSignature => quote3_error_t::SGX_QL_QE_REPORT_INVALID_SIGNATURE,
-            Error::UnsupportedQeReportFormat => quote3_error_t::SGX_QL_QE_REPORT_UNSUPPORTED_FORMAT,
-            Error::UnsupportedPckCertFormat => quote3_error_t::SGX_QL_PCK_CERT_UNSUPPORTED_FORMAT,
-            Error::PckCertChain => quote3_error_t::SGX_QL_PCK_CERT_CHAIN_ERROR,
-            Error::UnsupportedTcbInfoFormat => quote3_error_t::SGX_QL_TCBINFO_UNSUPPORTED_FORMAT,
-            Error::TcbInfoMismatch => quote3_error_t::SGX_QL_TCBINFO_MISMATCH,
-            Error::UnsupportedQeIdentityFormat => {
-                quote3_error_t::SGX_QL_QEIDENTITY_UNSUPPORTED_FORMAT
-            }
-            Error::QeIdentityMismatch => quote3_error_t::SGX_QL_QEIDENTITY_MISMATCH,
-            Error::TcbOutOfDate => quote3_error_t::SGX_QL_TCB_OUT_OF_DATE,
-            Error::TcbOutOfDateAndConfigurationNeeded => {
-                quote3_error_t::SGX_QL_TCB_OUT_OF_DATE_CONFIGURATION_NEEDED
-            }
-            Error::EnclaveIdentityOutOfDate => {
-                quote3_error_t::SGX_QL_SGX_ENCLAVE_IDENTITY_OUT_OF_DATE
-            }
-            Error::EnclaveReportIsvSvnOutOfDate => {
-                quote3_error_t::SGX_QL_SGX_ENCLAVE_REPORT_ISVSVN_OUT_OF_DATE
-            }
-            Error::QeIdentityOutOfDate => quote3_error_t::SGX_QL_QE_IDENTITY_OUT_OF_DATE,
-            Error::TcbInfoExpired => quote3_error_t::SGX_QL_SGX_TCB_INFO_EXPIRED,
-            Error::SgxPckCertChainExpired => quote3_error_t::SGX_QL_SGX_PCK_CERT_CHAIN_EXPIRED,
-            Error::SgxCrlExpired => quote3_error_t::SGX_QL_SGX_CRL_EXPIRED,
-            Error::SgxSigningCertChainExpired => {
-                quote3_error_t::SGX_QL_SGX_SIGNING_CERT_CHAIN_EXPIRED
-            }
-            Error::SgxEnclaveIdentityExpired => quote3_error_t::SGX_QL_SGX_ENCLAVE_IDENTITY_EXPIRED,
-            Error::PckRevoked => quote3_error_t::SGX_QL_PCK_REVOKED,
-            Error::TcbRevoked => quote3_error_t::SGX_QL_TCB_REVOKED,
-            Error::TcbConfigurationNeeded => quote3_error_t::SGX_QL_TCB_CONFIGURATION_NEEDED,
-            Error::UnableToGetCollateral => quote3_error_t::SGX_QL_UNABLE_TO_GET_COLLATERAL,
-            Error::InvalidPrivilege => quote3_error_t::SGX_QL_ERROR_INVALID_PRIVILEGE,
-            Error::NoQveIdentityData => quote3_error_t::SGX_QL_NO_QVE_IDENTITY_DATA,
-            Error::UnsupportedCrlFormat => quote3_error_t::SGX_QL_CRL_UNSUPPORTED_FORMAT,
-            Error::QeIdentityChainError => quote3_error_t::SGX_QL_QEIDENTITY_CHAIN_ERROR,
-            Error::TcbInfoChainError => quote3_error_t::SGX_QL_TCBINFO_CHAIN_ERROR,
-            Error::QvlQveMismatch => quote3_error_t::SGX_QL_ERROR_QVL_QVE_MISMATCH,
-            Error::TcbSwHardeningNeeded => quote3_error_t::SGX_QL_TCB_SW_HARDENING_NEEDED,
-            Error::TcbConfigurationAndSwHardeningNeeded => {
-                quote3_error_t::SGX_QL_TCB_CONFIGURATION_AND_SW_HARDENING_NEEDED
-            }
-            Error::UnsupportedMode => quote3_error_t::SGX_QL_UNSUPPORTED_MODE,
-            Error::NoDevice => quote3_error_t::SGX_QL_NO_DEVICE,
-            Error::ServiceUnavailable => quote3_error_t::SGX_QL_SERVICE_UNAVAILABLE,
-            Error::NetworkFailure => quote3_error_t::SGX_QL_NETWORK_FAILURE,
-            Error::ServiceTimeout => quote3_error_t::SGX_QL_SERVICE_TIMEOUT,
-            Error::Busy => quote3_error_t::SGX_QL_ERROR_BUSY,
-            Error::UnknownMessageResponse => quote3_error_t::SGX_QL_UNKNOWN_MESSAGE_RESPONSE,
-            Error::PersistentStorage => quote3_error_t::SGX_QL_PERSISTENT_STORAGE_ERROR,
-            Error::MessageParsing => quote3_error_t::SGX_QL_ERROR_MESSAGE_PARSING_ERROR,
-            Error::PlatformUnknown => quote3_error_t::SGX_QL_PLATFORM_UNKNOWN,
-            Error::UnknownApiVersion => quote3_error_t::SGX_QL_UNKNOWN_API_VERSION,
-            Error::CertsUnavailable => quote3_error_t::SGX_QL_CERTS_UNAVAILABLE,
-            Error::QveIdentityMismatch => quote3_error_t::SGX_QL_QVEIDENTITY_MISMATCH,
-            Error::QveOutOfDate => quote3_error_t::SGX_QL_QVE_OUT_OF_DATE,
-            Error::PswNotAvailable => quote3_error_t::SGX_QL_PSW_NOT_AVAILABLE,
-            Error::CollateralVersionNotSupported => {
-                quote3_error_t::SGX_QL_COLLATERAL_VERSION_NOT_SUPPORTED
-            }
-            Error::TdxModuleMismatch => quote3_error_t::SGX_QL_TDX_MODULE_MISMATCH,
-            Error::Max => quote3_error_t::SGX_QL_ERROR_MAX,
-        }
+        quote3_error_t(src as u32)
     }
 }
 

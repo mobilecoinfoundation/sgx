@@ -30,3 +30,4 @@ serde = { version = "1.0.144", default-features = false, features = ["derive"], 
 
 [dev-dependencies]
 yare = "1.0.1"
+yare = "1.0.1"
