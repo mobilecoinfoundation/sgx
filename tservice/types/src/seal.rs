@@ -2,6 +2,8 @@
 
 //! Types used for sealing and unsealing of secrets
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 use core::{mem, result::Result as CoreResult};
 use mc_sgx_core_types::FfiError;
 use mc_sgx_tservice_sys_types::{sgx_aes_gcm_data_t, sgx_sealed_data_t};
@@ -49,19 +51,36 @@ impl<'a> AesGcmData<'a> {
 
 /// Sealed data
 ///
-/// An opaque wrapper around `&[u8]` which is meant to be interpreted as
+/// An opaque wrapper around `AsRef<[u8]>` which is meant to be interpreted as
 /// [`mc-sgx-tservice-sys-types::sgx_sealed_data_t`].
 /// The [`mc-sgx-tservice-sys-types::sgx_sealed_data_t`] is a dynamically sized
 /// type.
 /// There is no need to directly access any of the underlying types members.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct SealedData<'a> {
-    bytes: &'a [u8],
+pub struct Sealed<T> {
+    bytes: T,
 }
 
-impl<'a> TryFrom<&'a [u8]> for SealedData<'a> {
+// Unable to do
+// ```rust
+//  impl<T: AsRef<[u8]> TryFrom<T> for Sealed<T>;
+// ```
+// because of https://github.com/rust-lang/rust/issues/50133
+// So we implement the 2 versions of slice with a lifetime and Vec
+impl<'a> TryFrom<&'a [u8]> for Sealed<&'a [u8]> {
     type Error = FfiError;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
+        let offset = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
+        let aes_gcm_bytes = bytes.get(offset..).ok_or(FfiError::InvalidInputLength)?;
+        AesGcmData::try_from(aes_gcm_bytes)?;
+        Ok(Self { bytes })
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl TryFrom<Vec<u8>> for Sealed<Vec<u8>> {
+    type Error = FfiError;
+    fn try_from(bytes: Vec<u8>) -> Result<Self> {
         let offset = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
         let aes_gcm_bytes = bytes.get(offset..).ok_or(FfiError::InvalidInputLength)?;
         AesGcmData::try_from(aes_gcm_bytes)?;
@@ -234,14 +253,14 @@ mod test {
     ]
     fn sealed_data_try_from_bytes(encrypted_data: &[u8], mac_text: Option<&[u8]>) {
         let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), encrypted_data, mac_text);
-        assert!(SealedData::try_from(bytes.as_slice()).is_ok());
+        assert!(Sealed::try_from(bytes.as_slice()).is_ok());
     }
 
     #[test]
     fn buffer_just_big_enough_for_sealed_data() {
         let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = mem::size_of::<sgx_sealed_data_t>();
-        assert!(SealedData::try_from(&bytes[..size]).is_ok());
+        assert!(Sealed::try_from(&bytes[..size]).is_ok());
     }
 
     #[test]
@@ -249,7 +268,7 @@ mod test {
         let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = mem::size_of::<sgx_sealed_data_t>() - 1;
         assert_eq!(
-            SealedData::try_from(&bytes[..size]),
+            Sealed::try_from(&bytes[..size]),
             Err(FfiError::InvalidInputLength)
         );
     }
@@ -259,7 +278,7 @@ mod test {
         let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
         let payload_size = b"12".len() + b"34".len();
         let size = mem::size_of::<sgx_sealed_data_t>() + payload_size;
-        assert!(SealedData::try_from(&bytes[..size]).is_ok());
+        assert!(Sealed::try_from(&bytes[..size]).is_ok());
     }
 
     #[test]
@@ -268,7 +287,7 @@ mod test {
         let payload_size = b"12".len() + b"34".len();
         let size = (mem::size_of::<sgx_sealed_data_t>() + payload_size) - 1;
         assert_eq!(
-            SealedData::try_from(&bytes[..size]),
+            Sealed::try_from(&bytes[..size]),
             Err(FfiError::InvalidInputLength)
         );
     }
@@ -280,7 +299,7 @@ mod test {
 
         // This will still fail, as the AesGcmData::TryFrom will fail.
         assert_eq!(
-            SealedData::try_from(&bytes[..size]),
+            Sealed::try_from(&bytes[..size]),
             Err(FfiError::InvalidInputLength)
         );
     }
@@ -290,7 +309,7 @@ mod test {
         let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = (mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>()) - 1;
         assert_eq!(
-            SealedData::try_from(&bytes[..size]),
+            Sealed::try_from(&bytes[..size]),
             Err(FfiError::InvalidInputLength)
         );
     }

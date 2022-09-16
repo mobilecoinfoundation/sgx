@@ -4,6 +4,9 @@
 #![no_std]
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 mod seal;
 
-pub use crate::seal::SealedData;
+pub use crate::seal::Sealed;
