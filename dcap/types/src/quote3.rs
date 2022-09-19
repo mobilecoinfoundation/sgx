@@ -464,7 +464,7 @@ mod test {
     fn success_is_not_an_error() {
         assert!(Error::try_from(quote3_error_t::SGX_QL_SUCCESS).is_err())
     }
-    
+
     #[test]
     fn unknown_quote3_error_maps_to_unexpected() {
         let unknown = quote3_error_t(quote3_error_t::SGX_QL_ERROR_MAX.0 + 1);
