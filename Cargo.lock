@@ -444,6 +444,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-dcap-quoteverify"
+version = "0.2.0-pre0"
+dependencies = [
+ "mc-sgx-dcap-quoteverify-sys",
+ "mc-sgx-dcap-quoteverify-sys-types",
+ "mc-sgx-dcap-quoteverify-types",
+ "mc-sgx-dcap-types",
+ "mc-sgx-util",
+ "tempfile",
+]
+
+[[package]]
 name = "mc-sgx-dcap-quoteverify-sys"
 version = "0.2.0-pre0"
 dependencies = [
