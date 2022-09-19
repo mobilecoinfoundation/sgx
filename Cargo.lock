@@ -481,10 +481,8 @@ name = "mc-sgx-dcap-types"
 version = "0.2.0-pre0"
 dependencies = [
  "displaydoc",
- "mc-sgx-core-types",
  "mc-sgx-dcap-sys-types",
  "mc-sgx-util",
- "rand_core",
  "serde",
  "yare",
 ]
