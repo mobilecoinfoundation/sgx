@@ -447,6 +447,7 @@ dependencies = [
 name = "mc-sgx-dcap-quoteverify"
 version = "0.2.0-pre0"
 dependencies = [
+ "mc-sgx-core-types",
  "mc-sgx-dcap-quoteverify-sys",
  "mc-sgx-dcap-quoteverify-sys-types",
  "mc-sgx-dcap-quoteverify-types",

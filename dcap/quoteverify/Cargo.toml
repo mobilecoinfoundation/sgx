@@ -14,13 +14,14 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
+mc-sgx-core-types = { path = "../../core/types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-quoteverify-sys = { path = "sys", version = "=0.2.0-pre0" }
 mc-sgx-dcap-quoteverify-sys-types = { path = "sys/types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-quoteverify-types = { path = "types", version = "=0.2.0-pre0" }
+mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-types = { path = "../types", version = "=0.2.0-pre0" }
 mc-sgx-util = { path = "../../util", version = "=0.2.0-pre0" }
 
 [dev-dependencies]
-mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.2.0-pre0" }
 tempfile = "3.3.0"
 yare = "1.0.1"

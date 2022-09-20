@@ -112,6 +112,12 @@ pub struct RawQuote<'a> {
     bytes: &'a [u8],
 }
 
+impl<'a> AsRef<[u8]> for RawQuote<'a> {
+    fn as_ref(&self) -> &[u8] {
+        self.bytes
+    }
+}
+
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Version(u16);
@@ -120,6 +126,7 @@ new_type_accessors_impls! {
     Version, u16;
 }
 
+/// Trait for all quote versions from SGX
 pub trait BaseQuote {
     /// Provides access to the [`RawQuote`] to perform the common lookup
     /// operations on the basic quote type.

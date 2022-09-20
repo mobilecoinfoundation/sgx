@@ -3,7 +3,7 @@
 // ! This module provides types related to Quote v3
 
 use displaydoc::Display;
-use mc_sgx_dcap_sys_types::quote3_error_t;
+use mc_sgx_dcap_sys_types::{quote3_error_t, sgx_ql_qv_result_t};
 use mc_sgx_util::{ResultFrom, ResultInto};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -366,6 +366,87 @@ impl From<Error> for quote3_error_t {
 impl ResultFrom<quote3_error_t> for Error {}
 impl ResultInto<Error> for quote3_error_t {}
 
+/// An enumeration of errors which occur when verifying a quote
+///
+/// These errors correspond to error elements of
+/// [`sgx_ql_qv_result_t`](mc_sgx_dcap_sys_types::sgx_ql_qv_result_t).
+#[derive(Copy, Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[non_exhaustive]
+#[repr(u32)]
+pub enum VerificationError {
+    /** The Quote verification passed and the platform is patched to
+     * the latest TCB level but additional configuration of the SGX platform
+     * may be needed
+     */
+    ConfigurationNeeded = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED.0,
+
+    /** The Quote is good but TCB level of the platform is out of date.
+     * The platform needs patching to be at the latest TCB level
+     */
+    OutOfData = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE.0,
+    /** The Quote is good but the TCB level of the platform is out of
+     * date and additional configuration of the SGX Platform at its
+     * current patching level may be needed. The platform needs
+     * patching to be at the latest TCB level
+     */
+    OutOfDataConfigurationNeeded = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED.0,
+    /// The signature over the application report is invalid
+    InvalidSignature = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE.0,
+    /// The attestation key or platform has been revoked
+    Revoked = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_REVOKED.0,
+    /// The Quote verification failed due to an error in one of the input
+    Unspecified = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED.0,
+    /** The TCB level of the platform is up to date, but SGX SW Hardening
+     * is needed
+     */
+    SwHardeningNeeded = sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED.0,
+    /** The TCB level of the platform is up to date, but additional
+     * configuration of the platform at its current patching level
+     * may be needed. Moreover, SGX SW Hardening is also needed
+     */
+    ConfigurationAndSwHardeningNeeded =
+        sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED.0,
+}
+
+impl TryFrom<sgx_ql_qv_result_t> for VerificationError {
+    type Error = ();
+
+    fn try_from(value: sgx_ql_qv_result_t) -> Result<Self, Self::Error> {
+        match value {
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OK => Err(()),
+
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED => {
+                Ok(VerificationError::ConfigurationNeeded)
+            }
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE => Ok(VerificationError::OutOfData),
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED => {
+                Ok(VerificationError::OutOfDataConfigurationNeeded)
+            }
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE => {
+                Ok(VerificationError::InvalidSignature)
+            }
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_REVOKED => Ok(VerificationError::Revoked),
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED => Ok(VerificationError::Unspecified),
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED => {
+                Ok(VerificationError::SwHardeningNeeded)
+            }
+            sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED => {
+                Ok(VerificationError::ConfigurationAndSwHardeningNeeded)
+            }
+            _ => Ok(VerificationError::Unspecified),
+        }
+    }
+}
+impl From<VerificationError> for sgx_ql_qv_result_t {
+    fn from(src: VerificationError) -> sgx_ql_qv_result_t {
+        sgx_ql_qv_result_t(src as u32)
+    }
+}
+
+impl ResultFrom<sgx_ql_qv_result_t> for VerificationError {}
+impl ResultInto<VerificationError> for sgx_ql_qv_result_t {}
+
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -374,12 +455,12 @@ mod test {
     use yare::parameterized;
 
     #[parameterized(
-        unexpected = { quote3_error_t::SGX_QL_ERROR_UNEXPECTED, Error::Unexpected },
-        invalid_parameter = { quote3_error_t::SGX_QL_ERROR_INVALID_PARAMETER, Error::InvalidParameter },
-        out_of_memory = { quote3_error_t::SGX_QL_ERROR_OUT_OF_MEMORY, Error::OutOfMemory },
-        ecdsa_id_mismatch = { quote3_error_t::SGX_QL_ERROR_ECDSA_ID_MISMATCH, Error::EcdsaIdMismatch },
-        pathname_buffer_overflow = { quote3_error_t::SGX_QL_PATHNAME_BUFFER_OVERFLOW_ERROR, Error::PathnameBufferOverflow },
-        file_access = { quote3_error_t::SGX_QL_FILE_ACCESS_ERROR, Error::FileAccess },
+    unexpected = { quote3_error_t::SGX_QL_ERROR_UNEXPECTED, Error::Unexpected },
+    invalid_parameter = { quote3_error_t::SGX_QL_ERROR_INVALID_PARAMETER, Error::InvalidParameter },
+    out_of_memory = { quote3_error_t::SGX_QL_ERROR_OUT_OF_MEMORY, Error::OutOfMemory },
+    ecdsa_id_mismatch = { quote3_error_t::SGX_QL_ERROR_ECDSA_ID_MISMATCH, Error::EcdsaIdMismatch },
+    pathname_buffer_overflow = { quote3_error_t::SGX_QL_PATHNAME_BUFFER_OVERFLOW_ERROR, Error::PathnameBufferOverflow },
+    file_access = { quote3_error_t::SGX_QL_FILE_ACCESS_ERROR, Error::FileAccess },
         stored_key = { quote3_error_t::SGX_QL_ERROR_STORED_KEY, Error::StoredKey },
         pub_key_id_mismatch = { quote3_error_t::SGX_QL_ERROR_PUB_KEY_ID_MISMATCH, Error::PubKeyIdMismatch },
         invalid_pce_sig_scheme = { quote3_error_t::SGX_QL_ERROR_INVALID_PCE_SIG_SCHEME, Error::InvalidPceSigScheme },
@@ -471,6 +552,41 @@ mod test {
         assert_eq!(
             Error::try_from(unknown).expect("Could not parse an unknown SGX Status"),
             Error::Unexpected
+        );
+    }
+
+    #[parameterized(
+    configuration_needed = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_NEEDED, VerificationError::ConfigurationNeeded },
+    out_of_date = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE, VerificationError::OutOfData },
+    out_of_date_config_needed = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED, VerificationError::OutOfDataConfigurationNeeded },
+    invalid_signature = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_INVALID_SIGNATURE, VerificationError::InvalidSignature },
+    revoked = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_REVOKED, VerificationError::Revoked },
+    unspecified = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_UNSPECIFIED, VerificationError::Unspecified },
+    sw_hardening_needed = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_SW_HARDENING_NEEDED, VerificationError::SwHardeningNeeded },
+    configuration_and_sw_hardening_needed = { sgx_ql_qv_result_t::SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED, VerificationError::ConfigurationAndSwHardeningNeeded },
+    )]
+    fn verification_error_from_ffi(ffi: sgx_ql_qv_result_t, expected: VerificationError) {
+        assert_eq!(
+            expected,
+            VerificationError::try_from(ffi)
+                .expect("Could not create verification error from ffi type")
+        )
+    }
+
+    #[test]
+    fn verification_success_is_not_an_error() {
+        assert!(sgx_ql_qv_result_t::SGX_QL_QV_RESULT_OK
+            .into_result()
+            .is_ok());
+    }
+
+    #[test]
+    fn unknown_verification_result_maps_to_unspecified() {
+        let unknown = sgx_ql_qv_result_t(sgx_ql_qv_result_t::SGX_QL_QV_RESULT_MAX.0 + 1);
+        assert_eq!(
+            VerificationError::try_from(unknown)
+                .expect("Could not parse an unknown verification result"),
+            VerificationError::Unspecified
         );
     }
 }

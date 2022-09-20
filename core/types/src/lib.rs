@@ -26,6 +26,7 @@ pub use crate::{
     error::{Error, FfiError, Result},
     key_request::{KeyName, KeyPolicy, KeyRequest, KeyRequestBuilder},
     measurement::{Measurement, MrEnclave, MrSigner},
+    quote::{BaseQuote, Quote},
     report::{Report, ReportBody, ReportData},
     svn::{ConfigSvn, CpuSvn, IsvSvn},
     target_info::TargetInfo,
