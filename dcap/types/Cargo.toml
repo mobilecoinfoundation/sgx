@@ -19,6 +19,7 @@ alloc = []
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.2.0-pre0" }
 mc-sgx-util = { path = "../../util", version = "=0.2.0-pre0" }
 serde = { version = "1.0.145", default-features = false, features = ["derive"], optional = true }

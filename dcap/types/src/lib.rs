@@ -8,8 +8,9 @@
 extern crate alloc;
 
 mod quote3;
+mod request_policy;
 
-pub use crate::quote3::Error as Quote3Error;
+pub use crate::{quote3::Error as Quote3Error, request_policy::RequestPolicy};
 
 // TODO:
 //

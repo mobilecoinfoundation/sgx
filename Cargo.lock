@@ -453,6 +453,7 @@ dependencies = [
  "mc-sgx-dcap-types",
  "mc-sgx-util",
  "tempfile",
+ "yare",
 ]
 
 [[package]]
@@ -511,6 +512,7 @@ name = "mc-sgx-dcap-types"
 version = "0.2.0-pre0"
 dependencies = [
  "displaydoc",
+ "mc-sgx-core-types",
  "mc-sgx-dcap-sys-types",
  "mc-sgx-util",
  "serde",
