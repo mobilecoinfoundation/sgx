@@ -19,3 +19,6 @@ mc-sgx-tservice-sys = { path = "sys", version = "=0.2.0-pre0" }
 mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.2.0-pre0" }
 mc-sgx-tservice-types = { path = "types", version = "=0.2.0-pre0", features = [ "alloc" ] }
 mc-sgx-util = { path = "../util", version = "=0.2.0-pre0" }
+
+[dev-dependencies]
+mc-sgx-tservice-types = { path = "types", version = "=0.2.0-pre0", features = [ "test-utils" ] }

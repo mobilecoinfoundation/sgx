@@ -77,6 +77,12 @@ impl<'a> TryFrom<&'a [u8]> for Sealed<&'a [u8]> {
     }
 }
 
+impl<T: AsRef<[u8]>> AsRef<[u8]> for Sealed<T> {
+    fn as_ref(&self) -> &[u8] {
+        self.bytes.as_ref()
+    }
+}
+
 #[cfg(feature = "alloc")]
 impl TryFrom<Vec<u8>> for Sealed<Vec<u8>> {
     type Error = FfiError;
@@ -91,71 +97,13 @@ impl TryFrom<Vec<u8>> for Sealed<Vec<u8>> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_utils;
     use core::{mem, slice};
     use mc_sgx_tservice_sys_types::sgx_aes_gcm_data_t;
     use yare::parameterized;
 
-    // The buffer size of the byte types.
     // Extra trailing bytes (256) to store the _payload_
-    const BUFFER_SIZE: usize = mem::size_of::<sgx_sealed_data_t>() + 256;
-
-    /// Converts sealed data to bytes.
-    ///
-    /// The returned bytes will be larger than the size of `sgx_sealed_data_t`
-    /// in order to contain the `encrypted_data` and optional `mac_text`.
-    /// The [`sgx_sealed_data_t.plain_text_offset`] and
-    /// [`sgx_sealed_data_t.aes_data.payload_size`] will be updated to account
-    /// for the provided `encrypted_data` and `mac_text`.
-    ///
-    /// #Arguments
-    /// * `sealed_data` - The sealed data to start the buffer with.
-    /// * `encrypted_data` - The encrypted part of the payload
-    /// * `mac_text` - The MAC text of the payload
-    #[allow(unsafe_code)]
-    fn sealed_data_to_bytes(
-        sealed_data: sgx_sealed_data_t,
-        encrypted_data: &[u8],
-        mac_text: Option<&[u8]>,
-    ) -> [u8; BUFFER_SIZE] {
-        let mut sealed_data = sealed_data;
-
-        let mac_length = match mac_text {
-            Some(text) => {
-                sealed_data.plain_text_offset = encrypted_data.len() as u32;
-                text.len() as u32
-            }
-            None => {
-                sealed_data.plain_text_offset = 0;
-                0
-            }
-        };
-        sealed_data.aes_data.payload_size = encrypted_data.len() as u32 + mac_length;
-
-        // SAFETY: This is a test only function. The size of `sealed_data` is
-        // used for reinterpretation of `sealed_data` into a byte slice. The
-        // slice is copied from prior to the leaving of this function ensuring
-        // the raw pointer is not persisted.
-        let alias_bytes: &[u8] = unsafe {
-            slice::from_raw_parts(
-                &sealed_data as *const sgx_sealed_data_t as *const u8,
-                mem::size_of::<sgx_sealed_data_t>(),
-            )
-        };
-
-        let mut bytes: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE];
-        bytes[..mem::size_of::<sgx_sealed_data_t>()].copy_from_slice(alias_bytes);
-
-        let payload_offset = mem::size_of::<sgx_sealed_data_t>();
-        let encrypted_data_end = payload_offset + encrypted_data.len();
-        bytes[payload_offset..encrypted_data_end].copy_from_slice(encrypted_data);
-
-        if let Some(text) = mac_text {
-            let mac_offset = encrypted_data_end;
-            let mac_end = mac_offset + text.len();
-            bytes[mac_offset..mac_end].copy_from_slice(text);
-        }
-        bytes
-    }
+    const BUFFER_SIZE: usize = mem::size_of::<sgx_aes_gcm_data_t>() + 256;
 
     /// Converts [`sgx_aes_gcm_data_t`] to bytes.
     ///
@@ -252,20 +200,24 @@ mod test {
     )
     ]
     fn sealed_data_try_from_bytes(encrypted_data: &[u8], mac_text: Option<&[u8]>) {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), encrypted_data, mac_text);
+        let bytes = test_utils::sealed_data_to_bytes(
+            sgx_sealed_data_t::default(),
+            encrypted_data,
+            mac_text,
+        );
         assert!(Sealed::try_from(bytes.as_slice()).is_ok());
     }
 
     #[test]
     fn buffer_just_big_enough_for_sealed_data() {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = mem::size_of::<sgx_sealed_data_t>();
         assert!(Sealed::try_from(&bytes[..size]).is_ok());
     }
 
     #[test]
     fn buffer_too_small_for_sealed_data() {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = mem::size_of::<sgx_sealed_data_t>() - 1;
         assert_eq!(
             Sealed::try_from(&bytes[..size]),
@@ -275,7 +227,8 @@ mod test {
 
     #[test]
     fn buffer_just_big_enough_for_sealed_payload() {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
+        let bytes =
+            test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
         let payload_size = b"12".len() + b"34".len();
         let size = mem::size_of::<sgx_sealed_data_t>() + payload_size;
         assert!(Sealed::try_from(&bytes[..size]).is_ok());
@@ -283,7 +236,8 @@ mod test {
 
     #[test]
     fn buffer_too_small_for_sealed_payload() {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
+        let bytes =
+            test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"12", Some(b"34"));
         let payload_size = b"12".len() + b"34".len();
         let size = (mem::size_of::<sgx_sealed_data_t>() + payload_size) - 1;
         assert_eq!(
@@ -294,7 +248,7 @@ mod test {
 
     #[test]
     fn sealed_data_just_big_enough_to_pass_on_aes_gcm() {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>();
 
         // This will still fail, as the AesGcmData::TryFrom will fail.
@@ -306,7 +260,7 @@ mod test {
 
     #[test]
     fn sealed_data_to_small_for_aes_gcm() {
-        let bytes = sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
         let size = (mem::size_of::<sgx_sealed_data_t>() - mem::size_of::<sgx_aes_gcm_data_t>()) - 1;
         assert_eq!(
             Sealed::try_from(&bytes[..size]),

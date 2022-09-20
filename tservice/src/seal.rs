@@ -90,10 +90,74 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     }
 }
 
+pub trait Unseal: AsRef<[u8]> {
+    /// The length (in bytes) needed to hold the decrypted text
+    fn decrypted_text_len(&self) -> Result<usize> {
+        let result = unsafe {
+            mc_sgx_tservice_sys::sgx_get_encrypt_txt_len(
+                self.as_ref().as_ptr() as *const sgx_sealed_data_t
+            )
+        };
+        match result {
+            // Per the documentation, UINT32_MAX indicates an error
+            u32::MAX => Err(Error::Unexpected),
+            size => Ok(size as usize),
+        }
+    }
+
+    /// Unseal the data in `self`
+    ///
+    /// Returns the unsealed data into the provided `buffer`.  The returned
+    /// slice will be the exact size of the unsealed data.
+    ///
+    /// # Arguments
+    /// * `buffer` - The buffer to output the unsealed data into.  `buffer`
+    ///   needs to be at least as big as [`decrypted_text_len`].
+    fn unseal<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8]> {
+        let data_length = self.decrypted_text_len()?;
+        if buffer.len() < data_length {
+            return Err(Error::InvalidParameter);
+        }
+
+        let mut data_length_u32 = data_length as u32;
+        let mut mac_length_u32 = 0;
+        unsafe {
+            mc_sgx_tservice_sys::sgx_unseal_data(
+                self.as_ref().as_ptr() as *const sgx_sealed_data_t,
+                ptr::null_mut(),
+                &mut mac_length_u32,
+                buffer.as_mut_ptr(),
+                &mut data_length_u32,
+            )
+        }
+        .into_result()?;
+
+        // While the lengths can be modified by `sgx_unseal_data`, we asked the
+        // SGX interface at the top of the function for the required sizes.
+        // If the sizes are different than we have unexpected behavior.
+        if data_length != data_length_u32 as usize || mac_length_u32 != 0 {
+            return Err(Error::Unexpected);
+        }
+
+        Ok(&mut buffer[..data_length])
+    }
+
+    /// Unseal the data in `self`
+    fn unseal_to_vec(&self) -> Result<Vec<u8>> {
+        let data_length = self.decrypted_text_len()?;
+        let mut data = vec![0; data_length];
+        self.unseal(data.as_mut_slice())?;
+        Ok(data)
+    }
+}
+
+impl<T: AsRef<[u8]>> Unseal for Sealed<T> {}
+
 #[cfg(test)]
 mod test {
     use super::*;
     use core::mem;
+    use mc_sgx_tservice_types::test_utils;
 
     #[test]
     fn sealed_data_size() {
@@ -109,5 +173,25 @@ mod test {
         let builder = SealedBuilder::new(b"1234567".as_slice());
         let expected_size = mem::size_of::<sgx_sealed_data_t>() + builder.data.len();
         assert_eq!(builder.sealed_size(), Ok(expected_size));
+    }
+
+    #[test]
+    fn decrypted_text_len_short() {
+        let sgx_sealed_data = sgx_sealed_data_t::default();
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data, b"short", Some(b"one"));
+        let data = Sealed::try_from(bytes.as_slice()).unwrap();
+        assert_eq!(data.decrypted_text_len(), Ok(5));
+    }
+
+    #[test]
+    fn decrypted_text_len_long() {
+        let sgx_sealed_data = sgx_sealed_data_t::default();
+        let bytes = test_utils::sealed_data_to_bytes(
+            sgx_sealed_data,
+            b"12345678901234567890",
+            Some(b"where"),
+        );
+        let data = Sealed::try_from(bytes.as_slice()).unwrap();
+        assert_eq!(data.decrypted_text_len(), Ok(20));
     }
 }
