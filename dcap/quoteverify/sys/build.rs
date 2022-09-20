@@ -8,7 +8,6 @@ const DCAP_QL_FUNCTIONS: &[&str] = &[
     "sgx_qv_get_qve_identity",
     "sgx_qv_set_enclave_load_policy",
     "sgx_qv_set_path",
-    "sgx_qv_set_qve_path",
     "sgx_qv_verify_quote",
 ];
 
