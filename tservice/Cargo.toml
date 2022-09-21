@@ -14,6 +14,7 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
+mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.0-pre0" }
 mc-sgx-core-types = { path = "../core/types", version = "=0.2.0-pre0" }
 mc-sgx-tservice-sys = { path = "sys", version = "=0.2.0-pre0" }
 mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.2.0-pre0" }
