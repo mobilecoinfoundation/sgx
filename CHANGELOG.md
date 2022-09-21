@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mc-sgx-core-types`: Idiomatic Rust for SGX primitives
 - `mc-sgx-capable`: Idiomatic Rust bindings for the `sgx_capable` library
 - `mc-sgx-capable-types`: Idiomatic Rust types for the `sgx_capable` library
+- `mc-sgx-dcap-ql-types`: Idiomatic Rust bindings for the `sgx_dcap_ql` library
 - `mc-sgx-dcap-quoteverify`: Idiomatic Rust bindings for the `sgx_dcapquoteverify` library
 - `mc-sgx-dcap-quoteverify-types`: Idiomatic Rust types for the `sgx_dcapquoteverify` library
 - `mc-sgx-trts`: Idiomatic Rust bindings for the `sgx_trts` library

@@ -444,6 +444,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-dcap-ql-typs"
+version = "0.2.0-pre0"
+dependencies = [
+ "mc-sgx-core-types",
+ "mc-sgx-dcap-ql-sys-types",
+ "yare",
+]
+
+[[package]]
 name = "mc-sgx-dcap-quoteverify"
 version = "0.2.0-pre0"
 dependencies = [
