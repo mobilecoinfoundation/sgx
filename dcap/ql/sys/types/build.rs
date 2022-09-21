@@ -6,7 +6,6 @@ use mc_sgx_core_build::SgxParseCallbacks;
 const DCAP_QL_TYPES: &[&str] = &[
     "_sgx_ql_att_key_id_param_t",
     "_sgx_ql_att_id_list_t",
-    "_sgx_ql_qe_report_info_t",
     "sgx_ql_path_type_t",
 ];
 
