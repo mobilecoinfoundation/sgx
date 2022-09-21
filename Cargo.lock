@@ -477,6 +477,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-dcap-types"
+version = "0.2.0-pre0"
+dependencies = [
+ "displaydoc",
+ "mc-sgx-dcap-sys-types",
+ "mc-sgx-util",
+ "serde",
+ "yare",
+]
+
+[[package]]
 name = "mc-sgx-tcrypto-sys"
 version = "0.2.0-pre0"
 dependencies = [

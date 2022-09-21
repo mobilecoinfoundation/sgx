@@ -122,7 +122,7 @@ jobs:
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
-            grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
+            grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-types -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
   build:
     runs-on: ubuntu-20.04
