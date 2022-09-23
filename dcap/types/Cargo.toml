@@ -21,7 +21,7 @@ alloc = []
 displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.2.0-pre0" }
 mc-sgx-util = { path = "../../util", version = "=0.2.0-pre0" }
-serde = { version = "1.0.144", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.145", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 yare = "1.0.1"
