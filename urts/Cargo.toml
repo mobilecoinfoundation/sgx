@@ -14,12 +14,15 @@ rust-version = "1.62.1"
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.0-pre0" }
+mc-sgx-core-types = { path = "../core/types", version = "=0.2.0-pre0" }
 mc-sgx-urts-sys = { path = "sys", version = "=0.2.0-pre0" }
 mc-sgx-urts-sys-types = { path = "sys/types", version = "=0.2.0-pre0" }
+mc-sgx-util = { path = "../util", version = "=0.2.0-pre0" }
 
 [features]
 sim = ["mc-sgx-urts-sys/sim", "test_enclave/sim"]
 default = []
 
 [dev-dependencies]
+tempfile = "=3.3.0"
 test_enclave = { path = "../test_enclave", version = "=0.2.0-pre0" }

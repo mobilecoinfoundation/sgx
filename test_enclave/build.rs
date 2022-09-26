@@ -27,13 +27,35 @@ struct EdgerFiles {
 const EDGER_FILE: &str = "src/enclave.edl";
 const ENCLAVE_FILE: &str = "src/enclave.c";
 const ENCLAVE_LINKER_SCRIPT: &str = "src/enclave.lds";
+const ENCLAVE_NAME: &str = "enclave";
+const ENCLAVE_NAME_KSS: &str = "enclave_kss";
+const ENCLAVE_NAME_PCL: &str = "enclave_pcl";
 const ENCLAVE_CONFIG: &str = "src/config.xml";
+const ENCLAVE_CONFIG_KSS: &str = "src/config_kss.xml";
+const ENCLAVE_PCL_KEY: &str = "src/pcl_key.bin";
 
 fn main() {
     let root_dir = root_dir();
     let edger_files = build_enclave_definitions(root_dir.join(EDGER_FILE));
 
-    build_enclave_binary([root_dir.join(ENCLAVE_FILE), edger_files.trusted]);
+    build_enclave_binary(
+        [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
+        ENCLAVE_CONFIG,
+        ENCLAVE_NAME,
+        None,
+    );
+    build_enclave_binary(
+        [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
+        ENCLAVE_CONFIG_KSS,
+        ENCLAVE_NAME_KSS,
+        None,
+    );
+    build_enclave_binary(
+        [root_dir.join(ENCLAVE_FILE), edger_files.trusted.clone()],
+        ENCLAVE_CONFIG,
+        ENCLAVE_NAME_PCL,
+        Some(ENCLAVE_PCL_KEY),
+    );
     build_untrusted_library(&edger_files.untrusted);
 
     let mut untrusted_header = edger_files.untrusted.clone();
@@ -94,11 +116,14 @@ fn build_enclave_definitions<P: AsRef<Path>>(edl_file: P) -> EdgerFiles {
 /// # Arguments
 ///
 /// * `files` - The source files to include in the binary
+/// * `config` - The configuration file to use for signing the binary
+/// * `name` - The enclave name to use for generating output files
+/// * `keyfile` - The key file used for encrypting the enclave
 ///
 /// # Returns
 /// The full path to resultant binary file.  This binary will be signed and
 /// ready for use in `sgx_create_enclave()`.
-fn build_enclave_binary<P>(files: P) -> PathBuf
+fn build_enclave_binary<P>(files: P, config: &str, name: &str, keyfile: Option<&str>) -> PathBuf
 where
     P: IntoIterator,
     P: Clone,
@@ -128,11 +153,15 @@ where
         .include(include_string)
         .include(tlibc_string)
         .cargo_metadata(false)
-        .compile("enclave");
+        .compile(name);
 
-    let static_enclave = mc_sgx_core_build::build_output_dir().join("libenclave.a");
-    let dynamic_enclave = build_dynamic_enclave_binary(static_enclave);
-    sign_enclave_binary(dynamic_enclave)
+    let static_name = format!("lib{}.a", name);
+    let static_enclave = mc_sgx_core_build::build_output_dir().join(static_name);
+    let dynamic_enclave = build_dynamic_enclave_binary(static_enclave, keyfile);
+    if let Some(key) = keyfile {
+        encrypt_enclave_binary(dynamic_enclave.clone(), key);
+    }
+    sign_enclave_binary(dynamic_enclave, config)
 }
 
 /// Create a dynamic version of the enclave.  This is *unsigned*.
@@ -146,10 +175,13 @@ where
 /// # Arguments
 ///
 /// * `static_enclave` - The static enclave binary
-///
+/// * `keyfile` - The key file used to encrypt the enclave
 /// # Returns
 /// The full path to resultant shared library file.
-fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
+fn build_dynamic_enclave_binary<P: AsRef<Path>>(
+    static_enclave: P,
+    keyfile: Option<&str>,
+) -> PathBuf {
     let mut dynamic_enclave = PathBuf::from(static_enclave.as_ref());
     dynamic_enclave.set_extension("so");
     let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
@@ -177,7 +209,17 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
         .arg("--no-undefined")
         .arg("--nostdlib")
         .arg("--start-group")
-        .args(&["--whole-archive", &trts, "--no-whole-archive"])
+        .arg("--whole-archive")
+        .arg(&trts);
+    if let Some(_) = keyfile {
+        if cfg!(feature = "sim") {
+            command.arg("-lsgx_pclsim");
+        } else {
+            command.arg("-lsgx_pcl");
+        }
+    }
+    command
+        .arg("--no-whole-archive")
         .arg(static_enclave.as_ref().to_str().unwrap())
         .args(&["-lsgx_tstdc", "-lsgx_tcxx", "-lsgx_tcrypto", &tservice])
         .arg("--end-group")
@@ -205,11 +247,12 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(static_enclave: P) -> PathBuf {
 /// # Arguments
 ///
 /// * `unsigned_enclave` - The unsigned enclave binary
+/// * `config` - The configuration file to use for signing the binary
 ///
 /// # Returns
 /// The full path to signed binary file.  This binary will be signed and
 /// ready for use in `sgx_create_enclave()`.
-fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
+fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P, config: &str) -> PathBuf {
     let mut signed_binary = PathBuf::from(unsigned_enclave.as_ref());
     signed_binary.set_extension("signed.so");
 
@@ -222,7 +265,7 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
         .arg("-enclave")
         .arg(unsigned_enclave.as_ref())
         .arg("-config")
-        .arg(ENCLAVE_CONFIG)
+        .arg(config)
         .arg("-key")
         .arg(signing_key)
         .arg("-out")
@@ -234,6 +277,31 @@ fn sign_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P) -> PathBuf {
     }
 
     signed_binary
+}
+
+fn encrypt_enclave_binary<P: AsRef<Path>>(unsigned_enclave: P, key: &str) -> PathBuf {
+    let mut encrypted_binary = PathBuf::from(unsigned_enclave.as_ref());
+    encrypted_binary.set_extension(".enc");
+
+    let bin_path = mc_sgx_core_build::sgx_bin_x64_dir().join("sgx_encrypt");
+    let mut command = Command::new(bin_path);
+    command
+        .arg("-i")
+        .arg(unsigned_enclave.as_ref())
+        .arg("-o")
+        .arg(&encrypted_binary)
+        .arg("-k")
+        .arg(key)
+        .arg("-d");
+    let status = command
+        .status()
+        .expect("Failed to execute enclave encryptor");
+    match status.code().unwrap() {
+        0 => (),
+        code => panic!("sgx_encrypt exited with code {}", code),
+    }
+
+    encrypted_binary
 }
 
 /// get the private signing key.

@@ -1,0 +1,6 @@
+Cargo.lock merge=theirs
+*.pem binary
+*.der binary
+**/*.bin binary
+**/*.mdb binary
+**/*.pub binary

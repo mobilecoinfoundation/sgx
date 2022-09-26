@@ -2,22 +2,47 @@
 
 #![doc = include_str!("../README.md")]
 
-use mc_sgx_core_sys_types::sgx_status_t;
-use mc_sgx_urts_sys::{sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave};
-use mc_sgx_urts_sys_types::sgx_enclave_id_t;
-use std::{ops::Deref, os::raw::c_int, ptr};
+use mc_sgx_core_types::{ConfigId, ConfigSvn, Error, TargetInfo};
+use mc_sgx_urts_sys::{
+    sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
+    MAX_EX_FEATURES_COUNT, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX,
+    SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX,
+};
+use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
+use mc_sgx_util::ResultInto;
+use std::{ffi::c_void, fs::File, io::Read, os::raw::c_int, path::Path, ptr};
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum Error {
-    // An error provided from the SGX SDK
-    SgxStatus(sgx_status_t),
+/// Structure defining configuration for Key Sharing and Separation
+#[repr(transparent)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+pub struct KssConfig(sgx_kss_config_t);
+
+impl KssConfig {
+    pub fn new(config_id: ConfigId, config_svn: ConfigSvn) -> KssConfig {
+        KssConfig(sgx_kss_config_t {
+            config_id: config_id.into(),
+            config_svn: config_svn.into(),
+        })
+    }
 }
 
-/// Struct for interfacing with the SGX SDK.  This should be used directly in
-/// sgx calls `ecall_some_function(*enclave, ...)`.
+impl From<KssConfig> for sgx_kss_config_t {
+    fn from(input: KssConfig) -> sgx_kss_config_t {
+        input.0
+    }
+}
+
+impl From<sgx_kss_config_t> for KssConfig {
+    fn from(input: sgx_kss_config_t) -> KssConfig {
+        KssConfig(input)
+    }
+}
+
+/// Struct for interfacing with the SGX SDK.  This should be used in
+/// sgx calls as `ecall_some_function(*enclave.id(), ...)`.
 ///
-/// Avoid storing the de-referenced instance of the enclave.  The de-referenced
-/// value of the enclave will result in failures to the SGX SDK after the
+/// Avoid storing the de-referenced ID of the enclave.  The de-referenced
+/// ID of the enclave will result in failures to the SGX SDK after the
 /// enclave is dropped.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Enclave {
@@ -32,6 +57,12 @@ pub struct EnclaveBuilder {
 
     // `true` if the enclave should be created in debug mode
     debug: bool,
+
+    // Sealed key to use with Intel Protected Code Loader. None if PCL disabled.
+    pcl_key: Option<Vec<u8>>,
+
+    // Configuration to use with Key Separation & Sharing. None if KSS disabled.
+    kss_config: Option<KssConfig>,
 }
 
 impl EnclaveBuilder {
@@ -39,38 +70,65 @@ impl EnclaveBuilder {
     ///
     /// # Arguments
     ///
-    /// * `bytes` - The bytes representing the enclave file.  This should be a
-    ///   signed enclave.
-    pub fn new(bytes: &[u8]) -> EnclaveBuilder {
-        EnclaveBuilder {
-            bytes: bytes.into(),
-            debug: false,
-        }
+    /// * `path` - The path to the enclave file. This should be a signed
+    ///   enclave.
+    pub fn new(path: impl AsRef<Path>) -> std::io::Result<EnclaveBuilder> {
+        let file = File::open(path)?;
+        file.try_into()
     }
 
-    /// Toggle debugging of the enclave on or off.  The default is off.
+    /// Enable debugging of the enclave
+    #[must_use]
+    pub fn debug(mut self) -> EnclaveBuilder {
+        self.debug = true;
+        self
+    }
+
+    /// Enable Intel's Protected Code Loader for the enclave
     ///
     /// # Arguments
     ///
-    /// * `debug` - `true` to enable enclave debugging, `false` to disable it.
+    /// * `key` - The sealed PCL key to use for loading the enclave
     #[must_use]
-    pub fn debug(mut self, debug: bool) -> EnclaveBuilder {
-        self.debug = debug;
+    pub fn pcl(mut self, key: Vec<u8>) -> EnclaveBuilder {
+        self.pcl_key = Some(key);
+        self
+    }
+
+    /// Enable Key Separation & Sharing for the enclave
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - The KSS configuration to use when loading the enclave
+    #[must_use]
+    pub fn kss(mut self, config: KssConfig) -> EnclaveBuilder {
+        self.kss_config = Some(config);
         self
     }
 
     /// Create the enclave
     ///
     /// Will talk to the SGX SDK to create the enclave.  Once the enclave has
-    /// been created then calls into the enclave can be made by de-referencing
-    /// the enclave.
-    ///
-    /// See
-    /// <https://download.01.org/intel-sgx/sgx-dcap/1.13/linux/docs/Intel_SGX_Enclave_Common_Loader_API_Reference.pdf>
-    /// for error codes and their meaning.
+    /// been created then calls into the enclave can be made using the enclave
+    /// ID.
     pub fn create(mut self) -> Result<Enclave, Error> {
         let mut enclave_id: sgx_enclave_id_t = 0;
-        let result = unsafe {
+        let mut ex_features = 0;
+        let mut ex_features_p: [*const c_void; MAX_EX_FEATURES_COUNT] =
+            [ptr::null(); MAX_EX_FEATURES_COUNT];
+
+        if let Some(pcl_key) = self.pcl_key {
+            ex_features |= SGX_CREATE_ENCLAVE_EX_PCL;
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX] = pcl_key.as_ptr() as *const c_void;
+        }
+
+        if let Some(kss_config) = self.kss_config {
+            ex_features |= SGX_CREATE_ENCLAVE_EX_KSS;
+            ex_features_p[SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX] =
+                &kss_config.into() as *const sgx_kss_config_t as *const c_void;
+        }
+
+        unsafe {
             // Per the API reference `buffer` is an input, however the signature
             // lacks the const qualifier.  Through testing it has been shown
             // that `sgx_create_enclave_from_buffer_ex()` *will* modify the
@@ -93,14 +151,12 @@ impl EnclaveBuilder {
                 self.debug as c_int,
                 &mut enclave_id,
                 ptr::null_mut(),
-                0,
-                ptr::null_mut(),
+                ex_features,
+                &mut ex_features_p as *mut *const c_void,
             )
-        };
-        match result {
-            sgx_status_t::SGX_SUCCESS => Ok(Enclave::new(enclave_id)),
-            error => Err(Error::SgxStatus(error)),
         }
+        .into_result()
+        .map(|_| Enclave { id: enclave_id })
     }
 }
 
@@ -109,19 +165,50 @@ impl From<Vec<u8>> for EnclaveBuilder {
         EnclaveBuilder {
             bytes,
             debug: false,
+            pcl_key: None,
+            kss_config: None,
         }
     }
 }
 
-impl Enclave {
-    fn new(id: sgx_enclave_id_t) -> Enclave {
-        Enclave { id }
+impl From<&[u8]> for EnclaveBuilder {
+    fn from(input: &[u8]) -> EnclaveBuilder {
+        input.to_vec().into()
     }
 }
 
-impl Deref for Enclave {
-    type Target = sgx_enclave_id_t;
-    fn deref(&self) -> &Self::Target {
+impl<const N: usize> From<&[u8; N]> for EnclaveBuilder {
+    fn from(input: &[u8; N]) -> EnclaveBuilder {
+        input.to_vec().into()
+    }
+}
+
+impl TryFrom<File> for EnclaveBuilder {
+    type Error = std::io::Error;
+    fn try_from(mut input: File) -> std::io::Result<EnclaveBuilder> {
+        let mut bytes = vec![];
+        input.read_to_end(&mut bytes)?;
+        Ok(EnclaveBuilder {
+            bytes,
+            debug: false,
+            pcl_key: None,
+            kss_config: None,
+        })
+    }
+}
+
+impl Enclave {
+    /// Returns the target info for the enclave.
+    pub fn target_info(&self) -> Result<TargetInfo, Error> {
+        let mut target_info = TargetInfo::default().into();
+        unsafe { sgx_get_target_info(self.id, &mut target_info) }.into_result()?;
+        Ok(target_info.into())
+    }
+
+    /// Returns a reference to the enclave ID.
+    /// Returns by reference because enclave ID will not be valid after the
+    /// enclave is dropped.
+    pub fn id(&self) -> &sgx_enclave_id_t {
         &self.id
     }
 }
@@ -143,22 +230,43 @@ impl Drop for Enclave {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test_enclave::{ecall_add_2, ENCLAVE};
+    use std::io::{Seek, Write};
+    use tempfile::{tempfile, NamedTempFile};
+    use test_enclave::{ecall_add_2, ENCLAVE, ENCLAVE_KSS};
 
     #[test]
     fn fail_to_create_enclave_with_bogus_bytes() {
-        let builder = EnclaveBuilder::new(b"garbage bytes");
-        assert_eq!(
-            builder.create(),
-            Err(Error::SgxStatus(sgx_status_t::SGX_ERROR_INVALID_ENCLAVE))
-        );
+        let builder = EnclaveBuilder::from(b"garbage bytes");
+        assert_eq!(builder.create(), Err(Error::InvalidEnclave));
     }
 
     #[test]
     fn creating_enclave_succeeds() {
-        let builder = EnclaveBuilder::new(ENCLAVE);
+        let builder = EnclaveBuilder::from(ENCLAVE);
         assert!(builder.create().is_ok());
     }
+
+    #[test]
+    fn creating_plaintext_enclave_fails_with_pcl() {
+        let builder = EnclaveBuilder::from(ENCLAVE).pcl(b"some garbage".to_vec());
+        assert_eq!(builder.create(), Err(Error::PclNotEncrypted));
+    }
+
+    #[test]
+    fn creating_enclave_with_kss_fails_when_not_enabled() {
+        let builder = EnclaveBuilder::from(ENCLAVE).kss(KssConfig::default());
+        assert_eq!(builder.create(), Err(Error::FeatureNotSupported));
+    }
+
+    #[test]
+    fn creating_enclave_with_kss_succeeds_when_enabled() {
+        let builder = EnclaveBuilder::from(ENCLAVE_KSS).kss(KssConfig::default());
+        assert!(builder.create().is_ok());
+    }
+
+    // TODO: Need to test successful PCL enclave creation
+    // TODO: Need to test that PCL enclave creation fails with correct enclave but
+    // wrong key
 
     #[test]
     fn create_enclave_builder_from_vector() {
@@ -167,16 +275,42 @@ mod tests {
     }
 
     #[test]
+    fn create_enclave_builder_from_file() {
+        let mut file = tempfile().unwrap();
+        file.write_all(ENCLAVE).unwrap();
+        file.rewind().unwrap();
+        assert!(EnclaveBuilder::try_from(file).unwrap().create().is_ok());
+    }
+
+    #[test]
+    fn create_enclave_builder_from_file_path() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(ENCLAVE).unwrap();
+        file.rewind().unwrap();
+        let path = file.path();
+        assert!(EnclaveBuilder::new(path).unwrap().create().is_ok());
+    }
+
+    #[test]
     fn calling_into_an_enclave_function_provides_valid_results() {
         // Note: the `debug()` was added to ensure proper builder behavior of
         // the `create()` method.  It could go away if another test has need
         // of similar behavior.
-        let enclave = EnclaveBuilder::new(ENCLAVE).debug(true).create().unwrap();
+        let enclave = EnclaveBuilder::from(ENCLAVE).debug().create().unwrap();
+        let id = enclave.id();
 
         let mut sum: c_int = 3;
-        let result = unsafe { ecall_add_2(*enclave, 3, &mut sum) };
-        assert_eq!(result, sgx_status_t::SGX_SUCCESS);
+        unsafe { ecall_add_2(*id, 3, &mut sum) }
+            .into_result()
+            .unwrap();
+
         assert_eq!(sum, 3 + 2);
+    }
+
+    #[test]
+    fn target_info_succeeds() {
+        let enclave = EnclaveBuilder::from(ENCLAVE).debug().create().unwrap();
+        let _ = enclave.target_info().unwrap();
     }
 
     #[test]
@@ -184,13 +318,13 @@ mod tests {
         // For the debug flag it's not easy, in a unit test, to test it was
         // passed to `sgx_create_enclave()`, instead we focus on the
         // `as c_int` portion maps correctly to 0 or 1
-        let builder = EnclaveBuilder::new(b"");
+        let builder = EnclaveBuilder::from(b"");
         assert_eq!(builder.debug as c_int, 0);
     }
 
     #[test]
     fn when_debug_flag_is_true_it_is_1() {
-        let builder = EnclaveBuilder::new(b"").debug(true);
+        let builder = EnclaveBuilder::from(b"").debug();
         assert_eq!(builder.debug as c_int, 1);
     }
 }
