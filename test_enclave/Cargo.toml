@@ -5,17 +5,17 @@ edition = "2021"
 license = "Apache-2.0"
 
 [dependencies]
-mc-sgx-urts-sys-types = { path = "../urts/sys/types", version = "=0.2.0-pre0" }
 mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.0-pre0" }
+mc-sgx-urts-sys-types = { path = "../urts/sys/types", version = "=0.2.0-pre0" }
 
 [features]
 default = []
 sim = []
 
 [build-dependencies]
+bindgen = "0.60.1"
 cargo-emit = "0.2.1"
 cc = "1.0.73"
-bindgen = "0.60.1"
 mc-sgx-core-build = { path = "../core/build", version = "=0.2.0-pre0" }
-rsa = "0.6.1"
 rand = "0.8.5"
+rsa = "0.6.1"

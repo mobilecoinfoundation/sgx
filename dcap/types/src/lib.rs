@@ -8,9 +8,12 @@
 extern crate alloc;
 
 mod quote3;
+mod quoting_enclave;
 mod request_policy;
 
-pub use crate::{quote3::Error as Quote3Error, request_policy::RequestPolicy};
+pub use crate::{
+    quote3::Error as Quote3Error, quoting_enclave::ReportInfo, request_policy::RequestPolicy,
+};
 
 // TODO:
 //
@@ -28,7 +31,6 @@ pub use crate::{quote3::Error as Quote3Error, request_policy::RequestPolicy};
 // "_sgx_pce_info_t",
 // "_sgx_ql_att_key_id_param_t",
 // "_sgx_ql_att_id_list_t",
-// "_sgx_ql_qe_report_info_t",
 // "sgx_ql_attestation_algorithm_id_t",
 // "sgx_ql_cert_key_type_t",
 // "_sgx_ql_att_key_id_list_header_t",

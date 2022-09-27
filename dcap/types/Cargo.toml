@@ -25,4 +25,5 @@ mc-sgx-util = { path = "../../util", version = "=0.2.0-pre0" }
 serde = { version = "1.0.145", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.2.0-pre0" }
 yare = "1.0.1"
