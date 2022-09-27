@@ -7,7 +7,7 @@ use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_sel
 
 /// Attributes of the enclave
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Copy)]
 pub struct Attributes(sgx_attributes_t);
 new_type_accessors_impls! {
     Attributes, sgx_attributes_t;

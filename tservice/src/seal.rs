@@ -3,17 +3,31 @@
 
 use alloc::{vec, vec::Vec};
 pub use core::ptr;
+use mc_sgx_core_types::{Attributes, KeyPolicy, MiscellaneousSelect};
 pub use mc_sgx_core_types::{Error, Result};
 pub use mc_sgx_tservice_sys::sgx_calc_sealed_data_size;
 pub use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
 pub use mc_sgx_tservice_types::Sealed;
 use mc_sgx_util::ResultInto;
 
+// Default values used in `sgx_seal_data_ex` to behave the same as
+// `sgx_seal_data`. See
+// https://download.01.org/intel-sgx/sgx-linux/2.17.1/docs/Intel_SGX_Developer_Reference_Linux_2.17.1_Open_Source.pdf
+// Some fo these values can also be seen in the internal SGX SDK headers:
+// - TSEAL_DEFAULT_FLAGSMASK => DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL
+// - TSEAL_DEFAULT_MISCMASK => DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL
+const DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL: u32 = 0xF0000000;
+const DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL: u64 = 0xFF0000000000000B;
+const DEFAULT_KEY_POLICY_FOR_SEAL: KeyPolicy = KeyPolicy::MRSIGNER;
+
 /// Sealed data builder
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct SealedBuilder<T> {
     /// The data to be encrypted/sealed
     data: T,
+
+    /// The key policy to use when sealing
+    policy: KeyPolicy,
 
     /// The AAD(additional authenticated data) to use in the sealing.
     /// The Intel docs often refer to this as _MAC text_
@@ -28,7 +42,8 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     pub fn new(data: T) -> Self {
         Self {
             data,
-            ..Default::default()
+            policy: DEFAULT_KEY_POLICY_FOR_SEAL,
+            aad: None,
         }
     }
 
@@ -42,8 +57,18 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
             None => (ptr::null(), 0),
         };
 
+        // Currently see no reason to expose attributes as an option.  Exposing
+        // the attributes will require some error handling and normalization
+        let attributes = Attributes::default().set_flags(DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL);
+
+        // Since `misc_mask` is reserved for future extension omitting from
+        // the builder
+        let misc_mask = MiscellaneousSelect::from(DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL);
         unsafe {
-            mc_sgx_tservice_sys::sgx_seal_data(
+            mc_sgx_tservice_sys::sgx_seal_data_ex(
+                self.policy.bits(),
+                attributes.into(),
+                misc_mask.into(),
                 aad_length,
                 aad_pointer,
                 self.data.as_ref().len() as u32,
@@ -65,6 +90,15 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
     /// * `aad` - The AAD to add to the sealed data
     pub fn aad(&mut self, aad: T) -> &mut Self {
         self.aad = Some(aad);
+        self
+    }
+
+    /// Set the key policy to use for the sealed data
+    ///
+    /// # Arguments
+    /// * `policy` - The key policy to use
+    pub fn key_policy(&mut self, policy: KeyPolicy) -> &mut Self {
+        self.policy = policy;
         self
     }
 
