@@ -17,6 +17,7 @@ members = [
     "dcap/types",
     "tcrypto/sys",
     "tcrypto/sys/types",
+    "trts",
     "trts/sys",
     "tservice",
     "tservice/sys",

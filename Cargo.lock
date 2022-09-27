@@ -527,6 +527,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-trts"
+version = "0.2.0-pre0"
+dependencies = [
+ "mc-sgx-trts-sys",
+]
+
+[[package]]
 name = "mc-sgx-trts-sys"
 version = "0.2.0-pre0"
 dependencies = [
