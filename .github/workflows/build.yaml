@@ -41,6 +41,26 @@ jobs:
         with:
           globs: "**/*.md"
 
+  size-label:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: size-label
+        uses: "pascalgn/size-label-action@v0.4.2"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          IGNORED: "Cargo.lock"
+        with:
+          sizes: >
+            {
+              "0": "XS",
+              "30": "S",
+              "100": "M",
+              "250": "L",
+              "500": "XL",
+              "1000": "XXL",
+              "1500": "OHLAWDHECOMIN"
+            }
+
   deny:
     runs-on: ubuntu-20.04
     needs:
@@ -101,6 +121,7 @@ jobs:
         with:
           command: clippy
           args: --all --all-features --locked -- -D warnings
+
   nono:
     runs-on: ubuntu-20.04
     needs:
@@ -124,6 +145,7 @@ jobs:
             jq -r '.packages[].name' | \
             grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-types -e mc-sgx-dcap-quoteverify -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
+
   build:
     runs-on: ubuntu-20.04
     needs:
@@ -147,6 +169,7 @@ jobs:
         with:
           command: build
           args: --release --locked
+
   test:
     runs-on: ubuntu-20.04
     needs:
@@ -170,6 +193,7 @@ jobs:
         with:
           command: test
           args: --release --locked --features "sim alloc"
+
   doc:
     runs-on: ubuntu-20.04
     needs:
@@ -229,6 +253,7 @@ jobs:
       - test
       - doc
       - coverage
+      - size-label
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
