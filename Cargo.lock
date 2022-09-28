@@ -423,6 +423,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-dcap-ql"
+version = "0.2.0-pre0"
+dependencies = [
+ "mc-sgx-dcap-ql-sys",
+ "mc-sgx-dcap-ql-types",
+ "mc-sgx-dcap-types",
+ "mc-sgx-util",
+ "tempfile",
+ "yare",
+]
+
+[[package]]
 name = "mc-sgx-dcap-ql-sys"
 version = "0.2.0-pre0"
 dependencies = [
