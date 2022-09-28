@@ -5,4 +5,4 @@
 
 mod quote_enclave;
 
-pub use quote_enclave::set_path;
+pub use quote_enclave::{load_policy, set_path};
