@@ -1,6 +1,9 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Quote types
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 use crate::{
     attestation_key::QuoteSignatureKind, impl_newtype_for_bytestruct, new_type_accessors_impls,
     report::Report, FfiError, IsvSvn, ReportBody, TargetInfo,
@@ -108,8 +111,8 @@ impl_newtype_for_bytestruct! {
 ///
 /// Should not be used directly instead use [`Quote`].
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct RawQuote<'a> {
-    bytes: &'a [u8],
+pub struct RawQuote<T> {
+    bytes: T,
 }
 
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
@@ -120,14 +123,14 @@ new_type_accessors_impls! {
     Version, u16;
 }
 
-pub trait BaseQuote {
+pub trait BaseQuote<T: AsRef<[u8]>> {
     /// Provides access to the [`RawQuote`] to perform the common lookup
     /// operations on the basic quote type.
-    fn raw_quote(&self) -> &RawQuote;
+    fn raw_quote(&self) -> &RawQuote<T>;
 
     /// Version of the quote
     fn version(&self) -> Version {
-        let bytes = self.raw_quote().bytes[..2]
+        let bytes = self.raw_quote().bytes.as_ref()[..2]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `version`");
         u16::from_le_bytes(bytes).into()
@@ -135,7 +138,7 @@ pub trait BaseQuote {
 
     /// The signature type
     fn signature_type(&self) -> Result<QuoteSignatureKind, FfiError> {
-        let bytes = self.raw_quote().bytes[2..4]
+        let bytes = self.raw_quote().bytes.as_ref()[2..4]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `sign_type`");
         sgx_quote_sign_type_t(u16::from_le_bytes(bytes) as u32).try_into()
@@ -143,7 +146,7 @@ pub trait BaseQuote {
 
     /// EPID group id
     fn epid_group_id(&self) -> EpidGroupId {
-        let bytes: [u8; 4] = self.raw_quote().bytes[4..8]
+        let bytes: [u8; 4] = self.raw_quote().bytes.as_ref()[4..8]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `epid_group_id`");
         bytes.into()
@@ -151,7 +154,7 @@ pub trait BaseQuote {
 
     /// Quoting enclave (QE) SVN (Security Version Number)
     fn quoting_enclave_svn(&self) -> IsvSvn {
-        let bytes = self.raw_quote().bytes[8..10]
+        let bytes = self.raw_quote().bytes.as_ref()[8..10]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `qe_svn`");
         u16::from_le_bytes(bytes).into()
@@ -159,7 +162,7 @@ pub trait BaseQuote {
 
     /// Provisioning certification enclave (PCE) SVN (Security Version Number)
     fn provisioning_certification_enclave_svn(&self) -> IsvSvn {
-        let bytes = self.raw_quote().bytes[10..12]
+        let bytes = self.raw_quote().bytes.as_ref()[10..12]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `pce_svn`");
         u16::from_le_bytes(bytes).into()
@@ -167,7 +170,7 @@ pub trait BaseQuote {
 
     /// Extended EPID group id
     fn extended_epid_group_id(&self) -> EpidGroupId {
-        let bytes: [u8; 4] = self.raw_quote().bytes[12..16]
+        let bytes: [u8; 4] = self.raw_quote().bytes.as_ref()[12..16]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `xeid`");
         bytes.into()
@@ -175,7 +178,7 @@ pub trait BaseQuote {
 
     /// Basename
     fn basename(&self) -> Basename {
-        let bytes: [u8; BASENAME_SIZE] = self.raw_quote().bytes[16..48]
+        let bytes: [u8; BASENAME_SIZE] = self.raw_quote().bytes.as_ref()[16..48]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `basename`");
         bytes.into()
@@ -183,43 +186,61 @@ pub trait BaseQuote {
 
     /// Report body
     fn report_body(&self) -> ReportBody {
-        let bytes: [u8; mem::size_of::<sgx_report_body_t>()] = self.raw_quote().bytes[48..432]
+        let bytes: [u8; mem::size_of::<sgx_report_body_t>()] = self.raw_quote().bytes.as_ref()
+            [48..432]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `report_body`");
         bytes.into()
     }
 }
 
-impl<'a> From<&'a [u8]> for RawQuote<'a> {
+impl<'a> From<&'a [u8]> for RawQuote<&'a [u8]> {
     fn from(bytes: &'a [u8]) -> Self {
+        Self { bytes }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<Vec<u8>> for RawQuote<Vec<u8>> {
+    fn from(bytes: Vec<u8>) -> Self {
         Self { bytes }
     }
 }
 
 /// Quote
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Quote<'a>(RawQuote<'a>);
+pub struct Quote<T>(RawQuote<T>);
 
-impl BaseQuote for Quote<'_> {
-    fn raw_quote(&self) -> &RawQuote {
+impl<T: AsRef<[u8]>> BaseQuote<T> for Quote<T> {
+    fn raw_quote(&self) -> &RawQuote<T> {
         &self.0
     }
 }
 
-impl<'a> From<RawQuote<'a>> for Quote<'a> {
-    fn from(raw: RawQuote<'a>) -> Self {
+impl<T> From<RawQuote<T>> for Quote<T> {
+    fn from(raw: RawQuote<T>) -> Self {
         Self(raw)
     }
 }
 
-impl<'a> From<&'a [u8]> for Quote<'a> {
+impl<'a> From<&'a [u8]> for Quote<&'a [u8]> {
     fn from(bytes: &'a [u8]) -> Self {
+        Self(bytes.into())
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<Vec<u8>> for Quote<Vec<u8>> {
+    fn from(bytes: Vec<u8>) -> Self {
         Self(bytes.into())
     }
 }
 
 #[cfg(test)]
 mod test {
+    #[cfg(feature = "alloc")]
+    use alloc::vec;
+
     use super::*;
     use crate::{report::Report, TargetInfo};
     use core::{mem, slice};
@@ -281,22 +302,39 @@ mod test {
     #[test]
     fn raw_quote_from_slice() {
         let bytes = [3u8; 14].as_slice();
-        let raw: RawQuote = bytes.into();
+        let raw: RawQuote<&[u8]> = bytes.into();
         assert_eq!(raw.bytes, bytes);
     }
 
     #[test]
     fn quote_from_raw_quote() {
         let bytes = [8u8; 20].as_slice();
-        let raw: RawQuote = bytes.into();
-        let quote: Quote = raw.clone().into();
+        let raw: RawQuote<&[u8]> = bytes.into();
+        let quote: Quote<&[u8]> = raw.clone().into();
         assert_eq!(quote.0, raw);
     }
 
     #[test]
     fn quote_from_slice() {
         let bytes = [4u8; 6].as_slice();
-        let quote: Quote = bytes.into();
+        let quote: Quote<&[u8]> = bytes.into();
+        assert_eq!(quote.0.bytes, bytes);
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn quote_from_vec() {
+        let bytes = vec![4u8; 6];
+        let quote: Quote<Vec<u8>> = bytes.clone().into();
+        assert_eq!(quote.0.bytes, bytes);
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn quote_from_raw_quote_vec() {
+        let bytes = vec![10u8; 5];
+        let raw: RawQuote<Vec<u8>> = bytes.clone().into();
+        let quote: Quote<Vec<u8>> = raw.into();
         assert_eq!(quote.0.bytes, bytes);
     }
 

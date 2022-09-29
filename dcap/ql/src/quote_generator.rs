@@ -6,17 +6,50 @@
 //! functionality will return errors.
 
 use mc_sgx_core_sys_types::sgx_target_info_t;
-use mc_sgx_core_types::TargetInfo;
+use mc_sgx_core_types::{Quote, Report, ReportData, TargetInfo};
 use mc_sgx_dcap_types::Quote3Error;
 use mc_sgx_util::ResultInto;
 
-/// Provides behavior to generate quotes for enclaves
+/// Functionality to create quotes.  Implementers should only need to implement
+/// `report` as that will need to come from the application enclave.
 pub trait QuoteGenerator {
+    /// Report from an application enclave
+    ///
+    /// # Arguments
+    /// * `target_info` - The information for the target enclave which will
+    ///   cryptographically verify the report. This is usually from the
+    ///   QE(Quoting Enclave).
+    /// * `report_data` - Report data used to communicate between enclaves
+    fn report(
+        target_info: &TargetInfo,
+        report_data: Option<&ReportData>,
+    ) -> Result<Report, Quote3Error>;
+
     /// The target info of the QE(Quoting Enclave)
     fn target_info() -> Result<TargetInfo, Quote3Error> {
         let mut info = sgx_target_info_t::default();
         unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_target_info(&mut info) }.into_result()?;
         Ok(info.into())
+    }
+
+    /// A new quote for the instance
+    ///
+    /// # Arguments
+    /// * `report_data` - Report data used to communicate between enclaves
+    fn quote(report_data: Option<&ReportData>) -> Result<Quote<Vec<u8>>, Quote3Error> {
+        let mut size = 0;
+        unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_quote_size(&mut size) }.into_result()?;
+        let mut quote = vec![0; size as usize];
+        let report = Self::report(&Self::target_info()?, report_data)?;
+        unsafe {
+            mc_sgx_dcap_ql_sys::sgx_qe_get_quote(
+                &report.into(),
+                quote.len() as u32,
+                quote.as_mut_ptr(),
+            )
+        }
+        .into_result()?;
+        Ok(quote.into())
     }
 }
 
@@ -30,7 +63,14 @@ mod test {
 
     pub struct LocalTester;
 
-    impl QuoteGenerator for LocalTester {}
+    impl QuoteGenerator for LocalTester {
+        fn report(
+            _target_info: &TargetInfo,
+            _report_data: Option<&ReportData>,
+        ) -> Result<Report, Quote3Error> {
+            Ok(Report::default())
+        }
+    }
 
     #[test]
     fn getting_target_info() {
