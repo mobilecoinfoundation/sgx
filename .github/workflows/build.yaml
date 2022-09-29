@@ -43,6 +43,8 @@ jobs:
 
   size-label:
     runs-on: ubuntu-20.04
+    permissions:
+      pull-requests: write
     steps:
       - name: size-label
         uses: "pascalgn/size-label-action@v0.4.2"
