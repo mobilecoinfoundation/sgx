@@ -426,6 +426,8 @@ dependencies = [
 name = "mc-sgx-dcap-ql"
 version = "0.2.0-pre0"
 dependencies = [
+ "mc-sgx-core-sys-types",
+ "mc-sgx-core-types",
  "mc-sgx-dcap-ql-sys",
  "mc-sgx-dcap-ql-types",
  "mc-sgx-dcap-types",
