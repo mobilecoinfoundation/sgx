@@ -51,8 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           IGNORED: "Cargo.lock"
-        with:
-          sizes: >
+          INPUT_SIZES: >
             {
               "0": "XS",
               "30": "S",
