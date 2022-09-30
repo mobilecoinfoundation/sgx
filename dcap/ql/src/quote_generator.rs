@@ -37,10 +37,16 @@ pub trait QuoteGenerator {
     /// # Arguments
     /// * `report_data` - Report data used to communicate between enclaves
     fn quote(report_data: Option<&ReportData>) -> Result<Quote<Vec<u8>>, Quote3Error> {
+        //NB: The order of operations is important here.  Getting the target
+        //    info will also internally initialize the quote library.  Calling
+        //    `sgx_qe_get_quote_size()` prior to getting the target info will
+        //    result in `AttestationKeyNotInitialized`.
+        let report = Self::report(&Self::target_info()?, report_data)?;
+
         let mut size = 0;
         unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_quote_size(&mut size) }.into_result()?;
+
         let mut quote = vec![0; size as usize];
-        let report = Self::report(&Self::target_info()?, report_data)?;
         unsafe {
             mc_sgx_dcap_ql_sys::sgx_qe_get_quote(
                 &report.into(),
@@ -49,6 +55,7 @@ pub trait QuoteGenerator {
             )
         }
         .into_result()?;
+
         Ok(quote.into())
     }
 }
@@ -90,5 +97,29 @@ mod test {
         )
         .unwrap();
         assert!(LocalTester::target_info().is_ok());
+    }
+
+    #[test]
+    fn get_quote() {
+        set_path(
+            ProvisioningCertificateEnclave,
+            "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
+        )
+        .unwrap();
+        set_path(
+            QuotingEnclave,
+            "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
+        )
+        .unwrap();
+        set_path(
+            IdEnclave,
+            "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
+        )
+        .unwrap();
+        let data = ReportData::default();
+        assert_eq!(
+            LocalTester::quote(Some(&data)),
+            Err(Quote3Error::InvalidReport)
+        );
     }
 }
