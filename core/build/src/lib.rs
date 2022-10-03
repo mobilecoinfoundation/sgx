@@ -66,6 +66,7 @@ pub fn sgx_builder() -> Builder {
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
+        .generate_comments(false)
         .parse_callbacks(Box::new(SgxParseCallbacks::default()))
 }
 

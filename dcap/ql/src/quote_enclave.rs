@@ -4,8 +4,8 @@
 //! QE(Quoting Enclave), PCE(Provisioning Certificate Enclave), and the
 //! QPL(Quote Provider Library)
 //!
-//! Note: The https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf
-//! has a mixup.  It uses the *verification* description for `sgx_ql_set_path`
+//! Note: The <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
+//! has a mix up.  It uses the *verification* description for `sgx_ql_set_path`
 //! and the "generation" description for `sgx_qv_set_path`
 
 use mc_sgx_core_sys_types::sgx_target_info_t;

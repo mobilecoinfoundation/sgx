@@ -149,7 +149,8 @@ pub trait Unseal: AsRef<[u8]> {
     ///
     /// # Arguments
     /// * `buffer` - The buffer to output the unsealed data into.  `buffer`
-    ///   needs to be at least as big as [`decrypted_text_len`].
+    ///   needs to be at least as big as
+    ///   [`decrypted_text_len`](Unseal::decrypted_text_len)
     fn unseal<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8]> {
         let data_length = self.decrypted_text_len()?;
         if buffer.len() < data_length {
