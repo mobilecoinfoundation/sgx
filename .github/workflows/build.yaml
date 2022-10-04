@@ -144,7 +144,7 @@ jobs:
       - run: |
           cargo metadata --no-deps --format-version=1 | \
             jq -r '.packages[].name' | \
-            grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-types -e mc-sgx-dcap-quoteverify -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
+            grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-types -e mc-sgx-dcap-quoteverify -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
             xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
 
   build:
@@ -190,10 +190,11 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --release --locked --features "sim alloc"
+      - name: Run tests
+        # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
+        # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+        # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
+        run: unset SGX_AESM_ADDR && cargo test --release --locked --features "sim alloc"
 
   doc:
     runs-on: ubuntu-20.04
@@ -232,11 +233,12 @@ jobs:
           override: true
           components: llvm-tools-preview
       - uses: taiki-e/install-action@cargo-llvm-cov
-      - uses: actions-rs/cargo@v1
-        with:
-          command: llvm-cov
-          # The FFI bindings crates always report 100% because they have no code
-          args: --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
+      - name: Run tests with coverage
+        # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
+        # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+        # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
+        # The FFI bindings crates always report 100% because they have no code
+        run: unset SGX_AESM_ADDR && cargo llvm-cov --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
       - uses: codecov/codecov-action@v3
         with:
           files: lcov.info
