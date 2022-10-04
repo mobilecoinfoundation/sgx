@@ -1,6 +1,5 @@
 [package]
 name = "mc-sgx-capable"
-# When updating version, update the deps.rs link in README.md
 version = "0.2.0-pre0"
 edition = "2021"
 authors = ["MobileCoin"]

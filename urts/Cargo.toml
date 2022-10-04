@@ -1,6 +1,5 @@
 [package]
 name = "mc-sgx-urts"
-# When updating version, update the deps.rs link in README.md
 version = "0.2.0-pre0"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
@@ -25,4 +24,4 @@ default = []
 
 [dev-dependencies]
 tempfile = "=3.3.0"
-test_enclave = { path = "../test_enclave", version = "=0.2.0-pre0" }
+test_enclave = { path = "../test_enclave" }

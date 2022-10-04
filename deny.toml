@@ -36,8 +36,13 @@ deny = [
     # https://github.com/briansmith/ring/issues/774
     { name = "ring" },
 ]
-skip = []
-skip-tree = []
+skip = [
+    # Workaround for path only dependencies,
+    # https://github.com/EmbarkStudios/cargo-deny/issues/241
+    { name = "mc-sgx-urts" },
+    { name = "test_enclave" },
+]
+skip-tree = [ ]
 
 [sources]
 unknown-registry = "warn"

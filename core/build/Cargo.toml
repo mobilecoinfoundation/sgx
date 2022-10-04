@@ -1,6 +1,5 @@
 [package]
 name = "mc-sgx-core-build"
-# When updating version, update the deps.rs link in README.md
 version = "0.2.0-pre0"
 authors = ["MobileCoin"]
 categories = ["development-tools"]
@@ -14,3 +13,15 @@ rust-version = "1.62.1"
 
 [dependencies]
 bindgen = "0.60.1"
+
+[package.metadata.release]
+# Workaround for settings in root Cargo.toml applying to *all* crates during
+# release. This crate holds the logic for updating files only in the
+# workspace
+pre-release-replacements = [
+    {file="../../CHANGELOG.md", search="Unreleased", replace="{{version}}"},
+    {file="../../CHANGELOG.md", search="\\.\\.\\.HEAD", replace="...{{tag_name}}", exactly=1},
+    {file="../../CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
+    {file="../../CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n\n## [Unreleased] - ReleaseDate", exactly=1},
+    {file="../../CHANGELOG.md", search="<!-- next-url -->", replace="<!-- next-url -->\n[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/{{tag_name}}...HEAD", exactly=1},
+]
