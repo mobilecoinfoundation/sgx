@@ -15,10 +15,10 @@ keywords = ["sgx"]
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.2.0-pre0" }
-mc-sgx-core-types = { path = "../../core/types", version = "=0.2.0-pre0", features = ["alloc"] }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-ql-sys = { path = "sys", version = "=0.2.0-pre0" }
 mc-sgx-dcap-ql-types = { path = "types", version = "=0.2.0-pre0" }
-mc-sgx-dcap-types = { path = "../types", version = "=0.2.0-pre0" }
+mc-sgx-dcap-types = { path = "../types", version = "=0.2.0-pre0", features = ["alloc"] }
 mc-sgx-util = { path = "../../util", version = "=0.2.0-pre0" }
 
 [features]

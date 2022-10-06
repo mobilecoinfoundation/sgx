@@ -12,7 +12,9 @@ mod quoting_enclave;
 mod request_policy;
 
 pub use crate::{
-    quote3::Error as Quote3Error, quoting_enclave::ReportInfo, request_policy::RequestPolicy,
+    quote3::{Error as Quote3Error, Quote3},
+    quoting_enclave::ReportInfo,
+    request_policy::RequestPolicy,
 };
 
 // TODO:

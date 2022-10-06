@@ -8,10 +8,24 @@
 //! has a mixup.  It uses the *verification* description for `sgx_ql_set_path`
 //! and the "generation" description for `sgx_qv_set_path`
 
+use mc_sgx_core_sys_types::sgx_target_info_t;
+use mc_sgx_core_types::TargetInfo;
 use mc_sgx_dcap_ql_types::PathKind;
 use mc_sgx_dcap_types::{Quote3Error, RequestPolicy};
 use mc_sgx_util::ResultInto;
 use std::{ffi::CString, os::unix::ffi::OsStrExt, path::Path};
+
+/// Target info for quoting enclave
+pub trait QeTargetInfo {
+    /// The target info of the QE(Quoting Enclave)
+    fn for_quoting_enclave() -> Result<TargetInfo, Quote3Error> {
+        let mut info = sgx_target_info_t::default();
+        unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_target_info(&mut info) }.into_result()?;
+        Ok(info.into())
+    }
+}
+
+impl QeTargetInfo for TargetInfo {}
 
 /// Set path for QE(Quoting Enclave), PCE(Provisioning Certificate Enclave) or
 /// QPL(Quote Provider Library)
@@ -121,5 +135,34 @@ mod test {
     )]
     fn load_policy_succeeds(policy: RequestPolicy) {
         assert!(load_policy(policy).is_ok());
+    }
+}
+
+#[cfg(all(test, not(feature = "sim")))]
+mod hw_test {
+    use super::*;
+    use crate::set_path;
+    use mc_sgx_dcap_ql_types::PathKind::{
+        IdEnclave, ProvisioningCertificateEnclave, QuotingEnclave,
+    };
+
+    #[test]
+    fn getting_target_info() {
+        set_path(
+            ProvisioningCertificateEnclave,
+            "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
+        )
+        .unwrap();
+        set_path(
+            QuotingEnclave,
+            "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
+        )
+        .unwrap();
+        set_path(
+            IdEnclave,
+            "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
+        )
+        .unwrap();
+        assert!(TargetInfo::for_quoting_enclave().is_ok());
     }
 }
