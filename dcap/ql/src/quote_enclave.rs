@@ -9,7 +9,7 @@
 //! and the "generation" description for `sgx_qv_set_path`
 
 use mc_sgx_dcap_ql_types::PathKind;
-use mc_sgx_dcap_types::Quote3Error;
+use mc_sgx_dcap_types::{Quote3Error, RequestPolicy};
 use mc_sgx_util::ResultInto;
 use std::{ffi::CString, os::unix::ffi::OsStrExt, path::Path};
 
@@ -32,6 +32,14 @@ pub fn set_path<P: AsRef<Path>>(path_kind: PathKind, path: P) -> Result<(), Quot
     let c_path = CString::new(path.as_ref().as_os_str().as_bytes())
         .map_err(|_| Quote3Error::InvalidParameter)?;
     unsafe { mc_sgx_dcap_ql_sys::sgx_ql_set_path(path_kind.into(), c_path.as_ptr()) }.into_result()
+}
+
+/// Set the load policy
+///
+/// # Arguments
+/// * `policy` - The policy to use for loading quoting enclaves
+pub fn load_policy(policy: RequestPolicy) -> Result<(), Quote3Error> {
+    unsafe { mc_sgx_dcap_ql_sys::sgx_qe_set_enclave_load_policy(policy.into()) }.into_result()
 }
 
 #[cfg(test)]
@@ -105,5 +113,13 @@ mod test {
         fs::write(&file_name, "stuff").unwrap();
 
         assert!(set_path(QuoteProviderLibrary, file_name).is_err());
+    }
+
+    #[parameterized(
+    persistent = { RequestPolicy::Persistent },
+    ephemeral = { RequestPolicy::Ephemeral },
+    )]
+    fn load_policy_succeeds(policy: RequestPolicy) {
+        assert!(load_policy(policy).is_ok());
     }
 }
