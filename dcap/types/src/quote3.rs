@@ -2,11 +2,27 @@
 
 // ! This module provides types related to Quote v3
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 use displaydoc::Display;
 use mc_sgx_dcap_sys_types::quote3_error_t;
 use mc_sgx_util::{ResultFrom, ResultInto};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
+/// Quote version 3
+#[cfg(feature = "alloc")]
+#[derive(Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Quote3 {
+    _bytes: Vec<u8>,
+}
+
+#[cfg(feature = "alloc")]
+impl From<Vec<u8>> for Quote3 {
+    fn from(bytes: Vec<u8>) -> Self {
+        Self { _bytes: bytes }
+    }
+}
 
 /// An enumeration of errors which occur when using QuoteLib-related methods.
 ///

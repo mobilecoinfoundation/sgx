@@ -3,8 +3,10 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs, missing_debug_implementations)]
 
+extern crate alloc;
+
 mod quote_enclave;
 mod quote_generator;
 
 pub use quote_enclave::{load_policy, set_path};
-pub use quote_generator::QuoteGenerator;
+pub use quote_generator::{QeTargetInfo, TryFromReport};
