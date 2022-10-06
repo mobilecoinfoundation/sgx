@@ -14,10 +14,18 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.2.0-pre0" }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-ql-sys = { path = "sys", version = "=0.2.0-pre0" }
 mc-sgx-dcap-ql-types = { path = "types", version = "=0.2.0-pre0" }
 mc-sgx-dcap-types = { path = "../types", version = "=0.2.0-pre0" }
 mc-sgx-util = { path = "../../util", version = "=0.2.0-pre0" }
+
+[features]
+default = []
+
+# Used to prevent tests from running in sim environments
+sim = []
 
 [dev-dependencies]
 tempfile = "3.3.0"
