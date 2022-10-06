@@ -6,7 +6,7 @@
 extern crate alloc;
 
 mod quote_enclave;
-mod quote_generator;
+mod quote3;
 
 pub use quote_enclave::{load_policy, set_path, QeTargetInfo};
-pub use quote_generator::TryFromReport;
+pub use quote3::TryFromReport;

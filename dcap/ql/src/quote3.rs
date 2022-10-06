@@ -1,6 +1,6 @@
 // Copyright (c) 2022 MobileCoin Foundation
 
-//! Provides functionality for generating quotes
+//! Provides functionality for generating quote version 3 quotes
 //!
 //! This functionality requires HW SGX to work correctly otherwise all
 //! functionality will return errors.
