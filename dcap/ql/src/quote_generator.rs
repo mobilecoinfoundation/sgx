@@ -6,7 +6,7 @@
 //! functionality will return errors.
 
 use mc_sgx_core_sys_types::sgx_target_info_t;
-use mc_sgx_core_types::{Report, TargetInfo};
+use mc_sgx_core_types::Report;
 use mc_sgx_dcap_types::{Quote3, Quote3Error};
 use mc_sgx_util::ResultInto;
 
@@ -35,45 +35,15 @@ pub trait TryFromReport {
 
 impl TryFromReport for Quote3 {}
 
-/// Target info for quoting enclave
-pub trait QeTargetInfo {
-    /// The target info of the QE(Quoting Enclave)
-    fn for_quoting_enclave() -> Result<TargetInfo, Quote3Error> {
-        let mut info = sgx_target_info_t::default();
-        unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_target_info(&mut info) }.into_result()?;
-        Ok(info.into())
-    }
-}
-
-impl QeTargetInfo for TargetInfo {}
-
 #[cfg(all(test, not(feature = "sim")))]
 mod test {
     use super::*;
     use crate::set_path;
+    use crate::QeTargetInfo;
+    use mc_sgx_core_types::TargetInfo;
     use mc_sgx_dcap_ql_types::PathKind::{
         IdEnclave, ProvisioningCertificateEnclave, QuotingEnclave,
     };
-
-    #[test]
-    fn getting_target_info() {
-        set_path(
-            ProvisioningCertificateEnclave,
-            "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
-        )
-        .unwrap();
-        set_path(
-            QuotingEnclave,
-            "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
-        )
-        .unwrap();
-        set_path(
-            IdEnclave,
-            "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
-        )
-        .unwrap();
-        assert!(TargetInfo::for_quoting_enclave().is_ok());
-    }
 
     #[test]
     fn get_quote() {
