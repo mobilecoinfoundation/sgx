@@ -37,8 +37,7 @@ impl TryFromReport for Quote3 {}
 #[cfg(all(test, not(feature = "sim")))]
 mod test {
     use super::*;
-    use crate::set_path;
-    use crate::QeTargetInfo;
+    use crate::{set_path, QeTargetInfo};
     use mc_sgx_core_types::TargetInfo;
     use mc_sgx_dcap_ql_types::PathKind::{
         IdEnclave, ProvisioningCertificateEnclave, QuotingEnclave,

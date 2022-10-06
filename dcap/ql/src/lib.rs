@@ -5,8 +5,8 @@
 
 extern crate alloc;
 
-mod quote_enclave;
 mod quote3;
+mod quote_enclave;
 
-pub use quote_enclave::{load_policy, set_path, QeTargetInfo};
 pub use quote3::TryFromReport;
+pub use quote_enclave::{load_policy, set_path, QeTargetInfo};

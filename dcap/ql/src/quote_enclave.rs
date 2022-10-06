@@ -152,17 +152,17 @@ mod hw_test {
             ProvisioningCertificateEnclave,
             "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
         )
-            .unwrap();
+        .unwrap();
         set_path(
             QuotingEnclave,
             "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
         )
-            .unwrap();
+        .unwrap();
         set_path(
             IdEnclave,
             "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
         )
-            .unwrap();
+        .unwrap();
         assert!(TargetInfo::for_quoting_enclave().is_ok());
     }
 }
