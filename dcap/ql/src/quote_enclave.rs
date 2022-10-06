@@ -8,6 +8,7 @@
 //! has a mixup.  It uses the *verification* description for `sgx_ql_set_path`
 //! and the "generation" description for `sgx_qv_set_path`
 
+use mc_sgx_core_sys_types::sgx_target_info_t;
 use mc_sgx_core_types::TargetInfo;
 use mc_sgx_dcap_ql_types::PathKind;
 use mc_sgx_dcap_types::{Quote3Error, RequestPolicy};

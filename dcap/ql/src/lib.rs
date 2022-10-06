@@ -8,5 +8,5 @@ extern crate alloc;
 mod quote_enclave;
 mod quote_generator;
 
-pub use quote_enclave::{load_policy, set_path};
-pub use quote_generator::{QeTargetInfo, TryFromReport};
+pub use quote_enclave::{load_policy, set_path, QeTargetInfo};
+pub use quote_generator::TryFromReport;

@@ -5,7 +5,6 @@
 //! This functionality requires HW SGX to work correctly otherwise all
 //! functionality will return errors.
 
-use mc_sgx_core_sys_types::sgx_target_info_t;
 use mc_sgx_core_types::Report;
 use mc_sgx_dcap_types::{Quote3, Quote3Error};
 use mc_sgx_util::ResultInto;
