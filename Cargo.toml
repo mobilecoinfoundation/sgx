@@ -47,3 +47,21 @@ rpath = false
 lto = true
 debug-assertions = false
 overflow-checks = false
+
+[workspace.metadata.release]
+shared-version = true
+dev-version-ext = "pre"
+consolidate-commits = true
+consolidate-pushes = true
+tag-name = "v{{version}}"
+
+# The file names in this key are relative to the each crate that gets released.
+# So we only need one `README.md` entry if all the README's follow a
+# common format and are always next to the Cargo.toml for their respective
+# package.
+# The downside to this running relative is that updating anything *only* in the
+# root will fail to work around this we delegate to `core/build/Cargo.toml` for
+# anything that is root specific.
+pre-release-replacements = [
+    {file="README.md", search="mc-sgx-[a-z-]+/[0-9.]+", replace="{{crate_name}}/{{version}}"},
+]
