@@ -112,7 +112,6 @@ fn main() {
         ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .parse_callbacks(Box::new(callback))
         .newtype_enum("_status_t");
 

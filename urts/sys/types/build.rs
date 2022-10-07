@@ -17,7 +17,6 @@ fn main() {
     let callback = SgxParseCallbacks::default().derive_copy(["sgx_kss_config_t"]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .parse_callbacks(Box::new(callback));
 
     for t in URTS_TYPES {

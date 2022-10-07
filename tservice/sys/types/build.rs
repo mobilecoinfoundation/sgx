@@ -48,7 +48,6 @@ fn main() {
         .derive_default(["sgx_sealed_data_t", "sgx_aes_gcm_data_t"]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .parse_callbacks(Box::new(callback))
         .blocklist_function("*");
 

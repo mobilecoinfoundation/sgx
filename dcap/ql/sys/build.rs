@@ -18,7 +18,6 @@ fn main() {
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .blocklist_type("*");
 
     for f in DCAP_QL_FUNCTIONS {

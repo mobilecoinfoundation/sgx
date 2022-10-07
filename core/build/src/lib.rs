@@ -58,7 +58,9 @@ pub fn normalize_item_name(name: &str) -> Option<String> {
 /// Returns a builder configured with the defaults for using bindgen with the
 /// SGX libraries.
 pub fn sgx_builder() -> Builder {
-    Builder::default()
+    let include_path = sgx_include_string();
+
+    let builder = Builder::default()
         .derive_copy(false)
         .derive_debug(false)
         .default_enum_style(EnumVariation::NewType { is_bitfield: false })
@@ -67,6 +69,11 @@ pub fn sgx_builder() -> Builder {
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
         .parse_callbacks(Box::new(SgxParseCallbacks::default()))
+        .clang_arg(&format!("-I{}", include_path));
+
+    cargo_emit::rerun_if_changed!(include_path);
+
+    builder
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]
