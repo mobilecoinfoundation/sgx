@@ -43,6 +43,8 @@ jobs:
 
   size-label:
     runs-on: ubuntu-20.04
+    # Trying to size a non pull request will error out failing the build
+    if: ${{ github.event_name == 'pull_request' }}
     permissions:
       pull-requests: write
     steps:
