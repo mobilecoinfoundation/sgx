@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.2.0] - 2022-10-07
+
 ### Added
 
 - `mc-sgx-core-types`: Idiomatic Rust Types for SGX primitives
@@ -32,5 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.1.0

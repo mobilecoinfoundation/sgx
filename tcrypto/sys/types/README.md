@@ -17,5 +17,5 @@ FFI type definitions used by the `sgx_tcrypto` library.
 [crate-link]: https://crates.io/crates/mc-sgx-tcrypto-sys-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tcrypto-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tcrypto-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-tcrypto-sys-types/0.1.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tcrypto-sys-types/0.1.0
+[deps-image]: https://deps.rs/crate/mc-sgx-tcrypto-sys-types/0.2.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tcrypto-sys-types/0.2.0
