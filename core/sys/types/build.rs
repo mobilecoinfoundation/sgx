@@ -83,7 +83,6 @@ const CORE_CONSTS: &[&str] = &[
 ];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
     let callback = SgxParseCallbacks::default()
         .enum_types(["sgx_status_t", "sgx_quote_sign_type_t"])
         .derive_copy([
