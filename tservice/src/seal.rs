@@ -1,12 +1,10 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Functions used for sealing and unsealing of secrets
 
-use alloc::{vec, vec::Vec};
-pub use core::ptr;
+use alloc::{format, string::String, vec, vec::Vec};
+use core::{ptr, result::Result as CoreResult};
 use mc_sgx_core_types::{Attributes, KeyPolicy, MiscellaneousSelect};
-pub use mc_sgx_core_types::{Error, Result};
-pub use mc_sgx_tservice_sys::sgx_calc_sealed_data_size;
-pub use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
+use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
 pub use mc_sgx_tservice_types::Sealed;
 use mc_sgx_util::ResultInto;
 
@@ -19,6 +17,39 @@ use mc_sgx_util::ResultInto;
 const DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL: u32 = 0xF0000000;
 const DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL: u64 = 0xFF0000000000000B;
 const DEFAULT_KEY_POLICY_FOR_SEAL: KeyPolicy = KeyPolicy::MRSIGNER;
+
+pub type Result<T> = CoreResult<T, Error>;
+
+#[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
+pub enum Error {
+    /// Error from SGX function {0}
+    Sgx(mc_sgx_core_types::Error),
+    /// FFI error {0}
+    Ffi(mc_sgx_core_types::FfiError),
+    /// Failed calculating the sealed data size, `sgx_calc_sealed_data_size()`
+    CalculateSealedDataSize,
+    /** Failed getting the decrypted data size `sgx_get_encrypt_txt_len()`
+     *  (Yes it is `decrypted` data size with a function named `encrypt`) */
+    GetDecryptedDataSize,
+    /// Invalid parameter: {0}
+    InvalidParameter(String),
+    /// Unexpected behavior from the SGX interface: {0}
+    Unexpected(String),
+}
+
+impl From<mc_sgx_core_types::Error> for Error {
+    fn from(src: mc_sgx_core_types::Error) -> Self {
+        Error::Sgx(src)
+    }
+}
+
+impl From<mc_sgx_core_types::FfiError> for Error {
+    fn from(src: mc_sgx_core_types::FfiError) -> Self {
+        Error::Ffi(src)
+    }
+}
 
 /// Sealed data builder
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -34,7 +65,7 @@ pub struct SealedBuilder<T> {
     aad: Option<T>,
 }
 
-impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
+impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
     /// Construct a [`SealedBuilder`] from unsealed data
     ///
     /// # Arguments
@@ -49,6 +80,7 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
 
     /// Build the [`Sealed`] object
     pub fn build(&self) -> Result<Sealed<Vec<u8>>> {
+        self.validate_inputs()?;
         let sealed_size = self.sealed_size()?;
         let mut sealed_data = vec![0; sealed_size];
 
@@ -79,7 +111,7 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
         }
         .into_result()?;
 
-        Sealed::try_from(sealed_data).map_err(|_| Error::Unexpected)
+        Ok(Sealed::try_from(sealed_data)?)
     }
 
     /// The AAD(additional authenticated data) to use in the sealing.
@@ -118,9 +150,12 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
 
         match result {
             // Per the documentation, UINT32_MAX indicates an error
-            u32::MAX => Err(Error::Unexpected),
+            u32::MAX => Err(Error::CalculateSealedDataSize),
             size => Ok(size as usize),
         }
+    }
+    fn validate_inputs(&self) -> Result<()> {
+        Ok(())
     }
 }
 
@@ -137,7 +172,7 @@ pub trait Unseal: AsRef<[u8]> {
         };
         match result {
             // Per the documentation, UINT32_MAX indicates an error
-            u32::MAX => Err(Error::Unexpected),
+            u32::MAX => Err(Error::GetDecryptedDataSize),
             size => Ok(size as usize),
         }
     }
@@ -154,7 +189,11 @@ pub trait Unseal: AsRef<[u8]> {
     fn unseal<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8]> {
         let data_length = self.decrypted_text_len()?;
         if buffer.len() < data_length {
-            return Err(Error::InvalidParameter);
+            return Err(Error::InvalidParameter(format!(
+                "'buffer', with length {}, to 'Unseal::unseal()' is too small for needed size of {}",
+                buffer.len(),
+                data_length
+            )));
         }
 
         let mut data_length_u32 = data_length as u32;
@@ -174,7 +213,10 @@ pub trait Unseal: AsRef<[u8]> {
         // SGX interface at the top of the function for the required sizes.
         // If the sizes are different than we have unexpected behavior.
         if data_length != data_length_u32 as usize || mac_length_u32 != 0 {
-            return Err(Error::Unexpected);
+            return Err(Error::Unexpected(format!(
+                "'sgx_unseal_data()' set the data length to {} when given length {}",
+                data_length_u32, data_length
+            )));
         }
 
         Ok(&mut buffer[..data_length])
