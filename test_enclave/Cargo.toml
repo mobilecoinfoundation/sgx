@@ -17,7 +17,6 @@ mc-sgx-urts-sys-types = { path = "../urts/sys/types" }
 
 [features]
 default = []
-sim = []
 
 [build-dependencies]
 bindgen = "0.60.1"

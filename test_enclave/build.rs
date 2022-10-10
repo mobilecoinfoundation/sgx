@@ -184,9 +184,15 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(
 ) -> PathBuf {
     let mut dynamic_enclave = PathBuf::from(static_enclave.as_ref());
     dynamic_enclave.set_extension("so");
-    let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
-    let trts = format!("-lsgx_trts{}", sgx_suffix);
-    let tservice = format!("-lsgx_tservice{}", sgx_suffix);
+
+    // TODO: IFF the test enclave persists this will need to be updated to
+    //  handle hw builds.  Currently only doing sim builds as there were issues
+    //  propagating the `sim` feature to this package, `test_enclave`,
+    //  conditionally
+    let sgx_suffix = "sim";
+    let trts = format!("-lsgx_trts_{}", sgx_suffix);
+    let tservice = format!("-lsgx_tservice_{}", sgx_suffix);
+    let pcl = format!("-lsgx_pcl{}", sgx_suffix);
 
     let link_string = mc_sgx_core_build::sgx_library_string();
     let cve_link_string = mc_sgx_core_build::sgx_library_dir()
@@ -212,11 +218,7 @@ fn build_dynamic_enclave_binary<P: AsRef<Path>>(
         .arg("--whole-archive")
         .arg(&trts);
     if let Some(_) = keyfile {
-        if cfg!(feature = "sim") {
-            command.arg("-lsgx_pclsim");
-        } else {
-            command.arg("-lsgx_pcl");
-        }
+        command.arg(pcl);
     }
     command
         .arg("--no-whole-archive")
