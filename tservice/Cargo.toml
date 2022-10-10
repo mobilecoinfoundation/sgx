@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-tservice"
-version = "0.2.0"
+version = "0.2.1-pre"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -13,12 +13,12 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
-mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.0" }
-mc-sgx-core-types = { path = "../core/types", version = "=0.2.0" }
-mc-sgx-tservice-sys = { path = "sys", version = "=0.2.0" }
-mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.2.0" }
-mc-sgx-tservice-types = { path = "types", version = "=0.2.0", features = [ "alloc" ] }
-mc-sgx-util = { path = "../util", version = "=0.2.0" }
+mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.1-pre" }
+mc-sgx-core-types = { path = "../core/types", version = "=0.2.1-pre" }
+mc-sgx-tservice-sys = { path = "sys", version = "=0.2.1-pre" }
+mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.2.1-pre" }
+mc-sgx-tservice-types = { path = "types", version = "=0.2.1-pre", features = [ "alloc" ] }
+mc-sgx-util = { path = "../util", version = "=0.2.1-pre" }
 
 [dev-dependencies]
-mc-sgx-tservice-types = { path = "types", version = "=0.2.0", features = [ "test-utils" ] }
+mc-sgx-tservice-types = { path = "types", version = "=0.2.1-pre", features = [ "test-utils" ] }
