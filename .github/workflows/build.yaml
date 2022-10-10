@@ -205,7 +205,6 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/dcap-libs
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
