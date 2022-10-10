@@ -28,9 +28,6 @@ const SERVICE_TYPES: &[&str] = &[
 const SERVICE_CONSTS: &[&str] = &["SGX_DH_SESSION_DATA_SIZE"];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
-
     let callback = SgxParseCallbacks::default()
         .enum_types(["sgx_dh_session_role_t"])
         .derive_copy([

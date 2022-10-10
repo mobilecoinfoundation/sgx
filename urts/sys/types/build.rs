@@ -11,9 +11,6 @@ const URTS_TYPES: &[&str] = &[
 ];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
-
     let callback = SgxParseCallbacks::default().derive_copy(["sgx_kss_config_t"]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")

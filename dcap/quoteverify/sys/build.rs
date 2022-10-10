@@ -12,9 +12,6 @@ const DCAP_QL_FUNCTIONS: &[&str] = &[
 ];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
-
     cargo_emit::rustc_link_lib!("dylib=sgx_dcap_quoteverify");
 
     let mut builder = mc_sgx_core_build::sgx_builder()
