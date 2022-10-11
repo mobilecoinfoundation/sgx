@@ -5,17 +5,30 @@
 //! This functionality requires HW SGX to work correctly otherwise all
 //! functionality will return errors.
 
+use crate::Error;
 use mc_sgx_core_types::Report;
-use mc_sgx_dcap_types::{Quote3, Quote3Error};
+use mc_sgx_dcap_types::Quote3;
 use mc_sgx_util::ResultInto;
 
 /// Create a Quote3 from a Report
 pub trait TryFromReport {
     /// Try to create a [`Quote3`] from the provided [`Report`]
     ///
+    /// Note: This will initialized the
+    ///   [`PathInitializer`](crate::PathInitializer) to the defaults if the
+    ///   [`PathInitializer`](crate::PathInitializer) has not been initialized
+    ///   yet. Calling
+    ///   [`PathInitializer::with_paths()`](crate::PathInitializer::with_paths)
+    ///   after calling this function will result in an error.
+    ///
     /// # Arguments
     /// * `report` - The report to build the quote from
-    fn try_from_report(report: Report) -> Result<Quote3<Vec<u8>>, Quote3Error> {
+    ///
+    /// # Errors
+    /// Will return an [`Error::Sgx`] if there is a failure from the SGX SDK
+    fn try_from_report(report: Report) -> Result<Quote3<Vec<u8>>, Error> {
+        crate::PathInitializer::ensure_initialized()?;
+
         let mut size = 0;
         unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_quote_size(&mut size) }.into_result()?;
 
@@ -37,35 +50,17 @@ impl TryFromReport for Quote3<Vec<u8>> {}
 #[cfg(all(test, not(feature = "sim")))]
 mod test {
     use super::*;
-    use crate::{set_path, QeTargetInfo};
+    use crate::QeTargetInfo;
     use mc_sgx_core_types::TargetInfo;
-    use mc_sgx_dcap_ql_types::PathKind::{
-        IdEnclave, ProvisioningCertificateEnclave, QuotingEnclave,
-    };
 
     #[test]
     fn get_quote() {
-        set_path(
-            ProvisioningCertificateEnclave,
-            "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
-        )
-        .unwrap();
-        set_path(
-            QuotingEnclave,
-            "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
-        )
-        .unwrap();
-        set_path(
-            IdEnclave,
-            "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
-        )
-        .unwrap();
         // Target info must be gotten first in order to initialize sgx
         let _ = TargetInfo::for_quoting_enclave();
         let report = Report::default();
         assert_eq!(
             Quote3::try_from_report(report),
-            Err(Quote3Error::InvalidReport)
+            Err(Error::Sgx(Quote3Error::InvalidReport))
         );
     }
 }
