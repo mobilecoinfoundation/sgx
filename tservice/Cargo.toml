@@ -8,14 +8,19 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
 description = "Rust wrappers for the `sgx_tservice` library."
-
 categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
+
+[lib]
+# test false due to needing trts, and thus an enclave to fully link
+test = false
+doctest = false
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.1" }
 mc-sgx-core-types = { path = "../core/types", version = "=0.2.1" }
+mc-sgx-trts = { path = "../trts", version = "=0.2.1" }
 mc-sgx-tservice-sys = { path = "sys", version = "=0.2.1" }
 mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.2.1" }
 mc-sgx-tservice-types = { path = "types", version = "=0.2.1", features = [ "alloc" ] }
