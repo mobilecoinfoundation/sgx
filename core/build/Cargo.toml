@@ -13,6 +13,7 @@ rust-version = "1.62.1"
 
 [dependencies]
 bindgen = "0.60.1"
+cargo-emit = "0.2.1"
 
 [package.metadata.release]
 # Workaround for settings in root Cargo.toml applying to *all* crates during

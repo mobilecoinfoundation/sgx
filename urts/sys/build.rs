@@ -20,9 +20,6 @@ const URTS_CONSTANTS: &[&str] = &[
 ];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
-
     let link_path = mc_sgx_core_build::sgx_library_string();
     cargo_emit::rustc_link_search!(link_path);
 
@@ -31,9 +28,7 @@ fn main() {
     cargo_emit::rustc_link_lib!(&format!("sgx_urts{}", sgx_suffix));
     cargo_emit::rustc_link_lib!(&format!("sgx_uae_service{}", sgx_suffix));
 
-    let mut builder = mc_sgx_core_build::sgx_builder()
-        .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path));
+    let mut builder = mc_sgx_core_build::sgx_builder().header("wrapper.h");
 
     for f in URTS_FUNCTIONS {
         builder = builder.allowlist_function(f);

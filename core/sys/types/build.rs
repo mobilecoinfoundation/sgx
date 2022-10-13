@@ -83,7 +83,6 @@ const CORE_CONSTS: &[&str] = &[
 ];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
     let callback = SgxParseCallbacks::default()
         .enum_types(["sgx_status_t", "sgx_quote_sign_type_t"])
         .derive_copy([
@@ -112,7 +111,6 @@ fn main() {
         ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .parse_callbacks(Box::new(callback))
         .newtype_enum("_status_t");
 

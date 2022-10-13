@@ -4,9 +4,6 @@
 const DCAP_TVL_FUNCTIONS: &[&str] = &["sgx_tvl_verify_qve_report_and_identity"];
 
 fn main() {
-    let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
-
     let link_path = mc_sgx_core_build::sgx_library_string();
     cargo_emit::rustc_link_search!(link_path);
     cargo_emit::rerun_if_changed!(link_path);
@@ -14,7 +11,6 @@ fn main() {
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .blocklist_type("*");
 
     for f in DCAP_TVL_FUNCTIONS {

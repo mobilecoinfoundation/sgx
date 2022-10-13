@@ -42,12 +42,9 @@ fn main() {
             "sgx_generic_ecresult_t",
         ])
         .derive_copy(["sgx_ec256_public_t", "rsa_params_t"]);
-    let include_path = mc_sgx_core_build::sgx_include_string();
-    cargo_emit::rerun_if_changed!(include_path);
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .clang_arg(&format!("-I{}", include_path))
         .parse_callbacks(Box::new(callback))
         .blocklist_function("*");
 
