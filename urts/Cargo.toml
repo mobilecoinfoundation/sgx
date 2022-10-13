@@ -19,7 +19,7 @@ mc-sgx-urts-sys-types = { path = "sys/types", version = "=0.2.1-pre" }
 mc-sgx-util = { path = "../util", version = "=0.2.1-pre" }
 
 [features]
-sim = ["mc-sgx-urts-sys/sim", "test_enclave/sim"]
+sim = ["mc-sgx-urts-sys/sim"]
 default = []
 
 [dev-dependencies]
