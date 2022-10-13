@@ -23,3 +23,4 @@ mc-sgx-util = { path = "../util", version = "=0.2.1" }
 
 [dev-dependencies]
 mc-sgx-tservice-types = { path = "types", version = "=0.2.1", features = [ "test-utils" ] }
+yare = "1.0.2"

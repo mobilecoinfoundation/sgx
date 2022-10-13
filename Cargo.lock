@@ -594,6 +594,7 @@ dependencies = [
  "mc-sgx-tservice-sys-types",
  "mc-sgx-tservice-types",
  "mc-sgx-util",
+ "yare",
 ]
 
 [[package]]
