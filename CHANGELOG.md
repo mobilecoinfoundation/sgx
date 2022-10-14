@@ -11,14 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `mc-sgx-tservice::SealedBuilder` utilizes the dedicated error type
-  `mc-sgx-tservice::SealError`. Previously `mc-sgx-tservice::SealedBuilder`
-  utilized `mc-sgx-core-types::Error`.
-- `mc-sgx-tservice::SealedBuilder::new()` and
-  `mc-sgx-tservice::SealedBuilder::aad()` are now fallible. This allows more
-  detailed errors to be provided for bad inputs.  Previously errors were
-  deferred until `mc-sgx-tservice::SealedBuilder::build()`, propagating the
-  generic `mc-sgx-core-types::Error::InvalidParameter` error.
+- Add `mc_sgx_tservice::SealError`, make `SealedBuilder` use it instead of
+  `mc_sgx_core_types::Error`.
   
 ## [0.2.1] - 2022-10-14
 

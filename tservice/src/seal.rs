@@ -1,7 +1,7 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Functions used for sealing and unsealing of secrets
 
-use alloc::{borrow::ToOwned, format, string::String, vec, vec::Vec};
+use alloc::{format, string::String, vec, vec::Vec};
 use core::{mem, ptr, result::Result as CoreResult};
 use mc_sgx_core_types::{Attributes, KeyPolicy, MiscellaneousSelect};
 use mc_sgx_trts::EnclaveMemory;
@@ -38,8 +38,12 @@ pub enum Error {
         buffer_size: usize,
         needed_size: usize,
     },
-    /// An invalid parameter
-    InvalidParameter(String),
+    /// Provided empty data to seal
+    EmptyData,
+    /// Data to seal is not within the enclave
+    DataNotInsideEnclave,
+    /// AAD crosses enclave boundary
+    AadCrossesEnclaveBoundary,
     /// Unexpected behavior from the SGX interface: {0}
     Unexpected(String),
 }
@@ -77,18 +81,15 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
     /// * `data` - The data to be encrypted/sealed
     ///
     /// # Errors
-    /// Returns `Error::InvalidParameter` ff `data` is empty or is not fully
-    /// within the enclaves memory space
+    /// * `Error::EmptyData` if `data` is empty
+    /// * `Error::DataNotInsideEnclave` if `data` is not within the enclaves
+    ///   memory space
     pub fn new(data: T) -> Result<Self> {
         if data.as_ref().is_empty() {
-            return Err(Error::InvalidParameter(
-                "'data' to 'SealedBuilder::new()' is empty.".to_owned(),
-            ));
+            return Err(Error::EmptyData);
         }
         if !data.is_within_enclave() {
-            return Err(Error::InvalidParameter(
-                "'data' to 'SealedBuilder::new()' is not within the enclave.".to_owned(),
-            ));
+            return Err(Error::DataNotInsideEnclave);
         }
 
         Ok(Self {
@@ -141,9 +142,10 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
     /// * `aad` - The AAD to add to the sealed data
     ///
     /// # Errors
-    /// Returns `Error::InvalidParameter` if `aad` crosses an enclave memory
-    /// boundary. i.e. the `aad` is not fully in the enclave's memory or fully
-    /// outside of it.  The instance will be unmodified in these situations.
+    /// Returns `Error::AadCrossesEnclaveBoundary` if `aad` crosses an enclave
+    /// memory boundary. i.e. the `aad` is not fully in the enclave's memory or
+    /// fully outside of it.  The instance will be unmodified in these
+    /// situations.
     pub fn aad(&mut self, aad: T) -> Result<&mut Self> {
         if aad.as_ref().is_empty() {
             // In the sgx interface an empty `aad` and _no_ `aad` are one in the
@@ -156,9 +158,7 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
             self.aad = Some(aad);
             Ok(self)
         } else {
-            Err(Error::InvalidParameter(
-                "'aad' to 'SealedBuilder::aad()' crosses an enclave memory boundary".to_owned(),
-            ))
+            Err(Error::AadCrossesEnclaveBoundary)
         }
     }
 
