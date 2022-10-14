@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- `mc-sgx-urts`: Idiomatic Rust Types for the `sgx_urts` library
+
+### Fixed
+
+doc builds for:
+    - `mc-sgx-dcap-ql-sys`
+    - `mc-sgx-dcap-quoteverify`
+    - `mc-sgx-dcap-quoteverify-sys`
+    - `mc-sgx-dcap-quoteverify-sys-types`
+    - `mc-sgx-dcap-quoteverify-types`
+    - `mc-sgx-dcap-sys-types`
+    - `mc-sgx-dcap-tvl-sys`
+    - `mc-sgx-dcap-types`
+
 ## [0.2.0] - 2022-10-07
 
 ### Added
