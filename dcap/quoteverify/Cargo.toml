@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-dcap-quoteverify"
-version = "0.2.1-pre"
+version = "0.2.1"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -13,13 +13,13 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
-mc-sgx-dcap-quoteverify-sys = { path = "sys", version = "=0.2.1-pre" }
-mc-sgx-dcap-quoteverify-sys-types = { path = "sys/types", version = "=0.2.1-pre" }
-mc-sgx-dcap-quoteverify-types = { path = "types", version = "=0.2.1-pre" }
-mc-sgx-dcap-types = { path = "../types", version = "=0.2.1-pre" }
-mc-sgx-util = { path = "../../util", version = "=0.2.1-pre" }
+mc-sgx-dcap-quoteverify-sys = { path = "sys", version = "=0.2.1" }
+mc-sgx-dcap-quoteverify-sys-types = { path = "sys/types", version = "=0.2.1" }
+mc-sgx-dcap-quoteverify-types = { path = "types", version = "=0.2.1" }
+mc-sgx-dcap-types = { path = "../types", version = "=0.2.1" }
+mc-sgx-util = { path = "../../util", version = "=0.2.1" }
 
 [dev-dependencies]
-mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.2.1-pre" }
+mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.2.1" }
 tempfile = "3.3.0"
 yare = "1.0.1"

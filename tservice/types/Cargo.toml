@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-tservice-types"
-version = "0.2.1-pre"
+version = "0.2.1"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for SGX trusted service types."
@@ -18,8 +18,8 @@ alloc = []
 test-utils = []
 
 [dependencies]
-mc-sgx-core-types = { path = "../../core/types", version = "=0.2.1-pre" }
-mc-sgx-tservice-sys-types = { path = "../sys/types", version = "=0.2.1-pre" }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.2.1" }
+mc-sgx-tservice-sys-types = { path = "../sys/types", version = "=0.2.1" }
 
 [dev-dependencies]
 yare = "1.0.2"
