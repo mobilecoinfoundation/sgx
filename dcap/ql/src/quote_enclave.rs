@@ -15,8 +15,8 @@ use mc_sgx_core_types::TargetInfo;
 use mc_sgx_dcap_ql_types::PathKind;
 use mc_sgx_dcap_types::RequestPolicy;
 use mc_sgx_util::ResultInto;
-use once_cell::sync::OnceCell;
-use std::{ffi::CString, os::unix::ffi::OsStrExt, path::Path};
+use once_cell::sync::Lazy;
+use std::{ffi::CString, os::unix::ffi::OsStrExt, path::Path, sync::Mutex};
 
 /// A convenience type alias for a `Result` which contains an [`Error`].
 pub type Result<T> = CoreResult<T, Error>;
@@ -24,14 +24,15 @@ pub type Result<T> = CoreResult<T, Error>;
 /// Initialization of the paths for the quoting enclaves and quote provider
 /// library
 ///
-/// This can only be called once during process start up utilizing
+/// This should only be called once during process start up utilizing
 /// [`PathInitializer::with_paths()`] or [`PathInitializer::try_default()`].
 /// If a consumer of this crate does not explicitly initialize the paths, then
 /// they will be defaulted on the first call to an SGX function that needs the
 /// paths set.
 #[derive(Debug)]
 pub struct PathInitializer;
-static PATH_INITIALIZER: OnceCell<PathInitializer> = OnceCell::new();
+
+static PATH_INITIALIZER: Lazy<Mutex<Option<PathInitializer>>> = Lazy::new(|| Mutex::new(None));
 
 impl PathInitializer {
     /// Try to initialize the paths to the default for the system
@@ -78,19 +79,18 @@ impl PathInitializer {
         quote_provider_library: Option<P>,
         id_enclave: P,
     ) -> Result<()> {
-        let mut paths_set = false;
-        PATH_INITIALIZER.get_or_try_init(|| {
-            paths_set = true;
+        let mut value = PATH_INITIALIZER.lock().expect("Mutex has been poisoned");
+        if value.is_none() {
             Self::set_paths(
                 quoting_enclave,
                 provisioning_certificate_enclave,
                 quote_provider_library,
                 id_enclave,
-            )
-        })?;
-        match paths_set {
-            true => Ok(()),
-            false => Err(Error::PathsInitialized),
+            )?;
+            *value = Some(PathInitializer);
+            Ok(())
+        } else {
+            Err(Error::PathsInitialized)
         }
     }
 
@@ -193,33 +193,17 @@ mod test {
         ProvisioningCertificateEnclave, QuoteProviderLibrary, QuotingEnclave,
     };
     use serial_test::serial;
-    use std::{ffi::c_void, fs};
+    use std::fs;
     use tempfile::tempdir;
     use yare::parameterized;
 
-    /// Resets the [`PATH_INITIALIZER`] to being uninitialized.  This is *not*
-    /// thread safe so tests that make use of this need to utilize the
-    /// `#[serial]` macro.
+    /// Resets the [`PATH_INITIALIZER`] to being uninitialized.
+    /// Since there is *one* [`PATH_INITIALIZER`] for the entire test process
+    /// any tests focusing on the functionality of the [`PATH_INITIALIZER`]
+    /// should be utilizing the `#[serial]` macro.
     fn reset_path_initializer() {
-        // SAFETY: This is only performed in tests. While it may be undefined
-        // behavior to convert from const to mutable, IFF this fails the outcome
-        // would be isolated to test failures.
-        // See https://doc.rust-lang.org/nomicon/transmutes.html
-        //
-        //      > Transmuting an & to &mut is always Undefined Behavior.
-        //
-        // In general don't do this if you don't have to, even in tests.  It was
-        // done this way to ensure proper error handling when the paths were
-        // initialized more than once.  With the no dedicated order to the tests
-        // and the need to call `PathInitializer::try_default()` in some SGX
-        // functions, there didn't appear to be an alternative to test the
-        // behavior reliably in an automated fashion.
-        unsafe {
-            let pointer = &PATH_INITIALIZER as *const _ as *const c_void;
-            let mutable: &mut OnceCell<PathInitializer> =
-                &mut *(pointer as *mut OnceCell<PathInitializer>);
-            let _ = mutable.take();
-        }
+        let mut value = PATH_INITIALIZER.lock().expect("Mutex has been poisoned");
+        *value = None;
     }
 
     #[parameterized(

@@ -14,7 +14,7 @@ use mc_sgx_util::ResultInto;
 pub trait TryFromReport {
     /// Try to create a [`Quote3`] from the provided [`Report`]
     ///
-    /// Note: This will initialized the
+    /// Note: This will initialize the
     ///   [`PathInitializer`](crate::PathInitializer) to the defaults if the
     ///   [`PathInitializer`](crate::PathInitializer) has not been initialized
     ///   yet. Calling
@@ -52,6 +52,7 @@ mod test {
     use super::*;
     use crate::QeTargetInfo;
     use mc_sgx_core_types::TargetInfo;
+    use mc_sgx_dcap_types::Quote3Error;
 
     #[test]
     fn get_quote() {
