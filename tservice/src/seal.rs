@@ -28,11 +28,11 @@ pub enum Error {
     Sgx(mc_sgx_core_types::Error),
     /// FFI error {0}
     Ffi(mc_sgx_core_types::FfiError),
-    /** The data and AAD to seal is too large.
-     *  Data size: {data_size}, AAD size: {aad_size} */
+    /** The combined plaintext ({data_size}) and authenticated data
+     *  ({aad_size}) sizes are larger than 4GiB */
     DataAadOverflow { data_size: usize, aad_size: usize },
-    /** The provided buffer to store unsealed data in is too small.
-     *  Buffer size: {buffer_size}, needed size {needed_size} */
+    /** The destination buffer must be at least {needed_size} bytes,
+     *  {buffer_size} was given */
     UnsealedBufferTooSmall {
         buffer_size: usize,
         needed_size: usize,
