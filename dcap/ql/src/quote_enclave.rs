@@ -48,7 +48,7 @@ impl PathInitializer {
         Self::with_paths(
             "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
             "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
-            None,
+            None::<&Path>,
             "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
         )
     }
@@ -73,12 +73,18 @@ impl PathInitializer {
     ///     * one of the paths does not point to a file
     ///     * one of the paths is longer than 259 (bytes)
     ///     * one of the paths contains a null (0) byte.
-    pub fn with_paths<P: AsRef<Path>>(
-        quoting_enclave: P,
-        provisioning_certificate_enclave: P,
-        quote_provider_library: Option<P>,
-        id_enclave: P,
-    ) -> Result<()> {
+    pub fn with_paths<P1, P2, P3, P4>(
+        quoting_enclave: P1,
+        provisioning_certificate_enclave: P2,
+        quote_provider_library: Option<P3>,
+        id_enclave: P4,
+    ) -> Result<()>
+    where
+        P1: AsRef<Path>,
+        P2: AsRef<Path>,
+        P3: AsRef<Path>,
+        P4: AsRef<Path>,
+    {
         let mut value = PATH_INITIALIZER.lock().expect("Mutex has been poisoned");
         if value.is_none() {
             Self::set_paths(
@@ -110,12 +116,18 @@ impl PathInitializer {
         }
     }
 
-    fn set_paths<P: AsRef<Path>>(
-        quoting_enclave: P,
-        provisioning_certificate_enclave: P,
-        quote_provider_library: Option<P>,
-        id_enclave: P,
-    ) -> Result<PathInitializer> {
+    fn set_paths<P1, P2, P3, P4>(
+        quoting_enclave: P1,
+        provisioning_certificate_enclave: P2,
+        quote_provider_library: Option<P3>,
+        id_enclave: P4,
+    ) -> Result<PathInitializer>
+    where
+        P1: AsRef<Path>,
+        P2: AsRef<Path>,
+        P3: AsRef<Path>,
+        P4: AsRef<Path>,
+    {
         Self::set_path(PathKind::QuotingEnclave, quoting_enclave)?;
         Self::set_path(
             PathKind::ProvisioningCertificateEnclave,
