@@ -54,5 +54,5 @@ the `sim` feature is present the simulation SGX libraries will be linked in.
 [crate-link]: https://crates.io/crates/mc-sgx-trts-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-trts-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-trts-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-trts-sys/0.2.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-trts-sys/0.2.0
+[deps-image]: https://deps.rs/crate/mc-sgx-trts-sys/0.2.1/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-trts-sys/0.2.1
