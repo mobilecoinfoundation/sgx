@@ -22,6 +22,10 @@ pub enum Error {
     Sgx(Quote3Error),
     /// Failed ot convert a path to a string.  Path {0}
     PathStringConversion(String),
+    /// Path does not exist
+    PathDoesNotExist(String),
+    /// Path length is longer than the 259 character bytes allowed
+    PathLengthTooLong(String),
 }
 
 impl From<Quote3Error> for Error {

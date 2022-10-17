@@ -18,6 +18,12 @@ use mc_sgx_util::ResultInto;
 use once_cell::sync::Lazy;
 use std::{ffi::CString, os::unix::ffi::OsStrExt, path::Path, sync::Mutex};
 
+// Using the value from SGX to validate inputs and provide better error
+// messages.
+// NB: This should be checked once converted to a CString as it's the number of
+//  bytes (+ NULL), not the number of characters.
+const MAX_PATH_LENGTH: usize = 260;
+
 /// A convenience type alias for a `Result` which contains an [`Error`].
 pub type Result<T> = CoreResult<T, Error>;
 
@@ -159,9 +165,20 @@ impl PathInitializer {
     ///     * `path` is longer than 259 (bytes)
     ///     * `path` contains a null (0) byte.
     fn set_path<P: AsRef<Path>>(path_kind: PathKind, path: P) -> Result<()> {
-        let c_path = CString::new(path.as_ref().as_os_str().as_bytes()).map_err(|_| {
-            Error::PathStringConversion(path.as_ref().to_string_lossy().into_owned())
-        })?;
+        let path = path.as_ref();
+        let c_path = CString::new(path.as_os_str().as_bytes())
+            .map_err(|_| Error::PathStringConversion(path.to_string_lossy().into_owned()))?;
+
+        path.is_file()
+            .then_some(true)
+            .ok_or_else(|| Error::PathDoesNotExist(path.to_string_lossy().into_owned()))?;
+
+        if c_path.as_bytes_with_nul().len() > MAX_PATH_LENGTH {
+            return Err(Error::PathLengthTooLong(
+                path.to_string_lossy().into_owned(),
+            ));
+        }
+
         unsafe { mc_sgx_dcap_ql_sys::sgx_ql_set_path(path_kind.into(), c_path.as_ptr()) }
             .into_result()?;
         Ok(())
@@ -244,7 +261,12 @@ mod test {
     #[test]
     fn path_as_directory_fails() {
         let dir = tempdir().unwrap();
-        assert!(PathInitializer::set_path(QuotingEnclave, dir.path()).is_err());
+        assert_eq!(
+            PathInitializer::set_path(QuotingEnclave, dir.path()),
+            Err(Error::PathDoesNotExist(String::from(
+                dir.path().to_str().unwrap()
+            )))
+        );
     }
 
     #[test]
@@ -253,7 +275,12 @@ mod test {
         let file_name = dir.path().join("fake\0.txt");
         // fs::write() will fail to create the file with a null byte in the path
         // so we pass the path as non existent to `set_path`.
-        assert!(PathInitializer::set_path(ProvisioningCertificateEnclave, file_name).is_err());
+        assert_eq!(
+            PathInitializer::set_path(ProvisioningCertificateEnclave, &file_name),
+            Err(Error::PathStringConversion(String::from(
+                file_name.to_string_lossy()
+            )))
+        );
     }
 
     #[test]
@@ -281,7 +308,12 @@ mod test {
         let file_name = dir.path().join(long_name);
         fs::write(&file_name, "stuff").unwrap();
 
-        assert!(PathInitializer::set_path(QuoteProviderLibrary, file_name).is_err());
+        assert_eq!(
+            PathInitializer::set_path(QuoteProviderLibrary, &file_name),
+            Err(Error::PathLengthTooLong(String::from(
+                file_name.to_str().unwrap()
+            )))
+        );
     }
 
     #[parameterized(
@@ -363,6 +395,34 @@ mod test {
         PathInitializer::with_paths(&names[0], &names[1], Some(&names[2]), &names[3]).unwrap();
         let result = PathInitializer::with_paths(&names[0], &names[1], Some(&names[2]), &names[3]);
         assert_eq!(result, Err(Error::PathsInitialized));
+    }
+
+    #[test]
+    #[serial]
+    fn bad_path_fails_and_can_be_retried() {
+        const MAX_PATH: usize = 259;
+        let dir = tempdir().unwrap();
+        let mut dir_length = dir.path().as_os_str().as_bytes().len();
+        dir_length += 1; // for the joining "/"
+        let long_name = str::repeat("a", (MAX_PATH + 1) - dir_length);
+        let mut names = [&long_name, "b", "c", "d"]
+            .into_iter()
+            .map(|name| {
+                let file_name = dir.path().join(name);
+                fs::write(&file_name, name).unwrap();
+                file_name
+            })
+            .collect::<Vec<_>>();
+
+        for _ in 0..names.len() {
+            names.rotate_right(1);
+            reset_path_initializer();
+            let result =
+                PathInitializer::with_paths(&names[0], &names[1], Some(&names[2]), &names[3]);
+            assert!(matches!(result, Err(Error::PathLengthTooLong(_))));
+
+            assert_eq!(PathInitializer::try_default(), Ok(()));
+        }
     }
 }
 
