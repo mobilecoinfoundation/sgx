@@ -1,12 +1,10 @@
 // Copyright (c) 2022 The MobileCoin Foundation
 //! Functions used for sealing and unsealing of secrets
 
-use alloc::{vec, vec::Vec};
-pub use core::ptr;
+use alloc::{format, string::String, vec, vec::Vec};
+use core::{mem, ptr, result::Result as CoreResult};
 use mc_sgx_core_types::{Attributes, KeyPolicy, MiscellaneousSelect};
-pub use mc_sgx_core_types::{Error, Result};
-pub use mc_sgx_tservice_sys::sgx_calc_sealed_data_size;
-pub use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
+use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
 pub use mc_sgx_tservice_types::Sealed;
 use mc_sgx_util::ResultInto;
 
@@ -19,6 +17,41 @@ use mc_sgx_util::ResultInto;
 const DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL: u32 = 0xF0000000;
 const DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL: u64 = 0xFF0000000000000B;
 const DEFAULT_KEY_POLICY_FOR_SEAL: KeyPolicy = KeyPolicy::MRSIGNER;
+
+pub type Result<T> = CoreResult<T, Error>;
+
+#[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
+pub enum Error {
+    /// Error from SGX function {0}
+    Sgx(mc_sgx_core_types::Error),
+    /// FFI error {0}
+    Ffi(mc_sgx_core_types::FfiError),
+    /** The combined plaintext ({data_size}) and authenticated data
+     *  ({aad_size}) sizes are larger than 4GiB */
+    DataAadOverflow { data_size: usize, aad_size: usize },
+    /** The destination buffer must be at least {needed_size} bytes,
+     *  {buffer_size} was given */
+    UnsealedBufferTooSmall {
+        buffer_size: usize,
+        needed_size: usize,
+    },
+    /// Unexpected behavior from the SGX interface: {0}
+    Unexpected(String),
+}
+
+impl From<mc_sgx_core_types::Error> for Error {
+    fn from(src: mc_sgx_core_types::Error) -> Self {
+        Error::Sgx(src)
+    }
+}
+
+impl From<mc_sgx_core_types::FfiError> for Error {
+    fn from(src: mc_sgx_core_types::FfiError) -> Self {
+        Error::Ffi(src)
+    }
+}
 
 /// Sealed data builder
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -34,7 +67,7 @@ pub struct SealedBuilder<T> {
     aad: Option<T>,
 }
 
-impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
+impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
     /// Construct a [`SealedBuilder`] from unsealed data
     ///
     /// # Arguments
@@ -49,6 +82,7 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
 
     /// Build the [`Sealed`] object
     pub fn build(&self) -> Result<Sealed<Vec<u8>>> {
+        self.validate_inputs()?;
         let sealed_size = self.sealed_size()?;
         let mut sealed_data = vec![0; sealed_size];
 
@@ -79,7 +113,7 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
         }
         .into_result()?;
 
-        Sealed::try_from(sealed_data).map_err(|_| Error::Unexpected)
+        Ok(Sealed::try_from(sealed_data)?)
     }
 
     /// The AAD(additional authenticated data) to use in the sealing.
@@ -104,22 +138,49 @@ impl<T: AsRef<[u8]> + core::default::Default> SealedBuilder<T> {
 
     /// Returns the size needed to seal the data
     fn sealed_size(&self) -> Result<usize> {
-        let aad_length = match &self.aad {
+        let aad_size = match &self.aad {
             Some(aad) => aad.as_ref().len() as u32,
             None => 0,
         };
 
-        let result = unsafe {
-            mc_sgx_tservice_sys::sgx_calc_sealed_data_size(
-                aad_length,
-                self.data.as_ref().len() as u32,
-            )
-        };
+        let data_size = self.data.as_ref().len() as u32;
+
+        Self::check_sealed_size_overflow(data_size as u64, aad_size as u64)?;
+
+        let result = unsafe { mc_sgx_tservice_sys::sgx_calc_sealed_data_size(aad_size, data_size) };
 
         match result {
             // Per the documentation, UINT32_MAX indicates an error
-            u32::MAX => Err(Error::Unexpected),
+            // This shouldn't happen with the `check_sealed_size_overflow` call
+            // above, but the logic is kept here in case the SGX SDK adds other
+            // validation checks that aren't covered in
+            // `check_sealed_size_overflow`.
+            u32::MAX => Err(Error::DataAadOverflow {
+                data_size: data_size as usize,
+                aad_size: aad_size as usize,
+            }),
             size => Ok(size as usize),
+        }
+    }
+
+    fn validate_inputs(&self) -> Result<()> {
+        Ok(())
+    }
+
+    fn check_sealed_size_overflow(data_size: u64, aad_size: u64) -> Result<()> {
+        let overall_size = data_size + aad_size + mem::size_of::<sgx_sealed_data_t>() as u64;
+
+        // NB: There appears to be an off by one in the
+        // `sgx_calc_sealed_data_size()`.  It conditions for `a > MAX - b`.
+        // Without overflows this can be interpreted as `a + b > MAX`.  This
+        // means when `a + b == MAX` it follows the happy path returning MAX.
+        if overall_size >= u32::MAX as u64 {
+            Err(Error::DataAadOverflow {
+                data_size: data_size as usize,
+                aad_size: aad_size as usize,
+            })
+        } else {
+            Ok(())
         }
     }
 }
@@ -136,8 +197,12 @@ pub trait Unseal: AsRef<[u8]> {
             )
         };
         match result {
-            // Per the documentation, UINT32_MAX indicates an error
-            u32::MAX => Err(Error::Unexpected),
+            // Per the documentation, UINT32_MAX indicates an error, however
+            // this should only happen if we passed in a NULL pointer, which we
+            // prevent with the trait bounds
+            u32::MAX => Err(Error::Unexpected(String::from(
+                "Failed to get the decrypted text length.",
+            ))),
             size => Ok(size as usize),
         }
     }
@@ -154,7 +219,10 @@ pub trait Unseal: AsRef<[u8]> {
     fn unseal<'a>(&self, buffer: &'a mut [u8]) -> Result<&'a mut [u8]> {
         let data_length = self.decrypted_text_len()?;
         if buffer.len() < data_length {
-            return Err(Error::InvalidParameter);
+            return Err(Error::UnsealedBufferTooSmall {
+                buffer_size: buffer.len(),
+                needed_size: data_length,
+            });
         }
 
         let mut data_length_u32 = data_length as u32;
@@ -174,7 +242,10 @@ pub trait Unseal: AsRef<[u8]> {
         // SGX interface at the top of the function for the required sizes.
         // If the sizes are different than we have unexpected behavior.
         if data_length != data_length_u32 as usize || mac_length_u32 != 0 {
-            return Err(Error::Unexpected);
+            return Err(Error::Unexpected(format!(
+                "'sgx_unseal_data()' set the data length to {} when given length {}",
+                data_length_u32, data_length
+            )));
         }
 
         Ok(&mut buffer[..data_length])
@@ -194,8 +265,8 @@ impl<T: AsRef<[u8]>> Unseal for Sealed<T> {}
 #[cfg(test)]
 mod test {
     use super::*;
-    use core::mem;
     use mc_sgx_tservice_types::test_utils;
+    use yare::parameterized;
 
     #[test]
     fn sealed_data_size() {
@@ -211,6 +282,37 @@ mod test {
         let builder = SealedBuilder::new(b"1234567".as_slice());
         let expected_size = mem::size_of::<sgx_sealed_data_t>() + builder.data.len();
         assert_eq!(builder.sealed_size(), Ok(expected_size));
+    }
+
+    #[parameterized(
+    zeros = {0, 0},
+    one_two = {1, 2},
+    maxed_data = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 1, 0},
+    maxed_aad = {0, (u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 1},
+    half_way = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2, (u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2},
+    almost_maxed_data_one_aad = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 2, 1},
+    )]
+    fn no_sealed_size_overflow(data_size: usize, aad_size: usize) {
+        assert_eq!(
+            SealedBuilder::<&[u8]>::check_sealed_size_overflow(data_size as u64, aad_size as u64),
+            Ok(())
+        );
+    }
+
+    #[parameterized(
+    data_overflow = {u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>(), 0},
+    aad_overflow = {0, u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()},
+    half_way = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2 + 1, (u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2},
+    data_overflow_one_aad = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 1, 1},
+    )]
+    fn sealed_size_overflow(data_size: usize, aad_size: usize) {
+        assert_eq!(
+            SealedBuilder::<&[u8]>::check_sealed_size_overflow(data_size as u64, aad_size as u64),
+            Err(Error::DataAadOverflow {
+                data_size,
+                aad_size
+            })
+        );
     }
 
     #[test]

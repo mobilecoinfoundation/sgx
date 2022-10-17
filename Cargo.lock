@@ -587,12 +587,14 @@ dependencies = [
 name = "mc-sgx-tservice"
 version = "0.2.1"
 dependencies = [
+ "displaydoc",
  "mc-sgx-core-sys-types",
  "mc-sgx-core-types",
  "mc-sgx-tservice-sys",
  "mc-sgx-tservice-sys-types",
  "mc-sgx-tservice-types",
  "mc-sgx-util",
+ "yare",
 ]
 
 [[package]]

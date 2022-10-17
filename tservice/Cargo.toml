@@ -13,6 +13,7 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
+displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.2.1" }
 mc-sgx-core-types = { path = "../core/types", version = "=0.2.1" }
 mc-sgx-tservice-sys = { path = "sys", version = "=0.2.1" }
@@ -22,3 +23,4 @@ mc-sgx-util = { path = "../util", version = "=0.2.1" }
 
 [dev-dependencies]
 mc-sgx-tservice-types = { path = "types", version = "=0.2.1", features = [ "test-utils" ] }
+yare = "1.0.2"
