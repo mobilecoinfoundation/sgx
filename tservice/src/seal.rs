@@ -4,6 +4,7 @@
 use alloc::{format, string::String, vec, vec::Vec};
 use core::{mem, ptr, result::Result as CoreResult};
 use mc_sgx_core_types::{Attributes, KeyPolicy, MiscellaneousSelect};
+use mc_sgx_trts::EnclaveMemory;
 use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
 pub use mc_sgx_tservice_types::Sealed;
 use mc_sgx_util::ResultInto;
@@ -37,6 +38,12 @@ pub enum Error {
         buffer_size: usize,
         needed_size: usize,
     },
+    /// Provided empty data to seal
+    EmptyData,
+    /// Data to seal is not within the enclave
+    DataNotInsideEnclave,
+    /// AAD crosses enclave boundary
+    AadCrossesEnclaveBoundary,
     /// Unexpected behavior from the SGX interface: {0}
     Unexpected(String),
 }
@@ -72,17 +79,28 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
     ///
     /// # Arguments
     /// * `data` - The data to be encrypted/sealed
-    pub fn new(data: T) -> Self {
-        Self {
+    ///
+    /// # Errors
+    /// * `Error::EmptyData` if `data` is empty
+    /// * `Error::DataNotInsideEnclave` if `data` is not within the enclaves
+    ///   memory space
+    pub fn new(data: T) -> Result<Self> {
+        if data.as_ref().is_empty() {
+            return Err(Error::EmptyData);
+        }
+        if !data.is_within_enclave() {
+            return Err(Error::DataNotInsideEnclave);
+        }
+
+        Ok(Self {
             data,
             policy: DEFAULT_KEY_POLICY_FOR_SEAL,
             aad: None,
-        }
+        })
     }
 
     /// Build the [`Sealed`] object
     pub fn build(&self) -> Result<Sealed<Vec<u8>>> {
-        self.validate_inputs()?;
         let sealed_size = self.sealed_size()?;
         let mut sealed_data = vec![0; sealed_size];
 
@@ -122,9 +140,26 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
     ///
     /// # Arguments
     /// * `aad` - The AAD to add to the sealed data
-    pub fn aad(&mut self, aad: T) -> &mut Self {
-        self.aad = Some(aad);
-        self
+    ///
+    /// # Errors
+    /// Returns `Error::AadCrossesEnclaveBoundary` if `aad` crosses an enclave
+    /// memory boundary. i.e. the `aad` is not fully in the enclave's memory or
+    /// fully outside of it.  The instance will be unmodified in these
+    /// situations.
+    pub fn aad(&mut self, aad: T) -> Result<&mut Self> {
+        if aad.as_ref().is_empty() {
+            // In the sgx interface an empty `aad` and _no_ `aad` are one in the
+            // same, so we use `None` for consistent behavior here.
+            self.aad = None;
+            return Ok(self);
+        }
+
+        if aad.is_within_enclave() || aad.is_outside_enclave() {
+            self.aad = Some(aad);
+            Ok(self)
+        } else {
+            Err(Error::AadCrossesEnclaveBoundary)
+        }
     }
 
     /// Set the key policy to use for the sealed data
@@ -161,10 +196,6 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
             }),
             size => Ok(size as usize),
         }
-    }
-
-    fn validate_inputs(&self) -> Result<()> {
-        Ok(())
     }
 
     fn check_sealed_size_overflow(data_size: u64, aad_size: u64) -> Result<()> {
@@ -261,77 +292,3 @@ pub trait Unseal: AsRef<[u8]> {
 }
 
 impl<T: AsRef<[u8]>> Unseal for Sealed<T> {}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use mc_sgx_tservice_types::test_utils;
-    use yare::parameterized;
-
-    #[test]
-    fn sealed_data_size() {
-        let mut builder = SealedBuilder::new(b"12345678".as_slice());
-        builder.aad(b"123".as_slice());
-        let expected_size =
-            mem::size_of::<sgx_sealed_data_t>() + builder.data.len() + builder.aad.unwrap().len();
-        assert_eq!(builder.sealed_size(), Ok(expected_size));
-    }
-
-    #[test]
-    fn sealed_data_size_no_aad() {
-        let builder = SealedBuilder::new(b"1234567".as_slice());
-        let expected_size = mem::size_of::<sgx_sealed_data_t>() + builder.data.len();
-        assert_eq!(builder.sealed_size(), Ok(expected_size));
-    }
-
-    #[parameterized(
-    zeros = {0, 0},
-    one_two = {1, 2},
-    maxed_data = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 1, 0},
-    maxed_aad = {0, (u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 1},
-    half_way = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2, (u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2},
-    almost_maxed_data_one_aad = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 2, 1},
-    )]
-    fn no_sealed_size_overflow(data_size: usize, aad_size: usize) {
-        assert_eq!(
-            SealedBuilder::<&[u8]>::check_sealed_size_overflow(data_size as u64, aad_size as u64),
-            Ok(())
-        );
-    }
-
-    #[parameterized(
-    data_overflow = {u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>(), 0},
-    aad_overflow = {0, u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()},
-    half_way = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2 + 1, (u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) / 2},
-    data_overflow_one_aad = {(u32::MAX as usize - mem::size_of::<sgx_sealed_data_t>()) - 1, 1},
-    )]
-    fn sealed_size_overflow(data_size: usize, aad_size: usize) {
-        assert_eq!(
-            SealedBuilder::<&[u8]>::check_sealed_size_overflow(data_size as u64, aad_size as u64),
-            Err(Error::DataAadOverflow {
-                data_size,
-                aad_size
-            })
-        );
-    }
-
-    #[test]
-    fn decrypted_text_len_short() {
-        let sgx_sealed_data = sgx_sealed_data_t::default();
-        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data, b"short", Some(b"one"));
-        let data = Sealed::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(data.decrypted_text_len(), Ok(5));
-    }
-
-    #[test]
-    fn decrypted_text_len_long() {
-        let sgx_sealed_data = sgx_sealed_data_t::default();
-        let bytes = test_utils::sealed_data_to_bytes(
-            sgx_sealed_data,
-            b"12345678901234567890",
-            Some(b"where"),
-        );
-        let data = Sealed::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(data.decrypted_text_len(), Ok(20));
-    }
-}

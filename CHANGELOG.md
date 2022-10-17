@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- Add `mc_sgx_tservice::SealError`, make `SealedBuilder` use it instead of
+  `mc_sgx_core_types::Error`.
+  
 ## [0.2.1] - 2022-10-14
 
 ### Added
