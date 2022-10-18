@@ -3,9 +3,7 @@
 #![doc = include_str!("../README.md")]
 #![no_std]
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
-#![feature(c_size_t)]
 
-use core::ffi::c_size_t as size_t;
 use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_key_128bit_t, sgx_key_request_t, sgx_misc_select_t, sgx_report_data_t,
     sgx_report_t, sgx_status_t, sgx_target_info_t,
