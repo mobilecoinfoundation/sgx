@@ -111,8 +111,7 @@ fn main() {
         ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .parse_callbacks(Box::new(callback))
-        .newtype_enum("_status_t");
+        .parse_callbacks(Box::new(callback));
 
     for t in CORE_TYPES.iter() {
         builder = builder.allowlist_type(t)

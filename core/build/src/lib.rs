@@ -63,7 +63,10 @@ pub fn sgx_builder() -> Builder {
     let builder = Builder::default()
         .derive_copy(false)
         .derive_debug(false)
-        .default_enum_style(EnumVariation::NewType { is_bitfield: false })
+        .default_enum_style(EnumVariation::NewType {
+            is_bitfield: false,
+            is_global: false,
+        })
         .prepend_enum_name(false)
         .use_core()
         .ctypes_prefix("core::ffi")
