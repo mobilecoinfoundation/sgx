@@ -10,7 +10,7 @@ mod quote_enclave;
 
 use mc_sgx_dcap_types::Quote3Error;
 pub use quote3::TryFromReport;
-pub use quote_enclave::{load_policy, PathInitializer, QeTargetInfo};
+pub use quote_enclave::{LoadPolicyInitializer, PathInitializer, QeTargetInfo};
 
 /// Errors interacting with quote library functions
 #[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -26,6 +26,8 @@ pub enum Error {
     PathDoesNotExist(String),
     /// Path length is longer than the 259 character bytes allowed
     PathLengthTooLong(String),
+    /// The quoting enclave load policy has already been initialized
+    LoadPolicyInitialized,
 }
 
 impl From<Quote3Error> for Error {
