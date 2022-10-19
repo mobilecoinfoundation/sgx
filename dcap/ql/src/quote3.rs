@@ -14,12 +14,11 @@ use mc_sgx_util::ResultInto;
 pub trait TryFromReport {
     /// Try to create a [`Quote3`] from the provided [`Report`]
     ///
-    /// Note: This will initialize the
-    ///   [`PathInitializer`](crate::PathInitializer) to the defaults if the
-    ///   [`PathInitializer`](crate::PathInitializer) has not been initialized
-    ///   yet. Calling
-    ///   [`PathInitializer::with_paths()`](crate::PathInitializer::with_paths)
-    ///   after calling this function will result in an error.
+    /// Note: This will initialize the [`PathInitializer`] and
+    ///   [`LoadPolicyInitializer`] to the defaults if they have not been
+    ///   initialized yet. Attempts to initialize [`PathInitializer`] or
+    ///   [`LoadPolicyInitializer`] after calling this function will result in
+    ///   an error.
     ///
     /// # Arguments
     /// * `report` - The report to build the quote from

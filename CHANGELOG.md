@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mc-sgx-dcap-ql::set_path` and `mc-sgx-dcap-ql::load_policy` have been
   replaced with `mc-sgx-dcap-ql::PathInitializer` and
   `mc-sgx-dcap-ql::LoadPolicyInitializer`
+- `mc-sgx-dcap-quoteverify::set_path` and
+  `mc-sgx-dcap-quoteverify::load_policy` have been replaced
+  with `mc-sgx-dcap-quoteverify::PathInitializer` and
+  `mc-sgx-dcap-quoteverify::LoadPolicyInitializer`
   
 ## [0.2.1] - 2022-10-14
 

@@ -188,10 +188,11 @@ impl PathInitializer {
 pub trait QeTargetInfo {
     /// The target info of the QE(Quoting Enclave)
     ///
-    /// Note: This will initialized the [`PathInitializer`] to the
-    ///   defaults if the [`PathInitializer`] has not been initialized yet.
-    ///   Calling [`PathInitializer::with_paths()`] after calling this function
-    ///   will result in an error.
+    /// Note: This will initialize the [`PathInitializer`] and
+    ///   [`LoadPolicyInitializer`] to the defaults if they have not been
+    ///   initialized yet. Attempts to initialize [`PathInitializer`] or
+    ///   [`LoadPolicyInitializer`] after calling this function will result in
+    ///   an error.
     ///
     /// # Errors
     /// Will return an error if there is a failure from the SGX SDK

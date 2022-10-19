@@ -7,7 +7,7 @@ mod quote_enclave;
 mod verify;
 
 use mc_sgx_dcap_types::Quote3Error;
-pub use quote_enclave::{load_policy, PathInitializer};
+pub use quote_enclave::{LoadPolicyInitializer, PathInitializer};
 pub use verify::supplemental_data_size;
 
 /// Errors interacting with quote verification library functions
@@ -24,7 +24,7 @@ pub enum Error {
     PathDoesNotExist(String),
     /// Path length is longer than the 259 character bytes allowed
     PathLengthTooLong(String),
-    /// The quoting enclave load policy has already been initialized
+    /// The quote verification enclave load policy has already been initialized
     LoadPolicyInitialized,
 }
 

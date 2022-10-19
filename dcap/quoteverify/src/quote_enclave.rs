@@ -148,14 +148,71 @@ impl PathInitializer {
     }
 }
 
-/// Set the load policy
+/// Initialization of the load policy for the quote verification enclave
 ///
-/// # Arguments
-/// * `policy` - The policy to use for loading quoting enclaves
-pub fn load_policy(policy: RequestPolicy) -> Result<()> {
-    unsafe { mc_sgx_dcap_quoteverify_sys::sgx_qv_set_enclave_load_policy(policy.into()) }
-        .into_result()?;
-    Ok(())
+/// This should only be called once during process start up utilizing
+/// [`LoadPolicyInitializer::policy()`] or
+/// [`LoadPolicyInitializer::try_default()`]. If a consumer of this crate does
+/// not explicitly initialize the policy, then it will be the default SGX policy
+/// of [`RequestPolicy::Persistent`].
+#[derive(Debug)]
+pub struct LoadPolicyInitializer;
+static LOAD_POLICY_INITIALIZER: Lazy<Mutex<Option<LoadPolicyInitializer>>> =
+    Lazy::new(|| Mutex::new(None));
+
+impl LoadPolicyInitializer {
+    /// Try to initialize the quote verification enclave load policy to the
+    /// default
+    ///
+    /// The default is [`RequestPolicy::Persistent`].
+    ///
+    /// # Errors
+    /// * [`Error::LoadPolicyInitialized`] if the policy has been previously
+    ///   initialized.
+    /// * [`Error::Sgx`] for any errors setting the policy in the SGX SDK.
+    pub fn try_default() -> Result<()> {
+        Self::policy(RequestPolicy::Persistent)
+    }
+
+    /// Set the load policy to use for the quote verification enclave
+    ///
+    /// # Arguments
+    /// * `policy` - The policy to use for loading the quote verification
+    ///   enclave
+    ///
+    /// # Errors
+    /// * [`Error::LoadPolicyInitialized`] if the policy has been previously
+    ///   initialized.
+    /// * [`Error::Sgx`] for any errors setting the policy in the SGX SDK.
+    pub fn policy(policy: RequestPolicy) -> Result<()> {
+        let mut value = LOAD_POLICY_INITIALIZER
+            .lock()
+            .expect("Mutex has been poisoned");
+        if value.is_none() {
+            unsafe { mc_sgx_dcap_quoteverify_sys::sgx_qv_set_enclave_load_policy(policy.into()) }
+                .into_result()?;
+            *value = Some(LoadPolicyInitializer);
+            Ok(())
+        } else {
+            Err(Error::LoadPolicyInitialized)
+        }
+    }
+
+    /// Will ensure the load policy has been explicity set
+    ///
+    /// If the load policy has already been set does nothing
+    ///
+    /// # Errors
+    /// Will return [`Error::Sgx`] if the load policy has not been initialized
+    /// and there is an error setting the policy
+    ///
+    /// Will *not* return an error if the load policy as previously initialized.
+    pub(crate) fn ensure_initialized() -> Result<()> {
+        match Self::try_default() {
+            Ok(_) | Err(Error::LoadPolicyInitialized) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -173,6 +230,17 @@ mod test {
     /// should be utilizing the `#[serial]` macro.
     fn reset_path_initializer() {
         let mut value = PATH_INITIALIZER.lock().expect("Mutex has been poisoned");
+        *value = None;
+    }
+
+    /// Resets the [`LOAD_POLICY_INITIALIZER`] to being uninitialized.
+    /// Since there is *one* [`LOAD_POLICY_INITIALIZER`] for the entire test
+    /// process any tests focusing on the functionality of the
+    /// [`LOAD_POLICY_INITIALIZER`] should be utilizing the `#[serial]` macro.
+    fn reset_load_policy_initializer() {
+        let mut value = LOAD_POLICY_INITIALIZER
+            .lock()
+            .expect("Mutex has been poisoned");
         *value = None;
     }
 
@@ -347,7 +415,28 @@ mod test {
     persistent = { RequestPolicy::Persistent },
     ephemeral = { RequestPolicy::Ephemeral },
     )]
+    #[serial]
     fn load_policy_succeeds(policy: RequestPolicy) {
-        assert!(load_policy(policy).is_ok());
+        reset_load_policy_initializer();
+        assert_eq!(LoadPolicyInitializer::policy(policy), Ok(()));
+    }
+
+    #[test]
+    #[serial]
+    fn load_policy_fails_when_already_initialized() {
+        reset_load_policy_initializer();
+        LoadPolicyInitializer::try_default().unwrap();
+        assert_eq!(
+            LoadPolicyInitializer::try_default(),
+            Err(Error::LoadPolicyInitialized)
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn ensuring_the_policy_is_set_is_ok_when_already_set() {
+        reset_load_policy_initializer();
+        LoadPolicyInitializer::policy(RequestPolicy::Ephemeral).unwrap();
+        assert_eq!(LoadPolicyInitializer::ensure_initialized(), Ok(()));
     }
 }
