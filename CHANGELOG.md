@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `mc_sgx_tservice::SealError`, make `SealedBuilder` use it instead of
   `mc_sgx_core_types::Error`.
+- `mc-sgx-dcap-ql::set_path` and `mc-sgx-dcap-ql::load_policy` have been
+  replaced with `mc-sgx-dcap-ql::PathInitializer` and
+  `mc-sgx-dcap-ql::LoadPolicyInitializer`
   
 ## [0.2.1] - 2022-10-14
 
