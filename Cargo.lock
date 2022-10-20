@@ -497,12 +497,15 @@ dependencies = [
 name = "mc-sgx-dcap-quoteverify"
 version = "0.3.0-beta.0"
 dependencies = [
+ "displaydoc",
  "mc-sgx-dcap-quoteverify-sys",
  "mc-sgx-dcap-quoteverify-sys-types",
  "mc-sgx-dcap-quoteverify-types",
  "mc-sgx-dcap-sys-types",
  "mc-sgx-dcap-types",
  "mc-sgx-util",
+ "once_cell",
+ "serial_test",
  "tempfile",
  "yare",
 ]

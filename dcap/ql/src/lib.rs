@@ -20,7 +20,7 @@ pub enum Error {
     PathsInitialized,
     /// Error from SGX quoting library function: {0}
     Sgx(Quote3Error),
-    /// Failed ot convert a path to a string.  Path {0}
+    /// Failed to convert a path to a string.  Path {0}
     PathStringConversion(String),
     /// Path does not exist
     PathDoesNotExist(String),
