@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-tstdc-sys"
-version = "0.3.0-beta.0"
+version = "0.3.0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]
 description = "FFI bindings for `sgx_tstdc`."
