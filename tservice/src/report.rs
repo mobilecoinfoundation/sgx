@@ -3,8 +3,10 @@
 
 use core::ptr;
 use mc_sgx_core_sys_types::sgx_report_t;
-use mc_sgx_core_types::{ReportData, Result, TargetInfo};
+use mc_sgx_core_types::{ReportData, TargetInfo};
 use mc_sgx_util::ResultInto;
+
+pub type Result<T> = ::core::result::Result<T, mc_sgx_core_types::Error>;
 
 /// Report operations that can be performed inside of an enclave
 pub trait Report: Sized {

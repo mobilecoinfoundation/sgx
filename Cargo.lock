@@ -438,6 +438,7 @@ version = "0.3.1-beta.0"
 dependencies = [
  "bitflags",
  "displaydoc",
+ "getrandom",
  "mc-sgx-core-sys-types",
  "mc-sgx-util",
  "rand",

@@ -37,6 +37,14 @@ exclude = [
     "test_enclave",
 ]
 
+# We need to explicitly specify resolver 2.
+# We shouldn't have to per https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html, however if you
+# remove this, `getrandom` will fail trying to find `std` when building `mc-sgx-core-types`.  This is because
+# `mc-sgx-core-types` uses `rand` in it's `dev-dependencies`.  `rand` will use the `std` feature of `getrandom`, however
+# being in `dev-dependencies` it shouldn't normally get pulled in during a build.
+# Even specifying `edition = "2021"` here will not fix this
+resolver = "2"
+
 [profile.dev]
 opt-level = 0
 lto = true
