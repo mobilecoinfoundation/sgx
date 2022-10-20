@@ -20,7 +20,8 @@ use std::{ffi::CString, os::unix::ffi::OsStrExt, path::Path, sync::Mutex};
 //  bytes (+ NULL), not the number of characters.
 const MAX_PATH_LENGTH: usize = 260;
 
-/// A convenience type alias for a `Result` which contains an [`Error`].
+/// A convenience type alias for a [`Result`](core::result::Result) which
+/// contains an [`Error`].
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// Initialization of the paths for the quote verification enclave and quote
@@ -93,7 +94,7 @@ impl PathInitializer {
         }
     }
 
-    /// Will ensure the paths have been initialized
+    /// Ensures the paths have been initialized
     ///
     /// If the paths have not been initialized will initialize to the default.
     ///
