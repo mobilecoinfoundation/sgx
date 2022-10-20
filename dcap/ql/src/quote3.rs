@@ -5,7 +5,7 @@
 //! This functionality requires HW SGX to work correctly otherwise all
 //! functionality will return errors.
 
-use crate::Error;
+use crate::{Error, LoadPolicyInitializer, PathInitializer};
 use mc_sgx_core_types::Report;
 use mc_sgx_dcap_types::Quote3;
 use mc_sgx_util::ResultInto;
@@ -26,8 +26,8 @@ pub trait TryFromReport {
     /// # Errors
     /// Will return an [`Error::Sgx`] if there is a failure from the SGX SDK
     fn try_from_report(report: Report) -> Result<Quote3<Vec<u8>>, Error> {
-        crate::PathInitializer::ensure_initialized()?;
-        crate::LoadPolicyInitializer::ensure_initialized()?;
+        PathInitializer::ensure_initialized()?;
+        LoadPolicyInitializer::ensure_initialized()?;
 
         let mut size = 0;
         unsafe { mc_sgx_dcap_ql_sys::sgx_qe_get_quote_size(&mut size) }.into_result()?;
