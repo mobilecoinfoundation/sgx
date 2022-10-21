@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-dcap-types"
-version = "0.3.0-beta.0"
+version = "0.3.0"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for common DCAP types."
@@ -18,11 +18,11 @@ alloc = []
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
-mc-sgx-core-types = { path = "../../core/types", version = "=0.3.0-beta.0" }
-mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.3.0-beta.0" }
-mc-sgx-util = { path = "../../util", version = "=0.3.0-beta.0" }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.3.0" }
+mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.3.0" }
+mc-sgx-util = { path = "../../util", version = "=0.3.0" }
 serde = { version = "1.0.145", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
-mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.3.0-beta.0" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.3.0" }
 yare = "1.0.1"

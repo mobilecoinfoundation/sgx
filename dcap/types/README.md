@@ -17,5 +17,5 @@ Idiomatic rust wrappers for common DCAP types.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-types
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-types/0.2.1/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-types/0.2.1
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-types/0.3.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-types/0.3.0
