@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-dcap-ql-sys"
-version = "0.3.0"
+version = "0.3.1-beta.0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support"]
 description = "FFI linkage for the `sgx_dcap_ql` library."
@@ -16,11 +16,11 @@ rust-version = "1.62.1"
 doctest = false
 
 [dependencies]
-mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.3.0" }
-mc-sgx-dcap-ql-sys-types = { path = "types", version = "=0.3.0" }
-mc-sgx-dcap-sys-types = { path = "../../sys/types", version = "=0.3.0" }
+mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.3.1-beta.0" }
+mc-sgx-dcap-ql-sys-types = { path = "types", version = "=0.3.1-beta.0" }
+mc-sgx-dcap-sys-types = { path = "../../sys/types", version = "=0.3.1-beta.0" }
 
 [build-dependencies]
 bindgen = "0.60.1"
 cargo-emit = "0.2.1"
-mc-sgx-core-build = { path = "../../../core/build", version = "=0.3.0" }
+mc-sgx-core-build = { path = "../../../core/build", version = "=0.3.1-beta.0" }
