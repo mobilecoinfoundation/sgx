@@ -251,7 +251,6 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/sgxsdk
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -262,14 +261,14 @@ jobs:
       - name: Build types with no alloc crate
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
-        # - The installed `tlibc` is used to get a compilable `time.h` for the target.
+        # - The vendored `tlibc` is used to get a compilable `time.h` for the target.
         # - In the unlikely event that `thumbv7m-none-eabi` was installed with rustup, this would error out with
         #   duplicate core symbols due to `-Z build-std=core`.
         run: |
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem/opt/intel/sgxsdk/include/tlibc" cargo build -Z build-std=core --target thumbv7m-none-eabi -p $0 || exit 255'
+            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo build -Z build-std=core --target thumbv7m-none-eabi -p $0 || exit 255'
 
   notify:
     runs-on: ubuntu-latest
