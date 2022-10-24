@@ -112,7 +112,7 @@ jobs:
           - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/dcap-libs
+      - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -160,8 +160,8 @@ jobs:
           - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/sgxsdk
-      - uses: ./.github/actions/dcap-libs
+      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -184,8 +184,8 @@ jobs:
           - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/sgxsdk
-      - uses: ./.github/actions/dcap-libs
+      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -224,8 +224,8 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/sgxsdk
-      - uses: ./.github/actions/dcap-libs
+      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
