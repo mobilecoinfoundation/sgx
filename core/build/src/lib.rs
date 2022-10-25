@@ -69,11 +69,28 @@ pub fn sgx_builder() -> Builder {
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
         .parse_callbacks(Box::new(SgxParseCallbacks::default()))
+        .clang_args(env_c_flags())
         .clang_arg(&format!("-I{}", include_path));
 
     cargo_emit::rerun_if_changed!(include_path);
 
     builder
+}
+
+// Gets the `CFLAGS` from the environment, if any.  When there are no `CLFAGS`
+// will return an empty vector.
+// The `CFLAGS` will be split on whitespace in order to allow for multiple
+// arguments. This does *not* attempt to handle escaped shell characters,
+// https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html
+fn env_c_flags() -> Vec<String> {
+    let env_flags = env::var("CFLAGS").ok();
+    env_flags.map_or_else(Vec::new, |flags| {
+        flags
+            .split_whitespace()
+            .into_iter()
+            .map(String::from)
+            .collect::<Vec<_>>()
+    })
 }
 
 /// SGXParseCallbacks to be used with [bindgen::Builder::parse_callbacks]

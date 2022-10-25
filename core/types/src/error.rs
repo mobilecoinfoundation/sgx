@@ -2,7 +2,6 @@
 
 //! SGX Error types
 
-use core::result::Result as CoreResult;
 use mc_sgx_core_sys_types::sgx_status_t;
 use mc_sgx_util::{ResultFrom, ResultInto};
 
@@ -21,9 +20,6 @@ pub enum FfiError {
      * the known C enum values. */
     UnknownEnumValue(i64),
 }
-
-/// A convenience type alias for a `Result` which contains an [`Error`].
-pub type Result<T> = CoreResult<T, Error>;
 
 /// A enumeration of SGX errors.
 ///
@@ -242,7 +238,7 @@ pub enum Error {
 impl TryFrom<sgx_status_t> for Error {
     type Error = ();
 
-    fn try_from(src: sgx_status_t) -> CoreResult<Error, ()> {
+    fn try_from(src: sgx_status_t) -> Result<Error, ()> {
         match src {
             sgx_status_t::SGX_SUCCESS => Err(()),
 
