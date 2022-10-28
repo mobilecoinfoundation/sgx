@@ -249,6 +249,12 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        target:
+          - thumbv7m-none-eabi
+          - aarch64-linux-android
+          - aarch64-apple-ios
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -258,7 +264,7 @@ jobs:
           override: true
       - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
       - uses: r7kamura/rust-problem-matchers@v1
-      - name: Build types with no alloc crate
+      - name: Build types with no alloc crate on various platfroms
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
         # - The vendored `tlibc` is used to get a compilable `time.h` for the target.
@@ -268,7 +274,7 @@ jobs:
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo build -Z build-std=core --target thumbv7m-none-eabi -p $0 || exit 255'
+            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
 
   notify:
     runs-on: ubuntu-latest
