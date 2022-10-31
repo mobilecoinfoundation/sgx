@@ -14,15 +14,11 @@ env:
 jobs:
   rustfmt:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        rust:
-          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
           profile: minimal
           components: rustfmt
           override: true
@@ -106,17 +102,13 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
-    strategy:
-      matrix:
-        rust:
-          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
           components: clippy
           override: true
       - uses: r7kamura/rust-problem-matchers@v1
@@ -157,7 +149,9 @@ jobs:
     strategy:
       matrix:
         rust:
-          - nightly-2022-07-22
+          - stable
+          - beta
+          - nightly
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -181,7 +175,9 @@ jobs:
     strategy:
       matrix:
         rust:
-          - nightly-2022-07-22
+          - stable
+          - beta
+          - nightly
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -208,8 +204,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          # FIXME: replace with stable ASAP
-          toolchain: nightly-2022-07-22
+          toolchain: stable
           override: true
       - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
@@ -229,8 +224,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          # FIXME: replace with stable ASAP
-          toolchain: nightly-2022-07-22
+          toolchain: stable
           override: true
           components: llvm-tools-preview
       - uses: taiki-e/install-action@cargo-llvm-cov
