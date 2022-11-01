@@ -199,12 +199,17 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: ${{ matrix.rust }}
           override: true
       - uses: r7kamura/rust-problem-matchers@v1
       - uses: actions-rs/cargo@v1
