@@ -151,7 +151,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -177,7 +177,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
