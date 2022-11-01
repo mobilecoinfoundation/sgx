@@ -22,6 +22,8 @@ mc-sgx-core-types = { path = "../../core/types", version = "=0.3.1-beta.0" }
 mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.3.1-beta.0" }
 mc-sgx-util = { path = "../../util", version = "=0.3.1-beta.0" }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
+sha2 = { version = "0.10.6", default-features = false }
+subtle = { version = "2.4.1", default-features = false }
 
 [dev-dependencies]
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.3.1-beta.0" }
