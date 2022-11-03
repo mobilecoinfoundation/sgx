@@ -7,13 +7,13 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+mod error;
 mod quote3;
 mod quoting_enclave;
 mod request_policy;
 
 pub use crate::{
-    quote3::{Error as Quote3Error, Quote3},
-    quoting_enclave::ReportInfo,
+    error::Error as Quote3Error, quote3::Quote3, quoting_enclave::ReportInfo,
     request_policy::RequestPolicy,
 };
 
