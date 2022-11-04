@@ -117,30 +117,6 @@ jobs:
           command: clippy
           args: --all --all-features --locked -- -D warnings
 
-  nono:
-    runs-on: ubuntu-20.04
-    needs:
-      - "rustfmt"
-      - "markdown-lint"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-nono
-          version: latest
-          use-tool-cache: true
-      - uses: r7kamura/rust-problem-matchers@v1
-      - run: |
-          cargo metadata --no-deps --format-version=1 | \
-            jq -r '.packages[].name' | \
-            grep -v -e mc-sgx-capable -e mc-sgx-capable-sys -e mc-sgx-core-build -e mc-sgx-core-types -e mc-sgx-dcap-types -e mc-sgx-dcap-quoteverify -e mc-sgx-dcap-quoteverify-sys -e mc-sgx-dcap-ql -e mc-sgx-dcap-ql-sys -e mc-sgx-quote-verify -e mc-sgx-urts | \
-            xargs -n1 sh -c 'cargo nono check --package $0 || exit 255'
-
   build:
     runs-on: ubuntu-20.04
     needs:
@@ -243,6 +219,8 @@ jobs:
         with:
           files: lcov.info
 
+  # This job ensures that the specified crates are able to build without alloc.  By proxy this also ensures that the
+  # build with no_std
   build-no-alloc:
     runs-on: ubuntu-20.04
     needs:
@@ -267,7 +245,7 @@ jobs:
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
         # - The vendored `tlibc` is used to get a compilable `time.h` for the target.
-        # - In the unlikely event that `thumbv7m-none-eabi` was installed with rustup, this would error out with
+        # - In the unlikely event that the target was installed with rustup, this would error out with
         #   duplicate core symbols due to `-Z build-std=core`.
         run: |
           cargo metadata --no-deps --format-version=1 |  \
@@ -283,8 +261,8 @@ jobs:
       - markdown-lint
       - sort
       - clippy
-      - nono
       - build
+      - build-no-alloc
       - test
       - doc
       - coverage
