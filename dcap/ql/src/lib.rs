@@ -8,7 +8,7 @@ extern crate alloc;
 mod quote3;
 mod quote_enclave;
 
-use mc_sgx_dcap_types::SgxError;
+use mc_sgx_dcap_types::QlError;
 pub use quote3::TryFromReport;
 pub use quote_enclave::{LoadPolicyInitializer, PathInitializer, QeTargetInfo};
 
@@ -19,7 +19,7 @@ pub enum Error {
     /// Paths have already been initialized
     PathsInitialized,
     /// Error from SGX quoting library function: {0}
-    Sgx(SgxError),
+    QuoteLib(QlError),
     /// Failed to convert a path to a string.  Path {0}
     PathStringConversion(String),
     /// Path does not exist
@@ -30,8 +30,8 @@ pub enum Error {
     LoadPolicyInitialized,
 }
 
-impl From<SgxError> for Error {
-    fn from(src: SgxError) -> Self {
-        Self::Sgx(src)
+impl From<QlError> for Error {
+    fn from(src: QlError) -> Self {
+        Self::QuoteLib(src)
     }
 }

@@ -52,7 +52,7 @@ mod test {
     use super::*;
     use crate::QeTargetInfo;
     use mc_sgx_core_types::TargetInfo;
-    use mc_sgx_dcap_types::Quote3Error;
+    use mc_sgx_dcap_types::QlError;
 
     #[test]
     fn get_quote() {
@@ -61,7 +61,7 @@ mod test {
         let report = Report::default();
         assert_eq!(
             Quote3::try_from_report(report),
-            Err(Error::Sgx(Quote3Error::InvalidReport))
+            Err(Error::QuoteLib(QlError::InvalidReport))
         );
     }
 }

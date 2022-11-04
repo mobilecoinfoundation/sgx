@@ -13,7 +13,7 @@ mod quoting_enclave;
 mod request_policy;
 
 pub use crate::{
-    error::SgxError, quote3::Quote3, quoting_enclave::ReportInfo, request_policy::RequestPolicy,
+    error::QlError, quote3::Quote3, quoting_enclave::ReportInfo, request_policy::RequestPolicy,
 };
 
 // TODO:

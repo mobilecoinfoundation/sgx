@@ -16,9 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `mc_sgx_dcap_types::Quote3Error` was renamed to `mc_sgx_dcap_types::SgxError`
-  to better indicate it's an error coming from the SGX SDK, not specific to
-  interacting with a Quote3.
+- `mc_sgx_dcap_types::Quote3Error` was renamed to `mc_sgx_dcap_types::QlError`
+  to better indicate it's an error coming from the SGX quote library SDK.
 
 ## [0.3.0] - 2022-10-20
 
