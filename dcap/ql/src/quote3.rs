@@ -41,7 +41,7 @@ pub trait TryFromReport {
             )
         }
         .into_result()?;
-        Ok(quote.into())
+        Ok(quote.try_into()?)
     }
 }
 
