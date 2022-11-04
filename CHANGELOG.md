@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `verify_nonce()`: `mc_sgx_dcap_types::Quote3` can verify a nonce matches that
   which was provided in a `mc_sgx_core_types::ReportData`.
 
+### Changed
+
+- `mc_sgx_dcap_types::Quote3Error` was renamed to `mc_sgx_dcap_types::SgxError`
+  to better indicate it's an error coming from the SGX SDK, not specific to
+  interacting with a Quote3.
+
 ## [0.3.0] - 2022-10-20
 
 ### Changed
