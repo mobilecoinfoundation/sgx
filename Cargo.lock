@@ -594,6 +594,8 @@ dependencies = [
  "mc-sgx-dcap-sys-types",
  "mc-sgx-util",
  "serde",
+ "sha2",
+ "subtle",
  "yare",
 ]
 

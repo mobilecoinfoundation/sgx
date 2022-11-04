@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- `verify_nonce()`: `mc_sgx_dcap_types::Quote3` can verify a nonce matches that
+  which was provided in a `mc_sgx_core_types::ReportData`.
+
 ## [0.3.0] - 2022-10-20
 
 ### Changed
