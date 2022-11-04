@@ -17,7 +17,7 @@ pub enum Error {
     /// Paths have already been initialized
     PathsInitialized,
     /// Error from SGX quoting library function: {0}
-    QuoteLib(QlError),
+    QuoteLibrary(QlError),
     /// Failed to convert a path to a string.  Path {0}
     PathStringConversion(String),
     /// Path does not exist
@@ -30,6 +30,6 @@ pub enum Error {
 
 impl From<QlError> for Error {
     fn from(src: QlError) -> Self {
-        Self::QuoteLib(src)
+        Self::QuoteLibrary(src)
     }
 }
