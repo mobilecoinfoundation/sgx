@@ -9,12 +9,14 @@ extern crate alloc;
 
 mod error;
 mod quote3;
+mod quote_header;
 mod quoting_enclave;
 mod request_policy;
 
 pub use crate::{
     error::QlError,
     quote3::{Error as Quote3Error, Quote3},
+    quote_header::QuoteHeader,
     quoting_enclave::ReportInfo,
     request_policy::RequestPolicy,
 };
@@ -44,7 +46,6 @@ pub use crate::{
 // "_sgx_ql_auth_data_t",
 // "_sgx_ql_certification_data_t",
 // "_sgx_ql_ecdsa_sig_data_t",
-// "_sgx_quote_header_t",
 // "_sgx_quote3_t",
 // "_sgx_ql_qv_result_t",
 // "_pck_cert_flag_enum_t",

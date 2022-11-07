@@ -20,7 +20,7 @@ mod svn;
 mod target_info;
 
 pub use crate::{
-    attestation_key::{AttestationKeyId, ExtendedAttestationKeyId},
+    attestation_key::{Algorithm, AttestationKeyId, ExtendedAttestationKeyId},
     attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
     config_id::ConfigId,
     error::{Error, FfiError},

@@ -14,6 +14,7 @@ pub enum MrSignerKeyHash {
     Sha384([u8; 48]),
 }
 
+/// The algorithm used in attestation
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[non_exhaustive]
 #[repr(u16)]
