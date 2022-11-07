@@ -24,7 +24,7 @@ pub trait TryFromReport {
     /// * `report` - The report to build the quote from
     ///
     /// # Errors
-    /// Will return an [`Error::Sgx`] if there is a failure from the SGX SDK
+    /// Will return an [`Error::QuoteLibrary`] if there is a failure from the SGX SDK
     fn try_from_report(report: Report) -> Result<Quote3<Vec<u8>>, Error> {
         PathInitializer::ensure_initialized()?;
         LoadPolicyInitializer::ensure_initialized()?;
@@ -52,7 +52,7 @@ mod test {
     use super::*;
     use crate::QeTargetInfo;
     use mc_sgx_core_types::TargetInfo;
-    use mc_sgx_dcap_types::Quote3Error;
+    use mc_sgx_dcap_types::QlError;
 
     #[test]
     fn get_quote() {
@@ -61,7 +61,7 @@ mod test {
         let report = Report::default();
         assert_eq!(
             Quote3::try_from_report(report),
-            Err(Error::Sgx(Quote3Error::InvalidReport))
+            Err(Error::QuoteLibrary(QlError::InvalidReport))
         );
     }
 }

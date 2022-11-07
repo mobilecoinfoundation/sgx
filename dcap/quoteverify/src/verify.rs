@@ -15,7 +15,7 @@ use mc_sgx_util::ResultInto;
 ///
 /// # Errors
 ///
-/// [`Error::Sgx`] if there is any error retrieving the supplemental size from
+/// [`Error::QuoteLibrary`] if there is any error retrieving the supplemental size from
 /// SGX.
 pub fn supplemental_data_size() -> Result<usize, Error> {
     PathInitializer::ensure_initialized()?;

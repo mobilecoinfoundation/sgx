@@ -49,7 +49,7 @@ impl PathInitializer {
     /// # Errors
     /// * [`Error::PathsInitialized`] if the paths have been previously
     ///   initialized.
-    /// * [`Error::Sgx`] if any of the default paths don't exist on the system.
+    /// * [`Error::QuoteLibrary`] if any of the default paths don't exist on the system.
     pub fn try_default() -> Result<()> {
         Self::with_paths(
             "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
@@ -75,7 +75,7 @@ impl PathInitializer {
     ///   initialized.
     /// * [`Error::PathStringConversion`] if one of the paths cannot be
     ///   converted to a [`CString`]
-    /// * [`Error::Sgx`] if
+    /// * [`Error::QuoteLibrary`] if
     ///     * one of the paths does not point to a file
     ///     * one of the paths is longer than 259 (bytes)
     ///     * one of the paths contains a null (0) byte.
@@ -111,7 +111,7 @@ impl PathInitializer {
     /// If the paths have not been initialized will initialize to the default.
     ///
     /// # Errors
-    /// Will return [`Error::Sgx`] if the paths have not been initialized and
+    /// Will return [`Error::QuoteLibrary`] if the paths have not been initialized and
     /// the default paths don't exist.
     ///
     /// Will *not* return an error if the paths were previously initialized.
@@ -160,7 +160,7 @@ impl PathInitializer {
     /// # Errors
     /// * [`Error::PathStringConversion`] if `path_kind` cannot be converted to
     ///   a [`CString`]
-    /// * [`Error::Sgx`] if
+    /// * [`Error::QuoteLibrary`] if
     ///     * `path` does not point to a file
     ///     * `path` is longer than 259 (bytes)
     ///     * `path` contains a null (0) byte.
@@ -228,7 +228,7 @@ impl LoadPolicyInitializer {
     /// # Errors
     /// * [`Error::LoadPolicyInitialized`] if the policy has been previously
     ///   initialized.
-    /// * [`Error::Sgx`] for any errors setting the policy in the SGX SDK.
+    /// * [`Error::QuoteLibrary`] for any errors setting the policy in the SGX SDK.
     pub fn try_default() -> Result<()> {
         Self::policy(RequestPolicy::Persistent)
     }
@@ -241,7 +241,7 @@ impl LoadPolicyInitializer {
     /// # Errors
     /// * [`Error::LoadPolicyInitialized`] if the policy has been previously
     ///   initialized.
-    /// * [`Error::Sgx`] for any errors setting the policy in the SGX SDK.
+    /// * [`Error::QuoteLibrary`] for any errors setting the policy in the SGX SDK.
     pub fn policy(policy: RequestPolicy) -> Result<()> {
         let mut value = LOAD_POLICY_INITIALIZER
             .lock()
@@ -261,7 +261,7 @@ impl LoadPolicyInitializer {
     /// If the load policy has already been set does nothing
     ///
     /// # Errors
-    /// Will return [`Error::Sgx`] if the load policy has not been initialized
+    /// Will return [`Error::QuoteLibrary`] if the load policy has not been initialized
     /// and there is an error setting the policy
     ///
     /// Will *not* return an error if the load policy as previously initialized.
