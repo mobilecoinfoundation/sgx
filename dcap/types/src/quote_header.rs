@@ -24,8 +24,8 @@ impl QuoteHeader {
         key_type_32.try_into()
     }
 
-    /// The attestation key data
-    pub fn attestation_key_data(&self) -> u32 {
+    /// The raw attestation key
+    pub fn attestation_key_raw(&self) -> u32 {
         self.0.att_key_data_0
     }
 
@@ -63,7 +63,7 @@ mod test {
         let header = QuoteHeader::default();
         assert_eq!(header.version(), 0);
         assert_eq!(header.attestation_key_type().unwrap(), Algorithm::Epid);
-        assert_eq!(header.attestation_key_data(), 0);
+        assert_eq!(header.attestation_key_raw(), 0);
         assert_eq!(header.qe_svn(), IsvSvn::default());
         assert_eq!(header.pce_svn(), IsvSvn::default());
         assert_eq!(header.vendor_id(), [0u8; 16]);
@@ -85,7 +85,7 @@ mod test {
         let header: QuoteHeader = sgx_header.into();
         assert_eq!(header.version(), 1);
         assert_eq!(header.attestation_key_type().unwrap(), Algorithm::EcdsaP256);
-        assert_eq!(header.attestation_key_data(), 2);
+        assert_eq!(header.attestation_key_raw(), 2);
         assert_eq!(header.qe_svn(), IsvSvn::from(4));
         assert_eq!(header.pce_svn(), IsvSvn::from(5));
         assert_eq!(header.vendor_id(), [6u8; 16]);
