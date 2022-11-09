@@ -39,6 +39,30 @@ pub enum Error {
     Version(usize),
 }
 
+impl Error {
+    /// Increase any and all size values in the Error.
+    /// Errors without a size field will be returned unmodified.  For example
+    /// [`Error::Version`] will not be modified by this function even though it
+    /// has a numeric value.
+    fn increase_size(self, increase: usize) -> Self {
+        match self {
+            Self::InputLength {
+                actual_size,
+                required_size,
+            } => {
+                let actual_size = actual_size + increase;
+                let required_size = required_size + increase;
+                Self::InputLength {
+                    actual_size,
+                    required_size,
+                }
+            }
+            // Intentionally no-op so one doesn't need to pre-evaluate.
+            e => e,
+        }
+    }
+}
+
 type Result<T> = ::core::result::Result<T, Error>;
 
 /// Quote version 3
@@ -107,42 +131,13 @@ impl<T: AsRef<[u8]>> Quote3<T> {
             return Err(Error::Version(version));
         }
 
-        let auth_data = AuthenticationData::try_from(&bytes.as_ref()[AUTH_DATA_OFFSET..]).map_err(
-            |e| match e {
-                Error::InputLength {
-                    required_size,
-                    actual_size,
-                } => {
-                    let required_size = required_size + QUOTE_SIZE;
-                    let actual_size = actual_size + QUOTE_SIZE;
-                    Error::InputLength {
-                        required_size,
-                        actual_size,
-                    }
-                }
-                e => e,
-            },
-        )?;
+        let auth_data = AuthenticationData::try_from(&bytes.as_ref()[AUTH_DATA_OFFSET..])
+            .map_err(|e| e.increase_size(QUOTE_SIZE))?;
 
         let quote_with_auth_size = QUOTE_SIZE + auth_data.size();
 
-        let _ =
-            CertificationData::try_from(&bytes.as_ref()[quote_with_auth_size..]).map_err(|e| {
-                match e {
-                    Error::InputLength {
-                        required_size,
-                        actual_size,
-                    } => {
-                        let required_size = required_size + quote_with_auth_size;
-                        let actual_size = actual_size + quote_with_auth_size;
-                        Error::InputLength {
-                            required_size,
-                            actual_size,
-                        }
-                    }
-                    e => e,
-                }
-            })?;
+        let _ = CertificationData::try_from(&bytes.as_ref()[quote_with_auth_size..])
+            .map_err(|e| e.increase_size(quote_with_auth_size))?;
 
         Ok(Self { bytes })
     }
