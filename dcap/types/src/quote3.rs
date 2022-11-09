@@ -31,12 +31,12 @@ pub enum Error {
     /** Quote buffer too small; actual size: {actual_size}, required size
      * {required_size} */
     #[allow(missing_docs)]
-    InvalidInputLength {
+    InputLength {
         required_size: usize,
         actual_size: usize,
     },
     /// Invalid quote version: {0}, should be: 3
-    InvalidVersion(usize),
+    Version(usize),
 }
 
 type Result<T> = ::core::result::Result<T, Error>;
@@ -95,27 +95,27 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         let ref_bytes = bytes.as_ref();
         let bytes_length = ref_bytes.len();
         if bytes_length < MIN_QUOTE_SIZE {
-            return Err(Error::InvalidInputLength {
+            return Err(Error::InputLength {
                 required_size: MIN_QUOTE_SIZE,
                 actual_size: bytes_length,
             });
         }
 
         // This shouldn't fail since we checked for `MIN_QUOTE_SIZE` above.
-        let version = u16_from_bytes(ref_bytes, 0)? as usize;
+        let version = u16_from_bytes(ref_bytes)? as usize;
         if version != 3 {
-            return Err(Error::InvalidVersion(version));
+            return Err(Error::Version(version));
         }
 
         let auth_data = AuthenticationData::try_from(&bytes.as_ref()[AUTH_DATA_OFFSET..]).map_err(
             |e| match e {
-                Error::InvalidInputLength {
+                Error::InputLength {
                     required_size,
                     actual_size,
                 } => {
                     let required_size = required_size + QUOTE_SIZE;
                     let actual_size = actual_size + QUOTE_SIZE;
-                    Error::InvalidInputLength {
+                    Error::InputLength {
                         required_size,
                         actual_size,
                     }
@@ -129,13 +129,13 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         let _ =
             CertificationData::try_from(&bytes.as_ref()[quote_with_auth_size..]).map_err(|e| {
                 match e {
-                    Error::InvalidInputLength {
+                    Error::InputLength {
                         required_size,
                         actual_size,
                     } => {
                         let required_size = required_size + quote_with_auth_size;
                         let actual_size = actual_size + quote_with_auth_size;
-                        Error::InvalidInputLength {
+                        Error::InputLength {
                             required_size,
                             actual_size,
                         }
@@ -180,15 +180,15 @@ struct AuthenticationData<'a> {
 impl<'a> TryFrom<&'a [u8]> for AuthenticationData<'a> {
     type Error = Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
-        let bytes_length = bytes.len();
+        let actual_size = bytes.len();
 
-        let data_size = u16_from_bytes(bytes, 0)? as usize;
+        let data_size = u16_from_bytes(bytes)? as usize;
 
-        let needed_size = data_size + mem::size_of::<u16>();
-        if bytes_length < needed_size {
-            Err(Error::InvalidInputLength {
-                required_size: needed_size,
-                actual_size: bytes_length,
+        let required_size = data_size + mem::size_of::<u16>();
+        if actual_size < required_size {
+            Err(Error::InputLength {
+                required_size,
+                actual_size,
             })
         } else {
             Ok(Self { bytes, data_size })
@@ -219,27 +219,27 @@ struct CertificationData<'a> {
 impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
     type Error = Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
-        let bytes_length = bytes.len();
+        let actual_size = bytes.len();
 
         // type (2 bytes) + size (4 bytes)
-        let mut needed_size = mem::size_of::<u16>() + mem::size_of::<u32>();
+        let mut required_size = mem::size_of::<u16>() + mem::size_of::<u32>();
 
-        if bytes_length < needed_size {
-            return Err(Error::InvalidInputLength {
-                required_size: needed_size,
-                actual_size: bytes_length,
+        if actual_size < required_size {
+            return Err(Error::InputLength {
+                required_size,
+                actual_size,
             });
         }
 
         // These shouldn't fail since we ensured the length up above
-        let data_type = u16_from_bytes(bytes, 0)?;
-        let data_size = u32_from_bytes(bytes, mem::size_of::<u16>())? as usize;
+        let data_type = u16_from_bytes(bytes)?;
+        let data_size = u32_from_bytes(&bytes[mem::size_of::<u16>()..])? as usize;
 
-        needed_size += data_size;
-        if bytes_length < needed_size {
-            Err(Error::InvalidInputLength {
-                required_size: needed_size,
-                actual_size: bytes_length,
+        required_size += data_size;
+        if actual_size < required_size {
+            Err(Error::InputLength {
+                required_size,
+                actual_size,
             })
         } else {
             Ok(Self {
@@ -251,28 +251,26 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
     }
 }
 
-fn u32_from_bytes(bytes: &[u8], offset: usize) -> Result<u32> {
+fn u32_from_bytes(bytes: &[u8]) -> Result<u32> {
     const SIZE: usize = mem::size_of::<u32>();
-    let mut u32_bytes = [0u8; SIZE];
-    let end = offset + SIZE;
-    let copy_bytes = bytes.get(offset..end).ok_or(Error::InvalidInputLength {
-        required_size: end,
+    let value_bytes = bytes.get(..SIZE).ok_or(Error::InputLength {
+        required_size: SIZE,
         actual_size: bytes.len(),
     })?;
-    u32_bytes.copy_from_slice(copy_bytes);
-    Ok(u32::from_le_bytes(u32_bytes))
+    let mut copy_bytes = [0u8; SIZE];
+    copy_bytes.copy_from_slice(value_bytes);
+    Ok(u32::from_le_bytes(copy_bytes))
 }
 
-fn u16_from_bytes(bytes: &[u8], offset: usize) -> Result<u16> {
+fn u16_from_bytes(bytes: &[u8]) -> Result<u16> {
     const SIZE: usize = mem::size_of::<u16>();
-    let mut u16_bytes = [0u8; SIZE];
-    let end = offset + SIZE;
-    let copy_bytes = bytes.get(offset..end).ok_or(Error::InvalidInputLength {
-        required_size: end,
+    let value_bytes = bytes.get(..SIZE).ok_or(Error::InputLength {
+        required_size: SIZE,
         actual_size: bytes.len(),
     })?;
-    u16_bytes.copy_from_slice(copy_bytes);
-    Ok(u16::from_le_bytes(u16_bytes))
+    let mut copy_bytes = [0u8; SIZE];
+    copy_bytes.copy_from_slice(value_bytes);
+    Ok(u16::from_le_bytes(copy_bytes))
 }
 
 #[cfg(test)]
@@ -341,7 +339,7 @@ mod test {
 
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
-            Err(Error::InvalidVersion(version as usize))
+            Err(Error::Version(version as usize))
         );
     }
 
@@ -351,7 +349,7 @@ mod test {
         let bytes = quotify_bytes(binding.as_mut_slice());
         assert_eq!(
             Quote3::try_from(&bytes[..bytes.len() - 1]),
-            Err(Error::InvalidInputLength {
+            Err(Error::InputLength {
                 required_size: MIN_QUOTE_SIZE,
                 actual_size: MIN_QUOTE_SIZE - 1
             })
@@ -374,7 +372,7 @@ mod test {
         bytes[AUTH_DATA_OFFSET] = 1;
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
-            Err(Error::InvalidInputLength {
+            Err(Error::InputLength {
                 required_size: MIN_QUOTE_SIZE + 1,
                 actual_size: MIN_QUOTE_SIZE
             })
@@ -399,7 +397,7 @@ mod test {
         bytes[QUOTE_SIZE + 2 + 2] = 1;
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
-            Err(Error::InvalidInputLength {
+            Err(Error::InputLength {
                 required_size: MIN_QUOTE_SIZE + 1,
                 actual_size: MIN_QUOTE_SIZE
             })
