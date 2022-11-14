@@ -5,8 +5,8 @@
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 use core::mem;
-use mc_sgx_core_types::{QuoteNonce, ReportData};
-use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t};
+use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
+use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
 use sha2::{Digest, Sha256};
 use static_assertions::const_assert;
 use subtle::ConstantTimeEq;
@@ -23,6 +23,9 @@ const QUOTE_SIZE: usize =
 
 // The offset to the authentication data
 const AUTH_DATA_OFFSET: usize = QUOTE_SIZE;
+
+// The offset to the report body for the app. From the start of the quote.
+const REPORT_BODY_OFFSET: usize = mem::size_of::<sgx_quote_header_t>();
 
 /// The minimum size of a byte array to contain a [`Quote3`]
 ///
@@ -63,9 +66,10 @@ impl Error {
 type Result<T> = ::core::result::Result<T, Error>;
 
 /// Quote version 3
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Quote3<T> {
     bytes: T,
+    report_body: ReportBody,
 }
 
 impl<T: AsRef<[u8]>> Quote3<T> {
@@ -128,6 +132,15 @@ impl<T: AsRef<[u8]>> Quote3<T> {
             return Err(Error::Version(version));
         }
 
+        // Similar to above this shouldn't fail since we checked for `MIN_QUOTE_SIZE` above.
+        let report_body =
+            ReportBody::try_from(&bytes.as_ref()[REPORT_BODY_OFFSET..]).map_err(|_| {
+                Error::InputLength {
+                    required: MIN_QUOTE_SIZE,
+                    actual: bytes_length,
+                }
+            })?;
+
         let auth_data = AuthenticationData::try_from(&bytes.as_ref()[AUTH_DATA_OFFSET..])
             .map_err(|e| e.increase_size(QUOTE_SIZE))?;
 
@@ -136,7 +149,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         let _ = CertificationData::try_from(&bytes.as_ref()[quote_with_auth_size..])
             .map_err(|e| e.increase_size(quote_with_auth_size))?;
 
-        Ok(Self { bytes })
+        Ok(Self { bytes, report_body })
     }
 }
 
@@ -303,10 +316,20 @@ mod test {
 
     #[test]
     fn quote_from_slice() {
+        const REPORT_BODY_SIZE: usize = mem::size_of::<ReportBody>();
+        let report_body_bytes = [5u8; REPORT_BODY_SIZE];
+
         let mut binding = [4u8; MIN_QUOTE_SIZE];
         let bytes = quotify_bytes(binding.as_mut_slice());
+
+        bytes[REPORT_BODY_OFFSET..REPORT_BODY_OFFSET + REPORT_BODY_SIZE]
+            .copy_from_slice(&report_body_bytes);
         let quote = Quote3::try_from(bytes.as_ref()).unwrap();
         assert_eq!(quote.bytes, bytes);
+        assert_eq!(
+            quote.report_body,
+            ReportBody::try_from(report_body_bytes.as_slice()).unwrap()
+        );
     }
 
     #[parameterized(
