@@ -463,6 +463,7 @@ dependencies = [
  "getrandom",
  "mc-sgx-core-sys-types",
  "mc-sgx-util",
+ "nom",
  "rand",
  "rand_core",
  "serde",

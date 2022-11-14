@@ -21,6 +21,14 @@ pub enum FfiError {
     UnknownEnumValue(i64),
 }
 
+impl From<nom::Err<nom::error::Error<&[u8]>>> for FfiError {
+    fn from(_src: nom::Err<nom::error::Error<&[u8]>>) -> Self {
+        // This is knowingly reducing the error information. The only failures
+        // arise from the parsed input not being of sufficient size.
+        FfiError::InvalidInputLength
+    }
+}
+
 /// A enumeration of SGX errors.
 ///
 /// Those listed here are the ones which are identified in the `sgx_status_t`

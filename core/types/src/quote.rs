@@ -5,11 +5,9 @@ use crate::{
     attestation_key::QuoteSignatureKind, impl_newtype_for_bytestruct, new_type_accessors_impls,
     report::Report, FfiError, IsvSvn, ReportBody, TargetInfo,
 };
-use core::mem;
 use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,
-    sgx_quote_nonce_t, sgx_quote_sign_type_t, sgx_report_body_t, sgx_update_info_bit_t,
-    SGX_PLATFORM_INFO_SIZE,
+    sgx_quote_nonce_t, sgx_quote_sign_type_t, sgx_update_info_bit_t, SGX_PLATFORM_INFO_SIZE,
 };
 
 /// Quoting Enclave Report Info
@@ -182,11 +180,8 @@ pub trait BaseQuote {
     }
 
     /// Report body
-    fn report_body(&self) -> ReportBody {
-        let bytes: [u8; mem::size_of::<sgx_report_body_t>()] = self.raw_quote().bytes[48..432]
-            .try_into()
-            .expect("Quote bytes aren't big enough to hold `report_body`");
-        bytes.into()
+    fn report_body(&self) -> Result<ReportBody, FfiError> {
+        self.raw_quote().bytes[48..432].try_into()
     }
 }
 
@@ -323,7 +318,7 @@ mod test {
 
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 18;
-        assert_eq!(quote.report_body(), report_body.into());
+        assert_eq!(quote.report_body().unwrap(), report_body.into());
     }
 
     #[test]
@@ -345,7 +340,7 @@ mod test {
 
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 28;
-        assert_eq!(quote.report_body(), report_body.into());
+        assert_eq!(quote.report_body().unwrap(), report_body.into());
     }
 
     #[test]
