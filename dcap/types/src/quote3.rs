@@ -9,6 +9,9 @@ use core::hash::{Hash, Hasher};
 use core::mem;
 use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
+use p256::ecdsa;
+use p256::ecdsa::{Signature, VerifyingKey};
+use p256::EncodedPoint;
 use sha2::{Digest, Sha256};
 use static_assertions::const_assert;
 use subtle::ConstantTimeEq;
@@ -18,13 +21,11 @@ use subtle::ConstantTimeEq;
 // ok on any platform using these types.
 const_assert!(mem::size_of::<usize>() >= mem::size_of::<u32>());
 
-// The size of the quote bytes. Not including the authentication or
-// certification data.
-const QUOTE_SIZE: usize =
-    mem::size_of::<sgx_quote3_t>() + mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+// Size of the Key
+const KEY_SIZE: usize = 64;
 
-// The offset to the authentication data
-const AUTH_DATA_OFFSET: usize = QUOTE_SIZE;
+// Size of a Signature
+const SIGNATURE_SIZE: usize = 64;
 
 // The offset to the report body for the app. From the start of the quote.
 const REPORT_BODY_OFFSET: usize = mem::size_of::<sgx_quote_header_t>();
@@ -37,11 +38,12 @@ const MIN_AUTH_DATA_SIZE: usize = 2;
 /// The 2(type) + 4(size) for QE certification data
 const MIN_CERT_DATA_SIZE: usize = 6;
 
+/// The minimum size of a byte array to contain a [`SignatureData`]
+const MIN_SIGNATURE_DATA_SIZE: usize =
+    mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + MIN_AUTH_DATA_SIZE + MIN_CERT_DATA_SIZE;
+
 /// The minimum size of a byte array to contain a [`Quote3`]
-pub const MIN_QUOTE_SIZE: usize = mem::size_of::<sgx_quote3_t>()
-    + mem::size_of::<sgx_ql_ecdsa_sig_data_t>()
-    + MIN_AUTH_DATA_SIZE
-    + MIN_CERT_DATA_SIZE;
+pub const MIN_QUOTE_SIZE: usize = mem::size_of::<sgx_quote3_t>() + MIN_SIGNATURE_DATA_SIZE;
 
 /// Errors interacting with a Quote3
 #[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -53,6 +55,8 @@ pub enum Error {
     InputLength { required: usize, actual: usize },
     /// Invalid quote version: {0}, should be: 3
     Version(u16),
+    /// Failure to convert from bytes to ECDSA types
+    Ecdsa,
 }
 
 impl Error {
@@ -70,6 +74,13 @@ impl Error {
             // Intentionally no-op so one doesn't need to pre-evaluate.
             e => e,
         }
+    }
+}
+
+impl From<ecdsa::Error> for Error {
+    fn from(_: ecdsa::Error) -> Self {
+        // ecdsa errors are opaque to avoid side channel leakage
+        Error::Ecdsa
     }
 }
 
@@ -174,20 +185,11 @@ impl<T: AsRef<[u8]>> Quote3<T> {
             return Err(Error::Version(version));
         }
 
-        // Similar to above this shouldn't fail since we checked for `MIN_QUOTE_SIZE` above.
-        let report_body =
-            ReportBody::try_from(&bytes[REPORT_BODY_OFFSET..]).map_err(|_| Error::InputLength {
-                required: MIN_QUOTE_SIZE,
-                actual,
-            })?;
+        let report_body = ReportBody::try_from(&bytes[REPORT_BODY_OFFSET..])
+            .expect("Previous check should guarantee enough size to decode ReportBody");
 
-        let auth_data = AuthenticationData::try_from(&bytes[AUTH_DATA_OFFSET..])
-            .map_err(|e| e.increase_size(QUOTE_SIZE))?;
-
-        let quote_with_auth_size = QUOTE_SIZE + auth_data.size();
-
-        let _ = CertificationData::try_from(&bytes[quote_with_auth_size..])
-            .map_err(|e| e.increase_size(quote_with_auth_size))?;
+        let _ = SignatureData::try_from(&bytes[mem::size_of::<sgx_quote3_t>()..])
+            .map_err(|e| e.increase_size(mem::size_of::<sgx_quote3_t>()))?;
 
         Ok(Self {
             raw_bytes,
@@ -210,6 +212,74 @@ impl TryFrom<Vec<u8>> for Quote3<Vec<u8>> {
 
     fn try_from(bytes: Vec<u8>) -> Result<Self> {
         Self::try_from_bytes(bytes)
+    }
+}
+
+/// Signature Data
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SignatureData<'a> {
+    isv_enclave_signature: Signature,
+    attestation_key: VerifyingKey,
+    qe_report_body: ReportBody,
+    qe_report_signature: Signature,
+    authentication_data: AuthenticationData<'a>,
+    certification_data: CertificationData<'a>,
+}
+
+impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
+    type Error = Error;
+    fn try_from(bytes: &'a [u8]) -> Result<Self> {
+        let actual = bytes.len();
+        let required = MIN_SIGNATURE_DATA_SIZE;
+        if actual < required {
+            return Err(Error::InputLength { actual, required });
+        }
+
+        let (bytes, isv_signature) = take(SIGNATURE_SIZE)(bytes);
+        let isv_enclave_signature = Signature::try_from(isv_signature)?;
+
+        let (bytes, point_bytes) = take(KEY_SIZE)(bytes);
+        let point = EncodedPoint::from_untagged_bytes(point_bytes.into());
+        let attestation_key = VerifyingKey::from_encoded_point(&point).unwrap();
+
+        let qe_report_body = ReportBody::try_from(bytes)
+            .expect("Previous check should guarantee enough size to decode ReportBody");
+        let bytes = &bytes[mem::size_of::<ReportBody>()..];
+
+        let (bytes, qe_report_signature) = take(SIGNATURE_SIZE)(bytes);
+        let qe_report_signature = Signature::try_from(qe_report_signature)?;
+
+        let authentication_data = AuthenticationData::try_from(bytes).map_err(|e| {
+            // Because the authentication data is between the
+            // `sgx_ql_ecdsa_sig_data_t` and the certification data, the
+            // certification data needs to be accounted for in the `required`
+            // while the actual is limited to the main structure and what the
+            // authentication data saw.
+            match e {
+                Error::InputLength { actual, required } => Error::InputLength {
+                    actual: actual + mem::size_of::<sgx_ql_ecdsa_sig_data_t>(),
+                    required: required
+                        + (mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + MIN_CERT_DATA_SIZE),
+                },
+                error => error,
+            }
+        })?;
+
+        let certification_data = CertificationData::try_from(&bytes[authentication_data.size()..])
+            .map_err(|e| {
+                e.increase_size(
+                    mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + authentication_data.size(),
+                )
+            })?;
+
+        Ok(Self {
+            isv_enclave_signature,
+            attestation_key,
+            qe_report_body,
+            qe_report_signature,
+            authentication_data,
+            certification_data,
+        })
     }
 }
 
@@ -329,10 +399,43 @@ fn le_u16(input: &[u8]) -> (&[u8], u16) {
         .expect("Size of stream should have been guaranteed to hold 2 bytes")
 }
 
+/// Take `count` bytes from an input stream
+///
+/// It is assumed that the input stream has `count` bytes or more.
+///
+/// # Arguments
+/// * `count` - The number of bytes to take
+///
+/// # Returns
+/// A function which will take `count` bytes from a stream.
+/// The function returns a tuple where the first element is the rest of the
+/// input stream after taking the bytes. The second element is the taken bytes.
+fn take(count: usize) -> impl Fn(&[u8]) -> (&[u8], &[u8]) {
+    move |input| {
+        nom::bytes::complete::take::<usize, &[u8], nom::error::Error<&[u8]>>(count)(input)
+            .expect("Size of stream should have been guaranteed to hold the bytes")
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+    use core::slice;
+    use mc_sgx_core_sys_types::sgx_report_body_t;
+    use mc_sgx_core_types::CpuSvn;
     use yare::parameterized;
+
+    /// A P-256 public key uncompressed in raw bytes. This was taken from a HW
+    /// quote.
+    /// When decoding a key from bytes the p256 crate will validate that the
+    /// point is actually on the curve, as such random made up values can not be
+    /// used for tests.
+    const VALID_P256_KEY: [u8; 64] = [
+        122, 39, 249, 38, 29, 211, 254, 162, 54, 21, 2, 101, 53, 190, 157, 113, 112, 80, 169, 131,
+        79, 185, 212, 53, 219, 66, 56, 170, 240, 215, 152, 213, 37, 30, 18, 79, 18, 75, 137, 105,
+        4, 226, 244, 2, 254, 126, 45, 236, 204, 55, 251, 80, 207, 1, 98, 201, 109, 26, 87, 37, 211,
+        185, 75, 109,
+    ];
 
     /// Provides ReportData for a given quote and nonce.
     ///
@@ -356,6 +459,7 @@ mod test {
     ///
     /// In particular this will:
     /// - Set the version to `3`.
+    /// - Put a valid public key in the signature data
     /// - Zero the tail of `bytes`.  This ensures that the dynamically sized
     ///   trailing structures show up as empty
     ///
@@ -368,8 +472,46 @@ mod test {
         let version = 3u16.to_le_bytes();
         bytes[..mem::size_of::<u16>()].copy_from_slice(&version);
 
-        bytes[mem::size_of::<sgx_quote3_t>()..].fill(0);
+        signature_datafy_bytes(&mut bytes[mem::size_of::<sgx_quote3_t>()..]);
 
+        bytes
+    }
+
+    /// Set the minimum fields in `bytes` to be interpreted as signature data.
+    ///
+    /// In particular this will:
+    /// - Put a valid public key in the signature data
+    /// - Zero the tail of `bytes`.  This ensures that the dynamically sized
+    ///   trailing structures show up as empty
+    ///
+    /// # Arguments:
+    /// * `bytes` -  the bytes to update to be a valid signature data. `bytes`
+    ///   needs have a length of at least `MIN_SIGNATURE_DATA_SIZE`.
+    ///
+    /// Returns the updated version of `bytes`.
+    fn signature_datafy_bytes(bytes: &mut [u8]) -> &mut [u8] {
+        let key_offset = SIGNATURE_SIZE;
+        let key_end = key_offset + KEY_SIZE;
+        bytes[key_offset..key_end].copy_from_slice(&VALID_P256_KEY);
+        bytes[mem::size_of::<sgx_ql_ecdsa_sig_data_t>()..].fill(0);
+
+        bytes
+    }
+
+    #[allow(unsafe_code)]
+    fn ecdsa_sig_to_bytes(body: sgx_ql_ecdsa_sig_data_t) -> [u8; MIN_SIGNATURE_DATA_SIZE] {
+        // SAFETY: This is a test only function. The size of `body` is used for
+        // reinterpretation of `body` into a byte slice. The slice is copied
+        // from prior to the leaving of this function ensuring the raw pointer
+        // is not persisted.
+        let alias_bytes: &[u8] = unsafe {
+            slice::from_raw_parts(
+                &body as *const sgx_ql_ecdsa_sig_data_t as *const u8,
+                mem::size_of::<sgx_ql_ecdsa_sig_data_t>(),
+            )
+        };
+        let mut bytes: [u8; MIN_SIGNATURE_DATA_SIZE] = [0; MIN_SIGNATURE_DATA_SIZE];
+        bytes[..mem::size_of::<sgx_ql_ecdsa_sig_data_t>()].copy_from_slice(alias_bytes);
         bytes
     }
 
@@ -422,71 +564,21 @@ mod test {
     }
 
     #[test]
-    fn quote_with_authentication_data() {
-        let mut binding = [4u8; MIN_QUOTE_SIZE + 1];
-        let bytes = quotify_bytes(binding.as_mut_slice());
-        bytes[AUTH_DATA_OFFSET] = 1;
-        let quote = Quote3::try_from(bytes.as_ref()).unwrap();
-        assert_eq!(quote.raw_bytes, bytes);
-    }
-
-    #[test]
-    fn quote_too_small_for_authentication_data() {
+    fn quote_too_small_for_signature_trailing_contents() {
         let mut binding = [4u8; MIN_QUOTE_SIZE];
         let bytes = quotify_bytes(binding.as_mut_slice());
-        bytes[AUTH_DATA_OFFSET] = 1;
+
+        // the u16 to get passed the certification data type
+        let cert_data_size_offset = (MIN_QUOTE_SIZE - MIN_CERT_DATA_SIZE) + mem::size_of::<u16>();
+        bytes[cert_data_size_offset] = 1;
+
         assert_eq!(
-            Quote3::try_from(bytes.as_ref()),
+            Quote3::try_from(&bytes[..]),
             Err(Error::InputLength {
+                actual: MIN_QUOTE_SIZE,
                 required: MIN_QUOTE_SIZE + 1,
-                actual: MIN_QUOTE_SIZE
             })
         );
-    }
-
-    #[test]
-    fn quote_with_certification_data() {
-        let mut binding = [4u8; MIN_QUOTE_SIZE + 1];
-        let bytes = quotify_bytes(binding.as_mut_slice());
-        // 2 (auth data size) + 2 (cert data type )
-        bytes[QUOTE_SIZE + 2 + 2] = 1;
-        let quote = Quote3::try_from(bytes.as_ref()).unwrap();
-        assert_eq!(quote.raw_bytes, bytes);
-    }
-
-    #[test]
-    fn quote_too_small_for_certification_data() {
-        let mut binding = [4u8; MIN_QUOTE_SIZE];
-        let bytes = quotify_bytes(binding.as_mut_slice());
-        // 2 (auth data size) + 2 (cert data type )
-        bytes[QUOTE_SIZE + 2 + 2] = 1;
-        assert_eq!(
-            Quote3::try_from(bytes.as_ref()),
-            Err(Error::InputLength {
-                required: MIN_QUOTE_SIZE + 1,
-                actual: MIN_QUOTE_SIZE
-            })
-        );
-    }
-
-    #[test]
-    fn quote_with_auth_and_cert_data() {
-        // 2 (cert data type ) + 4 (cert data size)
-        const CERT_FIELD_CONSTANT_SIZE: usize = 6;
-
-        // The authentication data wll be so large that it exceeds
-        // `MIN_QUOTE_SIZE`, thus pushing the certification data fully outside
-        // of the `MIN_QUOTE_SIZE`
-        let mut binding = [5u8; MIN_QUOTE_SIZE + CERT_FIELD_CONSTANT_SIZE + 1];
-        let bytes = quotify_bytes(binding.as_mut_slice());
-
-        bytes[AUTH_DATA_OFFSET] = CERT_FIELD_CONSTANT_SIZE as u8;
-
-        // 2 (cert data type )
-        bytes[MIN_QUOTE_SIZE + 2] = 1;
-
-        let quote = Quote3::try_from(bytes.as_ref()).unwrap();
-        assert_eq!(quote.raw_bytes, bytes);
     }
 
     #[cfg(feature = "alloc")]
@@ -674,5 +766,213 @@ mod test {
                 required: MIN_CERT_DATA_SIZE + 1
             })
         );
+    }
+
+    #[test]
+    fn signature_data_1() {
+        let mut report_body = sgx_report_body_t::default();
+        report_body.cpu_svn = CpuSvn::try_from([2u8; CpuSvn::SIZE]).unwrap().into();
+        let ecdsa_sig = sgx_ql_ecdsa_sig_data_t {
+            sig: [1u8; SIGNATURE_SIZE],
+            attest_pub_key: VALID_P256_KEY,
+            qe_report: report_body,
+            qe_report_sig: [3u8; SIGNATURE_SIZE],
+            // __IncompleteArrayField so can only be empty(default)
+            auth_certification_data: Default::default(),
+        };
+        let bytes = ecdsa_sig_to_bytes(ecdsa_sig);
+
+        let signature_data = SignatureData::try_from(bytes.as_slice()).unwrap();
+        assert_eq!(
+            signature_data.isv_enclave_signature,
+            Signature::try_from([1u8; 64].as_slice()).unwrap()
+        );
+
+        // `VerifyingKey::try_from` wants sec1 encoded data.
+        // From https://www.secg.org/sec1-v2.pdf Section 2.3.3, uncompressed is
+        // stored as `04 || X || Y`.
+        let mut sec1_key: [u8; 65] = [0u8; 65];
+        sec1_key[0] = 4;
+        sec1_key[1..].copy_from_slice(VALID_P256_KEY.as_slice());
+        assert_eq!(
+            signature_data.attestation_key,
+            VerifyingKey::try_from(sec1_key.as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.qe_report_body, report_body.into(),);
+        assert_eq!(
+            signature_data.qe_report_signature,
+            Signature::try_from([3u8; 64].as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.authentication_data.data, []);
+        assert_eq!(signature_data.certification_data.data, []);
+    }
+
+    #[test]
+    fn signature_data_2() {
+        let mut report_body = sgx_report_body_t::default();
+        report_body.cpu_svn = CpuSvn::try_from([3u8; CpuSvn::SIZE]).unwrap().into();
+        let ecdsa_sig = sgx_ql_ecdsa_sig_data_t {
+            sig: [2u8; SIGNATURE_SIZE],
+            attest_pub_key: VALID_P256_KEY,
+            qe_report: report_body,
+            qe_report_sig: [4u8; SIGNATURE_SIZE],
+            // __IncompleteArrayField so can only be empty(default)
+            auth_certification_data: Default::default(),
+        };
+        let bytes = ecdsa_sig_to_bytes(ecdsa_sig);
+
+        let signature_data = SignatureData::try_from(bytes.as_slice()).unwrap();
+        assert_eq!(
+            signature_data.isv_enclave_signature,
+            Signature::try_from([2u8; 64].as_slice()).unwrap()
+        );
+
+        let mut sec1_key: [u8; 65] = [0u8; 65];
+        sec1_key[0] = 4;
+        sec1_key[1..].copy_from_slice(VALID_P256_KEY.as_slice());
+        assert_eq!(
+            signature_data.attestation_key,
+            VerifyingKey::try_from(sec1_key.as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.qe_report_body, report_body.into());
+        assert_eq!(
+            signature_data.qe_report_signature,
+            Signature::try_from([4u8; 64].as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.authentication_data.data, []);
+        assert_eq!(signature_data.certification_data.data, []);
+    }
+
+    #[test]
+    fn signature_data_less_than_min() {
+        let bytes = [2u8; MIN_SIGNATURE_DATA_SIZE - 1];
+        assert_eq!(
+            SignatureData::try_from(bytes.as_slice()),
+            Err(Error::InputLength {
+                actual: MIN_SIGNATURE_DATA_SIZE - 1,
+                required: MIN_SIGNATURE_DATA_SIZE,
+            })
+        );
+    }
+
+    #[test]
+    fn signature_data_with_auth_data() {
+        let mut binding = [2u8; MIN_SIGNATURE_DATA_SIZE + 3];
+        let bytes = signature_datafy_bytes(binding.as_mut_slice());
+
+        let mut start = mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+        let size = 3;
+        bytes[start] = size;
+        start += mem::size_of::<u16>();
+        let end = start + size as usize;
+        bytes[start..end].fill(20);
+
+        // Test focuses on the auth parsing, so only spot checking one field
+        // of SignatureData
+        let signature_data = SignatureData::try_from(bytes.as_ref()).unwrap();
+        assert_eq!(
+            signature_data.qe_report_signature,
+            Signature::try_from([2u8; 64].as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.authentication_data.data, [20, 20, 20]);
+    }
+
+    #[test]
+    fn signature_data_without_room_for_auth_data() {
+        let mut binding = [2u8; MIN_SIGNATURE_DATA_SIZE];
+        let bytes = signature_datafy_bytes(binding.as_mut_slice());
+
+        let auth_offset = mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+        // Need to make the size big enough to also consume the potential
+        // CertificationData
+        let auth_data_size = MIN_CERT_DATA_SIZE + 1;
+        bytes[auth_offset] = auth_data_size as u8;
+
+        assert_eq!(
+            SignatureData::try_from(bytes.as_ref()),
+            Err(Error::InputLength {
+                actual: MIN_SIGNATURE_DATA_SIZE,
+                required: MIN_SIGNATURE_DATA_SIZE + auth_data_size,
+            })
+        );
+    }
+
+    #[test]
+    fn signature_data_with_certification_data() {
+        let mut binding = [7u8; MIN_SIGNATURE_DATA_SIZE + 2];
+        let bytes = signature_datafy_bytes(binding.as_mut_slice());
+
+        let mut start = mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+        // the u16 to get passed the certification data type
+        start += MIN_AUTH_DATA_SIZE + mem::size_of::<u16>();
+        let size = 2;
+        bytes[start] = size;
+        start += mem::size_of::<u32>();
+        let end = start + size as usize;
+        bytes[start..end].fill(11);
+
+        // Test focuses on the cert parsing, so only spot checking one field
+        // of SignatureData
+        let signature_data = SignatureData::try_from(bytes.as_ref()).unwrap();
+        assert_eq!(
+            signature_data.qe_report_signature,
+            Signature::try_from([7u8; 64].as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.certification_data.data, [11, 11]);
+    }
+
+    #[test]
+    fn signature_data_without_room_for_cert_data() {
+        let mut binding = [7u8; MIN_SIGNATURE_DATA_SIZE + 1];
+        let bytes = signature_datafy_bytes(binding.as_mut_slice());
+
+        // Throw some auth data to ensure required size is computed correctly
+        let mut start = mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+        bytes[start] = 1;
+        start += 1; // skip over the data byte
+
+        // the extra u16 to get passed the certification data type
+        start += MIN_AUTH_DATA_SIZE + mem::size_of::<u16>();
+        bytes[start] = 1;
+
+        assert_eq!(
+            SignatureData::try_from(bytes.as_ref()),
+            Err(Error::InputLength {
+                actual: MIN_SIGNATURE_DATA_SIZE + 1,
+                required: MIN_SIGNATURE_DATA_SIZE + 2,
+            })
+        );
+    }
+
+    #[test]
+    fn signature_data_with_auth_and_cert_data() {
+        let mut binding = [7u8; MIN_SIGNATURE_DATA_SIZE + 20];
+        let bytes = signature_datafy_bytes(binding.as_mut_slice());
+
+        // Auth data
+        let mut start = mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+        let size = 5;
+        bytes[start] = size;
+        start += mem::size_of::<u16>();
+        let end = start + size as usize;
+        bytes[start..end].fill(14);
+
+        // cert data, skip over the data type
+        start = end + mem::size_of::<u16>();
+        let size = 4;
+        bytes[start] = size;
+        start += mem::size_of::<u32>();
+        let end = start + size as usize;
+        bytes[start..end].fill(23);
+
+        // Test focuses on the cert parsing, so only spot checking one field
+        // of SignatureData
+        let signature_data = SignatureData::try_from(bytes.as_ref()).unwrap();
+        assert_eq!(
+            signature_data.qe_report_signature,
+            Signature::try_from([7u8; 64].as_slice()).unwrap()
+        );
+        assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
+        assert_eq!(signature_data.certification_data.data, [23u8; 4]);
     }
 }
