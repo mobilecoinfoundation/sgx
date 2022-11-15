@@ -45,6 +45,9 @@ exclude = [
 # Even specifying `edition = "2021"` here will not fix this
 resolver = "2"
 
+[profile.release]
+lto = true
+
 [workspace.metadata.release]
 shared-version = true
 dev-version-ext = "beta.0"
