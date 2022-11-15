@@ -8,7 +8,13 @@ use core::mem;
 use mc_sgx_core_types::{QuoteNonce, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t};
 use sha2::{Digest, Sha256};
+use static_assertions::const_assert;
 use subtle::ConstantTimeEq;
+
+// Most of the SGX SDK sizes are `u32` values. When being stored in higher level
+// rust structures `usize` is used. This check ensures the usage of `usize` is
+// ok on any platform using these types.
+const_assert!(mem::size_of::<usize>() >= mem::size_of::<u32>());
 
 // The size of the quote bytes. Not including the authentication or
 // certification data.
@@ -36,7 +42,7 @@ pub enum Error {
         actual_size: usize,
     },
     /// Invalid quote version: {0}, should be: 3
-    Version(usize),
+    Version(u16),
 }
 
 impl Error {
@@ -126,7 +132,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         }
 
         // This shouldn't fail since we checked for `MIN_QUOTE_SIZE` above.
-        let version = u16_from_bytes(ref_bytes)? as usize;
+        let version = u16_from_bytes(ref_bytes)?;
         if version != 3 {
             return Err(Error::Version(version));
         }
@@ -334,7 +340,7 @@ mod test {
 
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
-            Err(Error::Version(version as usize))
+            Err(Error::Version(version))
         );
     }
 
