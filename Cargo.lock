@@ -594,6 +594,7 @@ dependencies = [
  "mc-sgx-core-types",
  "mc-sgx-dcap-sys-types",
  "mc-sgx-util",
+ "nom",
  "serde",
  "sha2",
  "static_assertions",
