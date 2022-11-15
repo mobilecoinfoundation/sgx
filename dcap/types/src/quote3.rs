@@ -34,13 +34,10 @@ pub const MIN_QUOTE_SIZE: usize = QUOTE_SIZE + 8;
 #[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum Error {
-    /** Quote buffer too small; actual size: {actual_size}, required size
-     * {required_size} */
+    /** Quote buffer too small; actual size: {actual}, required size
+     * {required} */
     #[allow(missing_docs)]
-    InputLength {
-        required_size: usize,
-        actual_size: usize,
-    },
+    InputLength { required: usize, actual: usize },
     /// Invalid quote version: {0}, should be: 3
     Version(u16),
 }
@@ -52,16 +49,10 @@ impl Error {
     /// has a numeric value.
     fn increase_size(self, increase: usize) -> Self {
         match self {
-            Self::InputLength {
-                actual_size,
-                required_size,
-            } => {
-                let actual_size = actual_size + increase;
-                let required_size = required_size + increase;
-                Self::InputLength {
-                    actual_size,
-                    required_size,
-                }
+            Self::InputLength { actual, required } => {
+                let actual = actual + increase;
+                let required = required + increase;
+                Self::InputLength { actual, required }
             }
             // Intentionally no-op so one doesn't need to pre-evaluate.
             e => e,
@@ -126,8 +117,8 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         let bytes_length = ref_bytes.len();
         if bytes_length < MIN_QUOTE_SIZE {
             return Err(Error::InputLength {
-                required_size: MIN_QUOTE_SIZE,
-                actual_size: bytes_length,
+                required: MIN_QUOTE_SIZE,
+                actual: bytes_length,
             });
         }
 
@@ -181,16 +172,13 @@ struct AuthenticationData<'a> {
 impl<'a> TryFrom<&'a [u8]> for AuthenticationData<'a> {
     type Error = Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
-        let actual_size = bytes.len();
+        let actual = bytes.len();
 
         let data_size = u16_from_bytes(bytes)? as usize;
 
-        let required_size = data_size + mem::size_of::<u16>();
-        if actual_size < required_size {
-            Err(Error::InputLength {
-                required_size,
-                actual_size,
-            })
+        let required = data_size + mem::size_of::<u16>();
+        if actual < required {
+            Err(Error::InputLength { required, actual })
         } else {
             Ok(Self { bytes, data_size })
         }
@@ -220,28 +208,22 @@ struct CertificationData<'a> {
 impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
     type Error = Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
-        let actual_size = bytes.len();
+        let actual = bytes.len();
 
         // type (2 bytes) + size (4 bytes)
-        let mut required_size = mem::size_of::<u16>() + mem::size_of::<u32>();
+        let mut required = mem::size_of::<u16>() + mem::size_of::<u32>();
 
-        if actual_size < required_size {
-            return Err(Error::InputLength {
-                required_size,
-                actual_size,
-            });
+        if actual < required {
+            return Err(Error::InputLength { required, actual });
         }
 
         // These shouldn't fail since we ensured the length up above
         let data_type = u16_from_bytes(bytes)?;
         let data_size = u32_from_bytes(&bytes[mem::size_of::<u16>()..])? as usize;
 
-        required_size += data_size;
-        if actual_size < required_size {
-            Err(Error::InputLength {
-                required_size,
-                actual_size,
-            })
+        required += data_size;
+        if actual < required {
+            Err(Error::InputLength { required, actual })
         } else {
             Ok(Self {
                 bytes,
@@ -255,8 +237,8 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
 fn u32_from_bytes(bytes: &[u8]) -> Result<u32> {
     const SIZE: usize = mem::size_of::<u32>();
     let value_bytes = bytes.get(..SIZE).ok_or(Error::InputLength {
-        required_size: SIZE,
-        actual_size: bytes.len(),
+        required: SIZE,
+        actual: bytes.len(),
     })?;
     let mut copy_bytes = [0u8; SIZE];
     copy_bytes.copy_from_slice(value_bytes);
@@ -266,8 +248,8 @@ fn u32_from_bytes(bytes: &[u8]) -> Result<u32> {
 fn u16_from_bytes(bytes: &[u8]) -> Result<u16> {
     const SIZE: usize = mem::size_of::<u16>();
     let value_bytes = bytes.get(..SIZE).ok_or(Error::InputLength {
-        required_size: SIZE,
-        actual_size: bytes.len(),
+        required: SIZE,
+        actual: bytes.len(),
     })?;
     let mut copy_bytes = [0u8; SIZE];
     copy_bytes.copy_from_slice(value_bytes);
@@ -351,8 +333,8 @@ mod test {
         assert_eq!(
             Quote3::try_from(&bytes[..bytes.len() - 1]),
             Err(Error::InputLength {
-                required_size: MIN_QUOTE_SIZE,
-                actual_size: MIN_QUOTE_SIZE - 1
+                required: MIN_QUOTE_SIZE,
+                actual: MIN_QUOTE_SIZE - 1
             })
         );
     }
@@ -374,8 +356,8 @@ mod test {
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
             Err(Error::InputLength {
-                required_size: MIN_QUOTE_SIZE + 1,
-                actual_size: MIN_QUOTE_SIZE
+                required: MIN_QUOTE_SIZE + 1,
+                actual: MIN_QUOTE_SIZE
             })
         );
     }
@@ -399,8 +381,8 @@ mod test {
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
             Err(Error::InputLength {
-                required_size: MIN_QUOTE_SIZE + 1,
-                actual_size: MIN_QUOTE_SIZE
+                required: MIN_QUOTE_SIZE + 1,
+                actual: MIN_QUOTE_SIZE
             })
         );
     }
