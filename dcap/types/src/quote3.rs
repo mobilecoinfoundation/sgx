@@ -4,6 +4,8 @@
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+use core::cmp::Ordering;
+use core::hash::{Hash, Hasher};
 use core::mem;
 use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
@@ -66,10 +68,36 @@ impl Error {
 type Result<T> = ::core::result::Result<T, Error>;
 
 /// Quote version 3
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Quote3<T> {
     bytes: T,
     report_body: ReportBody,
+}
+
+impl<T: AsRef<[u8]>> Eq for Quote3<T> {}
+
+impl<T: AsRef<[u8]>> PartialEq<Self> for Quote3<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.bytes.as_ref().eq(other.bytes.as_ref())
+    }
+}
+
+impl<T: AsRef<[u8]>> PartialOrd<Self> for Quote3<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T: AsRef<[u8]>> Ord for Quote3<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.bytes.as_ref().cmp(other.bytes.as_ref())
+    }
+}
+
+impl<T: AsRef<[u8]>> Hash for Quote3<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.bytes.as_ref().hash(state);
+    }
 }
 
 impl<T: AsRef<[u8]>> Quote3<T> {
@@ -101,6 +129,11 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         data[..hash.len()].copy_from_slice(hash.as_slice());
 
         data.ct_eq(report_data.as_ref()).into()
+    }
+
+    /// Report body of the application enclave
+    pub fn app_report_body(&self) -> &ReportBody {
+        &self.report_body
     }
 
     /// Try to get a [`Quote3`] from `bytes`
@@ -327,8 +360,8 @@ mod test {
         let quote = Quote3::try_from(bytes.as_ref()).unwrap();
         assert_eq!(quote.bytes, bytes);
         assert_eq!(
-            quote.report_body,
-            ReportBody::try_from(report_body_bytes.as_slice()).unwrap()
+            quote.app_report_body(),
+            &ReportBody::try_from(report_body_bytes.as_slice()).unwrap()
         );
     }
 
