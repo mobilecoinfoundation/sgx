@@ -8,7 +8,7 @@ extern crate alloc;
 mod quote3;
 mod quote_enclave;
 
-use mc_sgx_dcap_types::QlError;
+use mc_sgx_dcap_types::{QlError, Quote3Error};
 pub use quote3::TryFromReport;
 pub use quote_enclave::{LoadPolicyInitializer, PathInitializer, QeTargetInfo};
 
@@ -28,6 +28,14 @@ pub enum Error {
     PathLengthTooLong(String),
     /// The quoting enclave load policy has already been initialized
     LoadPolicyInitialized,
+    /// Error from Quote3 interface
+    Quote3(Quote3Error),
+}
+
+impl From<Quote3Error> for Error {
+    fn from(src: Quote3Error) -> Self {
+        Self::Quote3(src)
+    }
 }
 
 impl From<QlError> for Error {
