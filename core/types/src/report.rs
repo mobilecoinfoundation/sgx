@@ -3,14 +3,18 @@
 
 use crate::{
     config_id::ConfigId, impl_newtype_for_bytestruct, key_request::KeyId, new_type_accessors_impls,
-    Attributes, ConfigSvn, CpuSvn, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave, MrSigner,
+    Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave,
+    MrSigner,
 };
-use core::mem;
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
     sgx_report_data_t, sgx_report_t, SGX_CONFIGID_SIZE, SGX_CPUSVN_SIZE, SGX_HASH_SIZE,
-    SGX_ISVEXT_PROD_ID_SIZE, SGX_ISV_FAMILY_ID_SIZE, SGX_REPORT_DATA_SIZE,
+    SGX_ISVEXT_PROD_ID_SIZE, SGX_ISV_FAMILY_ID_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES,
+    SGX_REPORT_BODY_RESERVED2_BYTES, SGX_REPORT_BODY_RESERVED3_BYTES,
+    SGX_REPORT_BODY_RESERVED4_BYTES, SGX_REPORT_DATA_SIZE,
 };
+use nom::bytes::complete::take;
+use nom::number::complete::{le_u16, le_u32, le_u64};
 
 /// MAC
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
@@ -128,72 +132,67 @@ new_type_accessors_impls! {
     ReportBody, sgx_report_body_t;
 }
 
-impl From<[u8; mem::size_of::<sgx_report_body_t>()]> for ReportBody {
-    fn from(bytes: [u8; mem::size_of::<sgx_report_body_t>()]) -> Self {
-        // A note about the `expect()` calls.  This size is specified in the
-        // signature and there are unit tests ensuring the extraction from a
-        // byte array.  The values should not fail to extract due to size
-        // issues.
+impl TryFrom<&[u8]> for ReportBody {
+    type Error = FfiError;
+
+    fn try_from(bytes: &[u8]) -> Result<Self, FfiError> {
         let mut body = Self::default();
 
-        let cpu_svn: [u8; SGX_CPUSVN_SIZE] =
-            bytes[..16].try_into().expect("Failed to extract `cpu_svn`");
-        body.0.cpu_svn = CpuSvn::from(cpu_svn).into();
-        body.0.misc_select = u32::from_le_bytes(
-            bytes[16..20]
-                .try_into()
-                .expect("Failed to extract `misc_select`"),
-        );
-        let extended_prod_id: [u8; SGX_ISVEXT_PROD_ID_SIZE] = bytes[32..48]
-            .try_into()
-            .expect("Failed to extract `isv_ext_prod_id`");
-        body.0.isv_ext_prod_id = ExtendedProductId::from(extended_prod_id).into();
-        body.0.attributes.flags = u64::from_le_bytes(
-            bytes[48..56]
-                .try_into()
-                .expect("Failed to extract `attributes.flags`"),
-        );
-        body.0.attributes.xfrm = u64::from_le_bytes(
-            bytes[56..64]
-                .try_into()
-                .expect("Failed to extract `attributes.xfrm`"),
-        );
-        let mr_enclave: [u8; SGX_HASH_SIZE] = bytes[64..96]
-            .try_into()
-            .expect("Failed to extract `mr_enclave`");
-        body.0.mr_enclave = MrEnclave::from(mr_enclave).into();
-        let mr_signer: [u8; SGX_HASH_SIZE] = bytes[128..160]
-            .try_into()
-            .expect("Failed to extract `mr_signer`");
-        body.0.mr_signer = MrSigner::from(mr_signer).into();
-        let config_id: [u8; SGX_CONFIGID_SIZE] = bytes[192..256]
-            .try_into()
-            .expect("Failed to extract `config_id`");
-        body.0.config_id = ConfigId::from(config_id).into();
-        body.0.isv_prod_id = u16::from_le_bytes(
-            bytes[256..258]
-                .try_into()
-                .expect("Failed to extract `isv_prod_id`"),
-        );
-        body.0.isv_svn = u16::from_le_bytes(
-            bytes[258..260]
-                .try_into()
-                .expect("Failed to extract `isv_svn`"),
-        );
-        body.0.config_svn = u16::from_le_bytes(
-            bytes[260..262]
-                .try_into()
-                .expect("Failed to extract `config_svn`"),
-        );
-        let isv_family_id: [u8; SGX_ISV_FAMILY_ID_SIZE] = bytes[304..320]
-            .try_into()
-            .expect("Failed to extract `isv_family_id`");
-        body.0.isv_family_id = FamilyId::from(isv_family_id).into();
-        let report_data: [u8; SGX_REPORT_DATA_SIZE] = bytes[320..384]
-            .try_into()
-            .expect("Failed to extract `report_data`");
-        body.0.report_data = ReportData::from(report_data).into();
-        body
+        let (bytes, cpu_svn) = take(SGX_CPUSVN_SIZE)(bytes)?;
+        body.0.cpu_svn = CpuSvn::try_from(cpu_svn)?.into();
+
+        let (bytes, misc_select) = le_u32(bytes)?;
+        body.0.misc_select = misc_select;
+
+        let (bytes, reserved1) = take(SGX_REPORT_BODY_RESERVED1_BYTES)(bytes)?;
+        body.0.reserved1.as_mut().copy_from_slice(reserved1);
+
+        let (bytes, extended_prod_id) = take(SGX_ISVEXT_PROD_ID_SIZE)(bytes)?;
+        body.0
+            .isv_ext_prod_id
+            .as_mut()
+            .copy_from_slice(extended_prod_id);
+
+        let (bytes, flags) = le_u64(bytes)?;
+        body.0.attributes.flags = flags;
+
+        let (bytes, xfrm) = le_u64(bytes)?;
+        body.0.attributes.xfrm = xfrm;
+
+        let (bytes, mr_enclave) = take(SGX_HASH_SIZE)(bytes)?;
+        body.0.mr_enclave = MrEnclave::try_from(mr_enclave)?.into();
+
+        let (bytes, reserved2) = take(SGX_REPORT_BODY_RESERVED2_BYTES)(bytes)?;
+        body.0.reserved2.as_mut().copy_from_slice(reserved2);
+
+        let (bytes, mr_signer) = take(SGX_HASH_SIZE)(bytes)?;
+        body.0.mr_signer = MrSigner::try_from(mr_signer)?.into();
+
+        let (bytes, reserved3) = take(SGX_REPORT_BODY_RESERVED3_BYTES)(bytes)?;
+        body.0.reserved3.as_mut().copy_from_slice(reserved3);
+
+        let (bytes, config_id) = take(SGX_CONFIGID_SIZE)(bytes)?;
+        body.0.config_id.as_mut().copy_from_slice(config_id);
+
+        let (bytes, isv_prod_id) = le_u16(bytes)?;
+        body.0.isv_prod_id = isv_prod_id;
+
+        let (bytes, isv_svn) = le_u16(bytes)?;
+        body.0.isv_svn = isv_svn;
+
+        let (bytes, config_svn) = le_u16(bytes)?;
+        body.0.config_svn = config_svn;
+
+        let (bytes, reserved4) = take(SGX_REPORT_BODY_RESERVED4_BYTES)(bytes)?;
+        body.0.reserved4.as_mut().copy_from_slice(reserved4);
+
+        let (bytes, isv_family_id) = take(SGX_ISV_FAMILY_ID_SIZE)(bytes)?;
+        body.0.isv_family_id.as_mut().copy_from_slice(isv_family_id);
+
+        let (_, report_data) = take(SGX_REPORT_DATA_SIZE)(bytes)?;
+        body.0.report_data = ReportData::try_from(report_data)?.into();
+
+        Ok(body)
     }
 }
 
@@ -229,13 +228,8 @@ mod test {
 
     use super::*;
     use crate::{key_request::KeyId, MrEnclave, MrSigner};
-    use core::slice;
-    use mc_sgx_core_sys_types::{
-        SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_ISVEXT_PROD_ID_SIZE, SGX_ISV_FAMILY_ID_SIZE,
-        SGX_KEYID_SIZE, SGX_MAC_SIZE, SGX_REPORT_BODY_RESERVED1_BYTES,
-        SGX_REPORT_BODY_RESERVED2_BYTES, SGX_REPORT_BODY_RESERVED3_BYTES,
-        SGX_REPORT_BODY_RESERVED4_BYTES,
-    };
+    use core::{mem, slice};
+    use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
 
     fn report_body_1() -> sgx_report_body_t {
         sgx_report_body_t {
@@ -330,9 +324,10 @@ mod test {
     #[test]
     fn report_body_1_from_bytes() {
         let bytes = report_body_to_bytes(report_body_1());
-        let body = ReportBody::from(bytes);
+        let body = ReportBody::try_from(bytes.as_slice()).unwrap();
         assert_eq!(body.cpu_svn(), CpuSvn::from([1u8; CpuSvn::SIZE]));
         assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::from(2));
+        assert_eq!(body.0.reserved1, [3u8; SGX_REPORT_BODY_RESERVED1_BYTES]);
         assert_eq!(
             body.isv_extended_product_id(),
             ExtendedProductId([4u8; SGX_ISVEXT_PROD_ID_SIZE])
@@ -347,14 +342,17 @@ mod test {
             body.mr_enclave(),
             Measurement::MrEnclave(MrEnclave::from([7u8; SGX_HASH_SIZE]))
         );
+        assert_eq!(body.0.reserved2, [8u8; SGX_REPORT_BODY_RESERVED2_BYTES]);
         assert_eq!(
             body.mr_signer(),
             Measurement::MrSigner(MrSigner::from([9u8; SGX_HASH_SIZE]))
         );
+        assert_eq!(body.0.reserved3, [10u8; SGX_REPORT_BODY_RESERVED3_BYTES]);
         assert_eq!(body.config_id(), ConfigId::from([11u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(12));
         assert_eq!(body.isv_svn(), IsvSvn::from(13));
         assert_eq!(body.config_svn(), ConfigSvn::from(14));
+        assert_eq!(body.0.reserved4, [15u8; SGX_REPORT_BODY_RESERVED4_BYTES]);
         assert_eq!(
             body.isv_family_id(),
             FamilyId([16u8; SGX_ISV_FAMILY_ID_SIZE])
@@ -368,11 +366,21 @@ mod test {
     }
 
     #[test]
+    fn report_body_fails_when_not_enough_bytes() {
+        let bytes = report_body_to_bytes(report_body_1());
+        assert_eq!(
+            ReportBody::try_from(&bytes[1..]),
+            Err(FfiError::InvalidInputLength)
+        );
+    }
+
+    #[test]
     fn report_body_2_from_bytes() {
         let bytes = report_body_to_bytes(report_body_2());
-        let body = ReportBody::from(bytes);
+        let body = ReportBody::try_from(bytes.as_slice()).unwrap();
         assert_eq!(body.cpu_svn(), CpuSvn::from([12u8; CpuSvn::SIZE]));
         assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::from(22));
+        assert_eq!(body.0.reserved1, [32u8; SGX_REPORT_BODY_RESERVED1_BYTES]);
         assert_eq!(
             body.isv_extended_product_id(),
             ExtendedProductId([42u8; SGX_ISVEXT_PROD_ID_SIZE])
@@ -387,14 +395,17 @@ mod test {
             body.mr_enclave(),
             Measurement::MrEnclave(MrEnclave::from([72u8; SGX_HASH_SIZE]))
         );
+        assert_eq!(body.0.reserved2, [82u8; SGX_REPORT_BODY_RESERVED2_BYTES]);
         assert_eq!(
             body.mr_signer(),
             Measurement::MrSigner(MrSigner::from([92u8; SGX_HASH_SIZE]))
         );
+        assert_eq!(body.0.reserved3, [102u8; SGX_REPORT_BODY_RESERVED3_BYTES]);
         assert_eq!(body.config_id(), ConfigId::from([112u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(122));
         assert_eq!(body.isv_svn(), IsvSvn::from(132));
         assert_eq!(body.config_svn(), ConfigSvn::from(142));
+        assert_eq!(body.0.reserved4, [152u8; SGX_REPORT_BODY_RESERVED4_BYTES]);
         assert_eq!(
             body.isv_family_id(),
             FamilyId([162u8; SGX_ISV_FAMILY_ID_SIZE])
