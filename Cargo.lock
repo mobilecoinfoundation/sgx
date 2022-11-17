@@ -59,9 +59,9 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.61.0"
+version = "0.62.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a022e58a142a46fea340d68012b9201c094e93ec3d033a944a24f8fd4a4f09a"
+checksum = "c6720a8b7b2d39dd533285ed438d458f65b31b5c257e6ac7bb3d7e82844dd722"
 dependencies = [
  "bitflags",
  "cexpr",
@@ -409,7 +409,7 @@ dependencies = [
 name = "mc-sgx-capable-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-capable-sys-types",
  "mc-sgx-core-build",
@@ -420,7 +420,7 @@ dependencies = [
 name = "mc-sgx-capable-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
 ]
@@ -441,7 +441,7 @@ dependencies = [
 name = "mc-sgx-core-build"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
 ]
 
@@ -449,7 +449,7 @@ dependencies = [
 name = "mc-sgx-core-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
 ]
@@ -491,7 +491,7 @@ dependencies = [
 name = "mc-sgx-dcap-ql-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -503,7 +503,7 @@ dependencies = [
 name = "mc-sgx-dcap-ql-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
 ]
@@ -538,7 +538,7 @@ dependencies = [
 name = "mc-sgx-dcap-quoteverify-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-dcap-quoteverify-sys-types",
@@ -549,7 +549,7 @@ dependencies = [
 name = "mc-sgx-dcap-quoteverify-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-dcap-sys-types",
@@ -568,7 +568,7 @@ dependencies = [
 name = "mc-sgx-dcap-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
 ]
@@ -577,7 +577,7 @@ dependencies = [
 name = "mc-sgx-dcap-tvl-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -606,7 +606,7 @@ dependencies = [
 name = "mc-sgx-tcrypto-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -618,7 +618,7 @@ dependencies = [
 name = "mc-sgx-tcrypto-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
 ]
@@ -634,7 +634,7 @@ dependencies = [
 name = "mc-sgx-trts-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -659,7 +659,7 @@ dependencies = [
 name = "mc-sgx-tservice-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -670,7 +670,7 @@ dependencies = [
 name = "mc-sgx-tservice-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -690,7 +690,7 @@ dependencies = [
 name = "mc-sgx-tstdc-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -701,7 +701,7 @@ dependencies = [
 name = "mc-sgx-tstdc-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
 ]
@@ -723,7 +723,7 @@ dependencies = [
 name = "mc-sgx-urts-sys"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
@@ -734,7 +734,7 @@ dependencies = [
 name = "mc-sgx-urts-sys-types"
 version = "0.3.1-beta.0"
 dependencies = [
- "bindgen 0.61.0",
+ "bindgen 0.62.0",
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
