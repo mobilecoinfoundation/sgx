@@ -74,16 +74,15 @@ impl Error {
     }
 }
 
+// Using a from nom::Err that panics because of nom's generic implementation.
+// Without it all of the nom calls would need to specify the type like:
+// ```rust
+//  let (bytes, value) = le_u16::<_, nom::error::Error<&[u8]>>(bytes)
+//      .expect("Should have been prevented by previous size check.");
+// ```
 impl From<nom::Err<nom::error::Error<&[u8]>>> for Error {
     fn from(_: nom::Err<nom::error::Error<&[u8]>>) -> Self {
-        // nom errors rely on the lifetime of the data being parsed, so we
-        // convert.
-        // nom errors should only happen if the size was wrong for decoding the
-        // quote.
-        Error::InputLength {
-            required: MIN_QUOTE_SIZE,
-            actual: 0,
-        }
+        panic!("Nom errors should be prevented by size checks when parsing a Quote3");
     }
 }
 
@@ -183,7 +182,6 @@ impl<T: AsRef<[u8]>> Quote3<T> {
             });
         }
 
-        // This shouldn't fail since we checked for `MIN_QUOTE_SIZE` above.
         let (_, version) = le_u16(bytes)?;
         if version != 3 {
             return Err(Error::Version(version));
@@ -233,14 +231,14 @@ impl TryFrom<Vec<u8>> for Quote3<Vec<u8>> {
 /// Table 8 of
 /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-struct AuthenticationData<T> {
+struct AuthenticationData<'a> {
     // The `data` field as described in the QuoteLibReference.
     // The length of this *will* equal the `size` field as described in the
     // QuoteLibReference
-    data: T,
+    data: &'a [u8],
 }
 
-impl<'a> TryFrom<&'a [u8]> for AuthenticationData<&'a [u8]> {
+impl<'a> TryFrom<&'a [u8]> for AuthenticationData<'a> {
     type Error = Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let mut required = MIN_AUTH_DATA_SIZE;
@@ -263,9 +261,9 @@ impl<'a> TryFrom<&'a [u8]> for AuthenticationData<&'a [u8]> {
     }
 }
 
-impl<T: AsRef<[u8]>> AuthenticationData<T> {
+impl<'a> AuthenticationData<'a> {
     pub fn size(&self) -> usize {
-        self.data.as_ref().len() + mem::size_of::<u16>()
+        self.data.len() + mem::size_of::<u16>()
     }
 }
 
@@ -274,17 +272,17 @@ impl<T: AsRef<[u8]>> AuthenticationData<T> {
 /// Table 9 of
 /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-struct CertificationData<T> {
+struct CertificationData<'a> {
     // The `Certification Data` field as described in the QuoteLibReference.
     // The length of this *will* equal the `size` field as described in the
     // QuoteLibReference
-    data: T,
+    data: &'a [u8],
     // The `Certification Data Type` field as described in the
     // QuoteLibReference.
     data_type: u16,
 }
 
-impl<'a> TryFrom<&'a [u8]> for CertificationData<&'a [u8]> {
+impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
     type Error = Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let actual = bytes.len();
