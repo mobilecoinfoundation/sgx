@@ -9,7 +9,6 @@ use core::hash::{Hash, Hasher};
 use core::mem;
 use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
-use nom::number::complete::{le_u16, le_u32};
 use sha2::{Digest, Sha256};
 use static_assertions::const_assert;
 use subtle::ConstantTimeEq;
@@ -71,18 +70,6 @@ impl Error {
             // Intentionally no-op so one doesn't need to pre-evaluate.
             e => e,
         }
-    }
-}
-
-// Using a from nom::Err that panics because of nom's generic implementation.
-// Without it all of the nom calls would need to specify the type like:
-// ```rust
-//  let (bytes, value) = le_u16::<_, nom::error::Error<&[u8]>>(bytes)
-//      .expect("Should have been prevented by previous size check.");
-// ```
-impl From<nom::Err<nom::error::Error<&[u8]>>> for Error {
-    fn from(_: nom::Err<nom::error::Error<&[u8]>>) -> Self {
-        panic!("Nom errors should be prevented by size checks when parsing a Quote3");
     }
 }
 
@@ -182,7 +169,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
             });
         }
 
-        let (_, version) = le_u16(bytes)?;
+        let (_, version) = le_u16(bytes);
         if version != 3 {
             return Err(Error::Version(version));
         }
@@ -247,7 +234,7 @@ impl<'a> TryFrom<&'a [u8]> for AuthenticationData<'a> {
             return Err(Error::InputLength { required, actual });
         }
 
-        let (bytes, data_size_16) = le_u16(bytes)?;
+        let (bytes, data_size_16) = le_u16(bytes);
         let data_size = data_size_16 as usize;
 
         required += data_size;
@@ -294,8 +281,8 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
         }
 
         // These shouldn't fail since we ensured the length up above
-        let (bytes, data_type) = le_u16(bytes)?;
-        let (bytes, data_size_32) = le_u32(bytes)?;
+        let (bytes, data_type) = le_u16(bytes);
+        let (bytes, data_size_32) = le_u32(bytes);
         let data_size = data_size_32 as usize;
 
         required += data_size;
@@ -308,6 +295,38 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
             })
         }
     }
+}
+
+/// Read a u32 from the provided `input` stream.
+///
+/// It is assumed that `input` has enough bytes to contain the value
+///
+/// # Arguments
+/// * `input` - The input stream to read the `u32` from.
+///
+/// # Returns
+/// A tuple where the first element is the rest of the `input` stream after
+/// reading the value. The second element is the `u32` value read from the input
+/// stream.
+fn le_u32(input: &[u8]) -> (&[u8], u32) {
+    nom::number::complete::le_u32::<_, nom::error::Error<&[u8]>>(input)
+        .expect("Size of stream should have been guaranteed to hold 4 bytes")
+}
+
+/// Read a u16 from the provided `input` stream.
+///
+/// It is assumed that `input` has enough bytes to contain the value
+///
+/// # Arguments
+/// * `input` - The input stream to read the `u16` from.
+///
+/// # Returns
+/// A tuple where the first element is the rest of the `input` stream after
+/// reading the value. The second element is the `u16` value read from the input
+/// stream.
+fn le_u16(input: &[u8]) -> (&[u8], u16) {
+    nom::number::complete::le_u16::<_, nom::error::Error<&[u8]>>(input)
+        .expect("Size of stream should have been guaranteed to hold 2 bytes")
 }
 
 #[cfg(test)]
