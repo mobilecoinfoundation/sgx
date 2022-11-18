@@ -5,10 +5,12 @@
 use mc_sgx_core_types::{ConfigId, ConfigSvn, Error, TargetInfo};
 use mc_sgx_urts_sys::{
     sgx_create_enclave_from_buffer_ex, sgx_destroy_enclave, sgx_get_target_info,
-    MAX_EX_FEATURES_COUNT, SGX_CREATE_ENCLAVE_EX_KSS, SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX,
-    SGX_CREATE_ENCLAVE_EX_PCL, SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX,
 };
-use mc_sgx_urts_sys_types::{sgx_enclave_id_t, sgx_kss_config_t};
+use mc_sgx_urts_sys_types::{
+    sgx_enclave_id_t, sgx_kss_config_t, MAX_EX_FEATURES_COUNT, SGX_CREATE_ENCLAVE_EX_KSS,
+    SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX, SGX_CREATE_ENCLAVE_EX_PCL,
+    SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX,
+};
 use mc_sgx_util::ResultInto;
 use std::{ffi::c_void, fs::File, io::Read, os::raw::c_int, path::Path, ptr};
 

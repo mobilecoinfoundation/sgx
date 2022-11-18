@@ -71,7 +71,6 @@ pub fn sgx_builder() -> Builder {
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
-        .parse_callbacks(Box::new(SgxParseCallbacks::default()))
         .clang_args(env_c_flags())
         .clang_arg(&format!("-I{}", include_path));
 
