@@ -161,11 +161,11 @@ impl<T: AsRef<[u8]>> Quote3<T> {
     fn try_from_bytes(bytes: T) -> Result<Self> {
         let raw_bytes = bytes;
         let bytes = raw_bytes.as_ref();
-        let bytes_length = bytes.len();
-        if bytes_length < MIN_QUOTE_SIZE {
+        let actual = bytes.len();
+        if actual < MIN_QUOTE_SIZE {
             return Err(Error::InputLength {
                 required: MIN_QUOTE_SIZE,
-                actual: bytes_length,
+                actual,
             });
         }
 
@@ -178,7 +178,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         let report_body =
             ReportBody::try_from(&bytes[REPORT_BODY_OFFSET..]).map_err(|_| Error::InputLength {
                 required: MIN_QUOTE_SIZE,
-                actual: bytes_length,
+                actual,
             })?;
 
         let auth_data = AuthenticationData::try_from(&bytes[AUTH_DATA_OFFSET..])
