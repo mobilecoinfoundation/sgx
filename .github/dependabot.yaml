@@ -5,8 +5,13 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 25
+  commit-message:
+    prefix: "chore(dependencies)"
+
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: daily
   open-pull-requests-limit: 10
+  commit-message:
+    prefix: "chore(dependencies)"

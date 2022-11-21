@@ -1,0 +1,7 @@
+rust:
+  - '**.rs'
+  - '**/Cargo.lock'
+  - '**/Cargo.toml'
+
+dependencies:
+  - '**/Cargo.lock'

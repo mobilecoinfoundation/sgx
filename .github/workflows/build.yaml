@@ -37,29 +37,6 @@ jobs:
         with:
           globs: "**/*.md"
 
-  size-label:
-    runs-on: ubuntu-20.04
-    # Trying to size a non pull request will error out failing the build
-    if: ${{ github.event_name == 'pull_request' }}
-    permissions:
-      pull-requests: write
-    steps:
-      - name: size-label
-        uses: "pascalgn/size-label-action@v0.4.3"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          IGNORED: "Cargo.lock"
-          INPUT_SIZES: >
-            {
-              "0": "XS",
-              "30": "S",
-              "100": "M",
-              "250": "L",
-              "500": "XL",
-              "1000": "XXL",
-              "1500": "OHLAWDHECOMIN"
-            }
-
   deny:
     runs-on: ubuntu-20.04
     needs:
@@ -259,6 +236,7 @@ jobs:
     needs:
       - rustfmt
       - markdown-lint
+      - deny
       - sort
       - clippy
       - build
@@ -266,7 +244,6 @@ jobs:
       - test
       - doc
       - coverage
-      - size-label
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
