@@ -156,6 +156,12 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         &self.report_body
     }
 
+    /// Signature data of the Quote
+    pub fn signature_data(&self) -> SignatureData {
+        SignatureData::try_from(&self.raw_bytes.as_ref()[mem::size_of::<sgx_quote3_t>()..])
+            .expect("Signature data was validated during Quote creation.")
+    }
+
     /// Try to get a [`Quote3`] from `bytes`
     ///
     /// This will ensure `bytes` is for the correct quote type and that it's
@@ -294,6 +300,13 @@ impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
     }
 }
 
+impl<'a> SignatureData<'a> {
+    /// [`CertificationData`] of the [`SignatureData`]
+    pub fn certification_data(&self) -> &CertificationData {
+        &self.certification_data
+    }
+}
+
 /// The Quoting enclave authentication data
 ///
 /// Table 8 of
@@ -340,7 +353,7 @@ impl<'a> AuthenticationData<'a> {
 /// Table 9 of
 /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-struct CertificationData<'a> {
+pub struct CertificationData<'a> {
     // The `Certification Data` field as described in the QuoteLibReference.
     // The length of this *will* equal the `size` field as described in the
     // QuoteLibReference
@@ -392,7 +405,8 @@ impl<'a> IntoIterator for &'a CertificationData<'a> {
 const BEGIN_PEM: &[u8] = b"-----BEGIN ";
 const END_PEM: &[u8] = b"-----END ";
 
-struct PemIterator<'a> {
+#[derive(Debug)]
+pub struct PemIterator<'a> {
     pem_data: &'a [u8],
 }
 
@@ -593,18 +607,37 @@ mod test {
     #[test]
     fn quote_from_slice() {
         const REPORT_BODY_SIZE: usize = mem::size_of::<ReportBody>();
-        let report_body_bytes = [5u8; REPORT_BODY_SIZE];
+        const SIGNATURE_DATA_OFFSET: usize = mem::size_of::<sgx_quote3_t>();
+        let app_report_body_bytes = [5u8; REPORT_BODY_SIZE];
+        let qe_report_body_bytes = [7u8; REPORT_BODY_SIZE];
+        let ecdsa_sig = sgx_ql_ecdsa_sig_data_t {
+            sig: [6u8; SIGNATURE_SIZE],
+            attest_pub_key: VALID_P256_KEY,
+            qe_report: ReportBody::try_from(qe_report_body_bytes.as_slice())
+                .unwrap()
+                .into(),
+            qe_report_sig: [8u8; SIGNATURE_SIZE],
+            // __IncompleteArrayField so can only be empty(default)
+            auth_certification_data: Default::default(),
+        };
+        let signature_bytes = ecdsa_sig_to_bytes(ecdsa_sig);
 
         let mut binding = [4u8; MIN_QUOTE_SIZE];
         let bytes = quotify_bytes(binding.as_mut_slice());
 
         bytes[REPORT_BODY_OFFSET..REPORT_BODY_OFFSET + REPORT_BODY_SIZE]
-            .copy_from_slice(&report_body_bytes);
+            .copy_from_slice(&app_report_body_bytes);
+        bytes[SIGNATURE_DATA_OFFSET..SIGNATURE_DATA_OFFSET + MIN_SIGNATURE_DATA_SIZE]
+            .copy_from_slice(&signature_bytes);
         let quote = Quote3::try_from(bytes.as_ref()).unwrap();
         assert_eq!(quote.raw_bytes, bytes);
         assert_eq!(
             quote.app_report_body(),
-            &ReportBody::try_from(report_body_bytes.as_slice()).unwrap()
+            &ReportBody::try_from(app_report_body_bytes.as_slice()).unwrap()
+        );
+        assert_eq!(
+            quote.signature_data(),
+            SignatureData::try_from(signature_bytes.as_slice()).unwrap()
         );
     }
 
@@ -831,7 +864,7 @@ mod test {
     }
 
     #[test]
-    fn certification_data_to_small_for_data() {
+    fn certification_data_too_small_for_data() {
         let mut bytes = [0u8; MIN_CERT_DATA_SIZE];
         bytes[2] = 1;
         assert_eq!(
@@ -879,7 +912,7 @@ mod test {
             Signature::try_from([3u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, []);
-        assert_eq!(signature_data.certification_data.data, []);
+        assert_eq!(signature_data.certification_data().data, []);
     }
 
     #[test]
@@ -915,7 +948,7 @@ mod test {
             Signature::try_from([4u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, []);
-        assert_eq!(signature_data.certification_data.data, []);
+        assert_eq!(signature_data.certification_data().data, []);
     }
 
     #[test]
@@ -993,7 +1026,7 @@ mod test {
             signature_data.qe_report_signature,
             Signature::try_from([7u8; 64].as_slice()).unwrap()
         );
-        assert_eq!(signature_data.certification_data.data, [11, 11]);
+        assert_eq!(signature_data.certification_data().data, [11, 11]);
     }
 
     #[test]
@@ -1048,7 +1081,7 @@ mod test {
             Signature::try_from([7u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
-        assert_eq!(signature_data.certification_data.data, [23u8; 4]);
+        assert_eq!(signature_data.certification_data().data, [23u8; 4]);
     }
 
     const LEAF_CERT: &str = "
