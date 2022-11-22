@@ -1,4 +1,4 @@
-name: issues-meta
+name: issues
 
 on:
   issues:
