@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `SignatureData`: `mc_sgx_dcap_types::SignatureData` wraps up
+  the `sgx_ql_ecdsa_sig_data_t` type.
 - `verify_nonce()`: `mc_sgx_dcap_types::Quote3` can verify a nonce matches that
   which was provided in a `mc_sgx_core_types::ReportData`.
 
