@@ -79,7 +79,7 @@ impl Error {
 
 impl From<ecdsa::Error> for Error {
     fn from(_: ecdsa::Error) -> Self {
-        // ecdsa errors are opaque to avoid side channel leakage
+        // ecdsa::Error is opaque, and only provides additional information via `std::Error` impl.
         Error::Ecdsa
     }
 }
