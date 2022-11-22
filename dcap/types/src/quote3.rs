@@ -404,6 +404,7 @@ impl<'a> Iterator for PemIterator<'a> {
             return None;
         }
 
+        let mut label: &[u8] = b"";
         let mut start = None;
         let mut offset = 0;
 
@@ -415,14 +416,20 @@ impl<'a> Iterator for PemIterator<'a> {
                 None => {
                     if line.starts_with(BEGIN_PEM) {
                         start = Some(offset);
+                        label = &line[BEGIN_PEM.len()..];
                     }
                 }
                 Some(start) => {
                     if line.starts_with(END_PEM) {
-                        let end = offset + line.len();
-                        let pem = &self.pem_data[start..end];
-                        self.pem_data = &self.pem_data[end..];
-                        return Some(pem);
+                        // In the unlikely event there is an end footer exposed
+                        // with a different label we walk over, just like if
+                        // there happens to be a nested begin.
+                        if &line[END_PEM.len()..] == label {
+                            let end = offset + line.len();
+                            let pem = &self.pem_data[start..end];
+                            self.pem_data = &self.pem_data[end..];
+                            return Some(pem);
+                        }
                     }
                 }
             }
@@ -1220,6 +1227,34 @@ mod test {
     }
 
     #[test]
+    fn iterate_over_an_unmatched_nested_end() {
+        // the middle end has a different label so will be treated as part of
+        // the body.
+        let funky_pem = "
+            -----BEGIN CERTIFICATE-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            -----END SOMETHING-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            -----END CERTIFICATE-----
+            ";
+        let raw_pem = textwrap::dedent(funky_pem);
+        let pem = raw_pem.trim_start().as_bytes();
+        let mut cert_data = Vec::new();
+        cert_data.push(5); // Concatenated PCK Cert Chain
+        cert_data.push(0);
+        let size = pem.len() as u32;
+        let size_bytes = size.to_le_bytes();
+        cert_data.extend(size_bytes);
+        cert_data.extend(pem);
+
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
+    }
+
+    #[test]
     fn iterate_over_a_non_certificate_pem() {
         // Showing the iterator doesn't care what the pem is
         // Generated via
@@ -1248,5 +1283,41 @@ mod test {
         let cert_iter = certification_data.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert_eq!(certs, &[key]);
+    }
+
+    #[test]
+    fn ignore_contents_before_between_and_after_pems() {
+        let padding_text = b"Some padding text\n";
+        let mut cert_chain = Vec::new();
+        cert_chain.push(5); // Concatenated PCK Cert Chain
+        cert_chain.push(0);
+
+        let mut size = 0;
+        size += padding_text.len();
+        cert_chain.extend(padding_text);
+
+        let pems = [LEAF_CERT, INTERMEDIATE_CA, ROOT_CA]
+            .iter()
+            .map(|p| textwrap::dedent(p))
+            .collect::<Vec<_>>();
+        let pem_bytes = pems
+            .iter()
+            .map(|p| p.trim_start().as_bytes())
+            .collect::<Vec<_>>();
+        for pem in &pem_bytes {
+            size += pem.len();
+            cert_chain.extend(*pem);
+            size += padding_text.len();
+            cert_chain.extend(padding_text);
+        }
+
+        let size_32 = size as u32;
+        let size_bytes = size_32.to_le_bytes();
+        cert_chain.splice(2..2, size_bytes);
+
+        let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        let certs = cert_iter.collect::<Vec<_>>();
+        assert_eq!(certs, pem_bytes);
     }
 }
