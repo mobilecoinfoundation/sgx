@@ -228,6 +228,17 @@ pub struct SignatureData<'a> {
 
 impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
     type Error = Error;
+
+    /// Parses [`SignatureData`] from bytes.
+    ///
+    /// The bytes are assumed to be the Quote Signature Data Structure defined
+    /// in table 4 of
+    /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
+    /// They bytes are also referenced as the "Quote Signature Data" in table 2.
+    ///
+    /// # Errors:
+    /// * [`Error::InputLength`] if the length of `bytes` is not large enough to
+    ///   represent the [`SignatureData`].
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let actual = bytes.len();
         let required = MIN_SIGNATURE_DATA_SIZE;
