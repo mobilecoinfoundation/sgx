@@ -18,5 +18,5 @@ doctest = false
 mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.3.1-beta.0" }
 
 [build-dependencies]
-bindgen = "0.62.0"
+bindgen = "0.63.0"
 mc-sgx-core-build = { path = "../../../core/build", version = "=0.3.1-beta.0" }
