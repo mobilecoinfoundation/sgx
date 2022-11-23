@@ -11,14 +11,6 @@ const URTS_FUNCTIONS: &[&str] = &[
     "sgx_get_target_info",
 ];
 
-const URTS_CONSTANTS: &[&str] = &[
-    "SGX_CREATE_ENCLAVE_EX_PCL_BIT_IDX",
-    "SGX_CREATE_ENCLAVE_EX_KSS_BIT_IDX",
-    "SGX_CREATE_ENCLAVE_EX_PCL",
-    "SGX_CREATE_ENCLAVE_EX_KSS",
-    "MAX_EX_FEATURES_COUNT",
-];
-
 fn main() {
     let link_path = mc_sgx_core_build::sgx_library_string();
     cargo_emit::rustc_link_search!(link_path);
@@ -32,10 +24,6 @@ fn main() {
 
     for f in URTS_FUNCTIONS {
         builder = builder.allowlist_function(f);
-    }
-
-    for c in URTS_CONSTANTS {
-        builder = builder.allowlist_var(c);
     }
 
     let out_path = mc_sgx_core_build::build_output_dir();
