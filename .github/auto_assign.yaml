@@ -1,0 +1,11 @@
+addReviewers: true
+addAssignees: author
+reviewers:
+  - jcape
+  - nick-mobilecoin
+  - awygle
+  - NotGyro
+  - samdealy
+  - varsha888
+
+numberOfReviewers: 2
