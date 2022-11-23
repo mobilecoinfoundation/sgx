@@ -6,7 +6,7 @@ updates:
     interval: daily
   open-pull-requests-limit: 25
   commit-message:
-    prefix: "chore(dependencies)"
+    prefix: "chore(deps)"
 
 - package-ecosystem: github-actions
   directory: "/"
@@ -14,4 +14,4 @@ updates:
     interval: daily
   open-pull-requests-limit: 10
   commit-message:
-    prefix: "chore(dependencies)"
+    prefix: "chore(deps)"

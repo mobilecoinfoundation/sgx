@@ -5,3 +5,8 @@ rust:
 
 dependencies:
   - '**/Cargo.lock'
+
+github_actions:
+  - '.github/workflows/**'
+  - '.github/labeler.yml'
+  - '.github/triage-labeler.yml'
