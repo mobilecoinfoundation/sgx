@@ -226,6 +226,18 @@ pub enum QlError {
     CollateralVersionNotSupported = quote3_error_t::SGX_QL_COLLATERAL_VERSION_NOT_SUPPORTED.0,
     /// TDX SEAM module identity is NOT match to Intel signed TDX SEAM module
     TdxModuleMismatch = quote3_error_t::SGX_QL_TDX_MODULE_MISMATCH.0,
+    /// QE identity was not found
+    QeIdentityNotFound = quote3_error_t::SGX_QL_QEIDENTITY_NOT_FOUND.0,
+    /// TCB Info was not found
+    TcbInfoNotFound = quote3_error_t::SGX_QL_TCBINFO_NOT_FOUND.0,
+    /// Internal server error
+    InternalServerError = quote3_error_t::SGX_QL_INTERNAL_SERVER_ERROR.0,
+    /// The supplemental data version is not supported
+    SupplementalDataVersionNotSupported =
+        quote3_error_t::SGX_QL_SUPPLEMENTAL_DATA_VERSION_NOT_SUPPORTED.0,
+    /// The certificate used to establish SSL session is untrusted
+    RootCaUntrusted = quote3_error_t::SGX_QL_ROOT_CA_UNTRUSTED.0,
+
     /// Indicate max error to allow better translation
     Max = quote3_error_t::SGX_QL_ERROR_MAX.0,
 }
@@ -354,6 +366,13 @@ impl TryFrom<quote3_error_t> for QlError {
                 Ok(QlError::CollateralVersionNotSupported)
             }
             quote3_error_t::SGX_QL_TDX_MODULE_MISMATCH => Ok(QlError::TdxModuleMismatch),
+            quote3_error_t::SGX_QL_QEIDENTITY_NOT_FOUND => Ok(QlError::QeIdentityNotFound),
+            quote3_error_t::SGX_QL_TCBINFO_NOT_FOUND => Ok(QlError::TcbInfoNotFound),
+            quote3_error_t::SGX_QL_INTERNAL_SERVER_ERROR => Ok(QlError::InternalServerError),
+            quote3_error_t::SGX_QL_SUPPLEMENTAL_DATA_VERSION_NOT_SUPPORTED => {
+                Ok(QlError::SupplementalDataVersionNotSupported)
+            }
+            quote3_error_t::SGX_QL_ROOT_CA_UNTRUSTED => Ok(QlError::RootCaUntrusted),
             quote3_error_t::SGX_QL_ERROR_MAX => Ok(QlError::Max),
             // Map all unknowns to the unexpected error
             _ => Ok(QlError::Unexpected),
@@ -455,6 +474,11 @@ mod test {
     psw_not_available = { quote3_error_t::SGX_QL_PSW_NOT_AVAILABLE, QlError::PswNotAvailable },
     collateral_version_not_supported = { quote3_error_t::SGX_QL_COLLATERAL_VERSION_NOT_SUPPORTED, QlError::CollateralVersionNotSupported },
     tdx_module_mismatch = { quote3_error_t::SGX_QL_TDX_MODULE_MISMATCH, QlError::TdxModuleMismatch },
+    qe_identity_not_found = { quote3_error_t::SGX_QL_QEIDENTITY_NOT_FOUND, QlError::QeIdentityNotFound },
+    tcb_info_not_found = { quote3_error_t::SGX_QL_TCBINFO_NOT_FOUND, QlError::TcbInfoNotFound },
+    internal_server_error = { quote3_error_t::SGX_QL_INTERNAL_SERVER_ERROR, QlError::InternalServerError },
+    supplemental_data_version_not_supported = { quote3_error_t::SGX_QL_SUPPLEMENTAL_DATA_VERSION_NOT_SUPPORTED, QlError::SupplementalDataVersionNotSupported },
+    root_ca_untrusted = { quote3_error_t::SGX_QL_ROOT_CA_UNTRUSTED, QlError::RootCaUntrusted },
     max = { quote3_error_t::SGX_QL_ERROR_MAX, QlError::Max }
     )]
     fn error_from_ffi(ffi: quote3_error_t, expected: QlError) {
