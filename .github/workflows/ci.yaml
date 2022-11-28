@@ -13,7 +13,7 @@ env:
 
 jobs:
   rustfmt:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -29,7 +29,7 @@ jobs:
           args: --all -- --check
 
   markdown-lint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: xt0rted/markdownlint-problem-matcher@v2
@@ -38,7 +38,7 @@ jobs:
           globs: "**/*.md"
 
   deny:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -56,7 +56,7 @@ jobs:
         command: check ${{ matrix.checks }}
 
   sort:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -75,7 +75,7 @@ jobs:
       - run: cargo sort --workspace --check >/dev/null
 
   clippy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -95,7 +95,7 @@ jobs:
           args: --all --all-features --locked -- -D warnings
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -108,6 +108,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
+        with:
+          version: 2.18.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
@@ -121,7 +123,7 @@ jobs:
           args: --release --locked
 
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -134,6 +136,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
+        with:
+          version: 2.18.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
@@ -148,7 +152,7 @@ jobs:
         run: unset SGX_AESM_ADDR && cargo test --release --locked --features "sim alloc"
 
   doc:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -171,13 +175,15 @@ jobs:
           args: --release --locked --no-deps --features sim
 
   coverage:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
+        with:
+          version: 2.18.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
       - uses: actions-rs/toolchain@v1
         with:
@@ -199,7 +205,7 @@ jobs:
   # This job ensures that the specified crates are able to build without alloc.  By proxy this also ensures that the
   # build with no_std
   build-no-alloc:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
