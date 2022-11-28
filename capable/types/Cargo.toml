@@ -23,7 +23,7 @@ displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-capable-sys-types = { path = "../sys/types", version = "=0.3.1-beta.0" }
 mc-sgx-core-types = { path = "../../core/types", version = "=0.3.1-beta.0" }
 mc-sgx-util = { path = "../../util", version = "=0.3.1-beta.0" }
-serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.148", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 yare = "1.0.1"
