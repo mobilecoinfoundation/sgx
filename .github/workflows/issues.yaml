@@ -1,0 +1,25 @@
+name: issues
+
+on:
+  issues:
+    types:
+      - opened
+      - transferred
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: github/issue-labeler@v2.5
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: .github/triage-labeler.yml
+        enable-versioned-regex: 0
+
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.3.0
+        with:
+          project-url: https://github.com/orgs/mobilecoinfoundation/projects/5
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}

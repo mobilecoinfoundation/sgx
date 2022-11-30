@@ -1,0 +1,45 @@
+name: pr
+
+on:
+  pull_request:
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.3.0
+        with:
+          project-url: https://github.com/orgs/mobilecoinfoundation/projects/5
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+
+  size-label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: pascalgn/size-label-action@v0.4.3
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          IGNORED: "Cargo.lock"
+          INPUT_SIZES: >
+            {
+              "0": "XS",
+              "30": "S",
+              "100": "M",
+              "250": "L",
+              "500": "XL",
+              "1000": "XXL",
+              "1500": "OHLAWDHECOMIN"
+            }
+
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - uses: actions/labeler@v4
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        sync-labels: true

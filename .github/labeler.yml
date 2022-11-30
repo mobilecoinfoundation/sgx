@@ -1,0 +1,12 @@
+rust:
+  - '**.rs'
+  - '**/Cargo.lock'
+  - '**/Cargo.toml'
+
+dependencies:
+  - '**/Cargo.lock'
+
+github_actions:
+  - '.github/workflows/**'
+  - '.github/labeler.yml'
+  - '.github/triage-labeler.yml'
