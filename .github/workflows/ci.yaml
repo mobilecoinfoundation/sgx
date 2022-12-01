@@ -65,16 +65,24 @@ jobs:
     needs:
       - "rustfmt"
       - "markdown-lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+    # Prevent beta warnings from causing CI failure
+    continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.15.100.3-jammy1
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo clippy --all --all-features --locked -- -D warnings
+      - run: cargo +${{ matrix.rust }} clippy --all --all-features --locked -- -D warnings
 
   build:
     runs-on: ubuntu-22.04
@@ -140,6 +148,8 @@ jobs:
         rust:
           - stable
           - beta
+    # Prevent beta warnings from causing CI failure
+    continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
