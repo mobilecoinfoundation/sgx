@@ -82,6 +82,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
+        with:
+          version: 1.15.100.3-jammy1
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -111,6 +113,8 @@ jobs:
         with:
           version: 2.18.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
+        with:
+          version: 1.15.100.3-jammy1
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -139,6 +143,8 @@ jobs:
         with:
           version: 2.18.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
+        with:
+          version: 1.15.100.3-jammy1
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -185,6 +191,8 @@ jobs:
         with:
           version: 2.18.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
+        with:
+          version: 1.15.100.3-jammy1
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
