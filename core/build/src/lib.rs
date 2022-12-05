@@ -2,6 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 
+use bindgen::callbacks::DeriveInfo;
 use bindgen::{
     callbacks::{IntKind, ParseCallbacks},
     Builder, EnumVariation,
@@ -193,8 +194,9 @@ impl ParseCallbacks for SgxParseCallbacks {
         normalize_item_name(name)
     }
 
-    fn add_derives(&self, name: &str) -> Vec<String> {
+    fn add_derives(&self, info: &DeriveInfo<'_>) -> Vec<String> {
         let mut attributes = vec![];
+        let name = info.name;
 
         if self.default_types.iter().any(|n| *n == name) {
             attributes.push("Default");
