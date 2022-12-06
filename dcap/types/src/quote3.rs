@@ -363,6 +363,8 @@ mod test {
     use mc_sgx_core_sys_types::sgx_report_body_t;
     use mc_sgx_core_types::CpuSvn;
     use yare::parameterized;
+    extern crate alloc;
+    use alloc::vec::Vec;
 
     /// A P-256 public key uncompressed in raw bytes. This was taken from a HW
     /// quote.
@@ -489,6 +491,22 @@ mod test {
             quote.signature_data(),
             SignatureData::try_from(signature_bytes.as_slice()).unwrap()
         );
+    }
+
+    #[test]
+    fn quote_from_real_quote_file() {
+        let hw_quote = include_bytes!("../data/tests/hw_quote.dat");
+        let quote = Quote3::try_from(hw_quote.as_ref()).unwrap();
+
+        assert_eq!(quote.raw_bytes, hw_quote);
+        let signature_data = quote.signature_data();
+
+        // 3 for Root CA, Intermediate CA, and the PCK cert
+        let pems = signature_data
+            .certification_data()
+            .into_iter()
+            .collect::<Vec<_>>();
+        assert_eq!(pems.len(), 3);
     }
 
     #[parameterized(
