@@ -495,7 +495,7 @@ mod test {
 
     #[test]
     fn quote_from_real_quote_file() {
-        let hw_quote = include_bytes!("../assets/tests/hw_quote.dat");
+        let hw_quote = include_bytes!("../data/tests/hw_quote.dat");
         let quote = Quote3::try_from(hw_quote.as_ref()).unwrap();
 
         assert_eq!(quote.raw_bytes, hw_quote);

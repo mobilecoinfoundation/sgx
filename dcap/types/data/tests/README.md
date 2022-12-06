@@ -1,4 +1,4 @@
-# Test assets for `mc-sgx-dcap-types`
+# Test data for `mc-sgx-dcap-types`
 
 * `hw_quote.dat` A hardware quote taken from a live system. See
   <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
