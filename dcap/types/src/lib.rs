@@ -7,14 +7,16 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+mod certification_data;
 mod error;
 mod quote3;
 mod quoting_enclave;
 mod request_policy;
 
 pub use crate::{
-    error::QlError,
-    quote3::{CertificationData, Error as Quote3Error, Quote3, SignatureData},
+    certification_data::CertificationData,
+    error::{QlError, Quote3Error},
+    quote3::{Quote3, SignatureData},
     quoting_enclave::ReportInfo,
     request_policy::RequestPolicy,
 };

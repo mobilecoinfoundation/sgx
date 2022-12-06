@@ -8,6 +8,46 @@ use mc_sgx_util::{ResultFrom, ResultInto};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+/// Errors interacting with a Quote3
+#[derive(Clone, Debug, Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[non_exhaustive]
+pub enum Quote3Error {
+    /** Quote buffer too small; actual size: {actual}, required size
+     * {required} */
+    #[allow(missing_docs)]
+    InputLength { required: usize, actual: usize },
+    /// Invalid quote version: {0}, should be: 3
+    Version(u16),
+    /// Failure to convert from bytes to ECDSA types
+    Ecdsa,
+}
+
+impl Quote3Error {
+    /// Increase any and all size values in the Error.
+    /// Errors without a size field will be returned unmodified.  For example
+    /// [`Quote3Error::Version`] will not be modified by this function even
+    /// though it has a numeric value.
+    pub(crate) fn increase_size(self, increase: usize) -> Self {
+        match self {
+            Self::InputLength { actual, required } => {
+                let actual = actual + increase;
+                let required = required + increase;
+                Self::InputLength { actual, required }
+            }
+            // Intentionally no-op so one doesn't need to pre-evaluate.
+            e => e,
+        }
+    }
+}
+
+impl From<p256::ecdsa::Error> for Quote3Error {
+    fn from(_: p256::ecdsa::Error) -> Self {
+        // ecdsa::Error is opaque, and only provides additional information via
+        // `std::Error` impl.
+        Quote3Error::Ecdsa
+    }
+}
+
 /// An enumeration of errors which occur when using QuoteLib-related methods.
 ///
 /// These errors correspond to error elements of

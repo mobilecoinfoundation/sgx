@@ -2,6 +2,8 @@
 
 //! This module provides types related to Quote v3
 
+use crate::certification_data::{CertificationData, MIN_CERT_DATA_SIZE};
+use crate::Quote3Error;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 use core::cmp::Ordering;
@@ -9,7 +11,6 @@ use core::hash::{Hash, Hasher};
 use core::mem;
 use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
-use p256::ecdsa;
 use p256::ecdsa::{Signature, VerifyingKey};
 use p256::EncodedPoint;
 use sha2::{Digest, Sha256};
@@ -34,10 +35,6 @@ const REPORT_BODY_OFFSET: usize = mem::size_of::<sgx_quote_header_t>();
 /// the 2 bytes for QE authentication data size
 const MIN_AUTH_DATA_SIZE: usize = 2;
 
-/// The minimum size of a byte array to contain a [`CertificationData`]
-/// The 2(type) + 4(size) for QE certification data
-const MIN_CERT_DATA_SIZE: usize = 6;
-
 /// The minimum size of a byte array to contain a [`SignatureData`]
 const MIN_SIGNATURE_DATA_SIZE: usize =
     mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + MIN_AUTH_DATA_SIZE + MIN_CERT_DATA_SIZE;
@@ -45,46 +42,7 @@ const MIN_SIGNATURE_DATA_SIZE: usize =
 /// The minimum size of a byte array to contain a [`Quote3`]
 pub const MIN_QUOTE_SIZE: usize = mem::size_of::<sgx_quote3_t>() + MIN_SIGNATURE_DATA_SIZE;
 
-/// Errors interacting with a Quote3
-#[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[non_exhaustive]
-pub enum Error {
-    /** Quote buffer too small; actual size: {actual}, required size
-     * {required} */
-    #[allow(missing_docs)]
-    InputLength { required: usize, actual: usize },
-    /// Invalid quote version: {0}, should be: 3
-    Version(u16),
-    /// Failure to convert from bytes to ECDSA types
-    Ecdsa,
-}
-
-impl Error {
-    /// Increase any and all size values in the Error.
-    /// Errors without a size field will be returned unmodified.  For example
-    /// [`Error::Version`] will not be modified by this function even though it
-    /// has a numeric value.
-    fn increase_size(self, increase: usize) -> Self {
-        match self {
-            Self::InputLength { actual, required } => {
-                let actual = actual + increase;
-                let required = required + increase;
-                Self::InputLength { actual, required }
-            }
-            // Intentionally no-op so one doesn't need to pre-evaluate.
-            e => e,
-        }
-    }
-}
-
-impl From<ecdsa::Error> for Error {
-    fn from(_: ecdsa::Error) -> Self {
-        // ecdsa::Error is opaque, and only provides additional information via `std::Error` impl.
-        Error::Ecdsa
-    }
-}
-
-type Result<T> = ::core::result::Result<T, Error>;
+type Result<T> = ::core::result::Result<T, Quote3Error>;
 
 /// Quote version 3
 #[derive(Clone, Debug)]
@@ -171,16 +129,16 @@ impl<T: AsRef<[u8]>> Quote3<T> {
     /// * `bytes` - The bytes to interpret as a [`Quote3`]
     ///
     /// # Errors:
-    /// * [`Error::InvalidInputLength`] if the length of `bytes` is not large
+    /// * [`Quote3Error::InputLength`] if the length of `bytes` is not large
     ///   enough to represent the [`Quote3`].
-    /// * [`Error::InvalidVersion`] if the `bytes` is for a different quote
+    /// * [`Quote3Error::Version`] if the `bytes` is for a different quote
     ///   version.
     fn try_from_bytes(bytes: T) -> Result<Self> {
         let raw_bytes = bytes;
         let bytes = raw_bytes.as_ref();
         let actual = bytes.len();
         if actual < MIN_QUOTE_SIZE {
-            return Err(Error::InputLength {
+            return Err(Quote3Error::InputLength {
                 required: MIN_QUOTE_SIZE,
                 actual,
             });
@@ -188,7 +146,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
 
         let (_, version) = le_u16(bytes);
         if version != 3 {
-            return Err(Error::Version(version));
+            return Err(Quote3Error::Version(version));
         }
 
         let report_body = ReportBody::try_from(&bytes[REPORT_BODY_OFFSET..])
@@ -205,7 +163,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
 }
 
 impl<'a> TryFrom<&'a [u8]> for Quote3<&'a [u8]> {
-    type Error = Error;
+    type Error = Quote3Error;
 
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         Self::try_from_bytes(bytes)
@@ -214,7 +172,7 @@ impl<'a> TryFrom<&'a [u8]> for Quote3<&'a [u8]> {
 
 #[cfg(feature = "alloc")]
 impl TryFrom<Vec<u8>> for Quote3<Vec<u8>> {
-    type Error = Error;
+    type Error = Quote3Error;
 
     fn try_from(bytes: Vec<u8>) -> Result<Self> {
         Self::try_from_bytes(bytes)
@@ -233,7 +191,7 @@ pub struct SignatureData<'a> {
 }
 
 impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
-    type Error = Error;
+    type Error = Quote3Error;
 
     /// Parses [`SignatureData`] from bytes.
     ///
@@ -243,13 +201,13 @@ impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
     /// They bytes are also referenced as the "Quote Signature Data" in table 2.
     ///
     /// # Errors:
-    /// * [`Error::InputLength`] if the length of `bytes` is not large enough to
-    ///   represent the [`SignatureData`].
+    /// * [`Quote3Error::InputLength`] if the length of `bytes` is not large
+    ///   enough to represent the [`SignatureData`].
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let actual = bytes.len();
         let required = MIN_SIGNATURE_DATA_SIZE;
         if actual < required {
-            return Err(Error::InputLength { actual, required });
+            return Err(Quote3Error::InputLength { actual, required });
         }
 
         let (bytes, isv_signature) = take(SIGNATURE_SIZE)(bytes);
@@ -273,7 +231,7 @@ impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
             // while the actual is limited to the main structure and what the
             // authentication data saw.
             match e {
-                Error::InputLength { actual, required } => Error::InputLength {
+                Quote3Error::InputLength { actual, required } => Quote3Error::InputLength {
                     actual: actual + mem::size_of::<sgx_ql_ecdsa_sig_data_t>(),
                     required: required
                         + (mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + MIN_CERT_DATA_SIZE),
@@ -320,12 +278,12 @@ struct AuthenticationData<'a> {
 }
 
 impl<'a> TryFrom<&'a [u8]> for AuthenticationData<'a> {
-    type Error = Error;
+    type Error = Quote3Error;
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let mut required = MIN_AUTH_DATA_SIZE;
         let actual = bytes.len();
         if actual < required {
-            return Err(Error::InputLength { required, actual });
+            return Err(Quote3Error::InputLength { required, actual });
         }
 
         let (bytes, data_size_16) = le_u16(bytes);
@@ -333,7 +291,7 @@ impl<'a> TryFrom<&'a [u8]> for AuthenticationData<'a> {
 
         required += data_size;
         if actual < required {
-            Err(Error::InputLength { required, actual })
+            Err(Quote3Error::InputLength { required, actual })
         } else {
             Ok(Self {
                 data: &bytes[..data_size],
@@ -348,111 +306,6 @@ impl<'a> AuthenticationData<'a> {
     }
 }
 
-/// The Quoting enclave certification data
-///
-/// Table 9 of
-/// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct CertificationData<'a> {
-    // The `Certification Data` field as described in the QuoteLibReference.
-    // The length of this *will* equal the `size` field as described in the
-    // QuoteLibReference
-    data: &'a [u8],
-    // The `Certification Data Type` field as described in the
-    // QuoteLibReference.
-    data_type: u16,
-}
-
-impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
-    type Error = Error;
-    fn try_from(bytes: &'a [u8]) -> Result<Self> {
-        let actual = bytes.len();
-
-        let mut required = MIN_CERT_DATA_SIZE;
-
-        if actual < required {
-            return Err(Error::InputLength { required, actual });
-        }
-
-        // These shouldn't fail since we ensured the length up above
-        let (bytes, data_type) = le_u16(bytes);
-        let (bytes, data_size_32) = le_u32(bytes);
-        let data_size = data_size_32 as usize;
-
-        required += data_size;
-        if actual < required {
-            Err(Error::InputLength { required, actual })
-        } else {
-            Ok(Self {
-                data: &bytes[..data_size],
-                data_type,
-            })
-        }
-    }
-}
-
-impl<'a> IntoIterator for &'a CertificationData<'a> {
-    type Item = &'a [u8];
-    type IntoIter = PemIterator<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        PemIterator {
-            pem_data: self.data,
-        }
-    }
-}
-
-const BEGIN_PEM: &[u8] = b"-----BEGIN ";
-const END_PEM: &[u8] = b"-----END ";
-
-#[derive(Debug)]
-pub struct PemIterator<'a> {
-    pem_data: &'a [u8],
-}
-
-/// Iterator over each PEM in a provided buffer.
-impl<'a> Iterator for PemIterator<'a> {
-    type Item = &'a [u8];
-    fn next(&mut self) -> Option<&'a [u8]> {
-        if self.pem_data.is_empty() {
-            return None;
-        }
-
-        let mut label: &[u8] = b"";
-        let mut start = None;
-        let mut offset = 0;
-
-        // The data comes across the wire and should only use "\n" and thus
-        // won't be platform specific
-        let lines = self.pem_data.split_inclusive(|e| *e == b'\n');
-        for line in lines {
-            match start {
-                None => {
-                    if line.starts_with(BEGIN_PEM) {
-                        start = Some(offset);
-                        label = &line[BEGIN_PEM.len()..];
-                    }
-                }
-                Some(start) => {
-                    if line.starts_with(END_PEM) {
-                        // In the unlikely event there is an end footer exposed
-                        // with a different label we walk over, just like if
-                        // there happens to be a nested begin.
-                        if &line[END_PEM.len()..] == label {
-                            let end = offset + line.len();
-                            let pem = &self.pem_data[start..end];
-                            self.pem_data = &self.pem_data[end..];
-                            return Some(pem);
-                        }
-                    }
-                }
-            }
-            offset += line.len();
-        }
-        None
-    }
-}
-
 /// Read a u32 from the provided `input` stream.
 ///
 /// It is assumed that `input` has enough bytes to contain the value
@@ -464,7 +317,7 @@ impl<'a> Iterator for PemIterator<'a> {
 /// A tuple where the first element is the rest of the `input` stream after
 /// reading the value. The second element is the `u32` value read from the input
 /// stream.
-fn le_u32(input: &[u8]) -> (&[u8], u32) {
+pub(crate) fn le_u32(input: &[u8]) -> (&[u8], u32) {
     nom::number::complete::le_u32::<_, nom::error::Error<&[u8]>>(input)
         .expect("Size of stream should have been guaranteed to hold 4 bytes")
 }
@@ -480,7 +333,7 @@ fn le_u32(input: &[u8]) -> (&[u8], u32) {
 /// A tuple where the first element is the rest of the `input` stream after
 /// reading the value. The second element is the `u16` value read from the input
 /// stream.
-fn le_u16(input: &[u8]) -> (&[u8], u16) {
+pub(crate) fn le_u16(input: &[u8]) -> (&[u8], u16) {
     nom::number::complete::le_u16::<_, nom::error::Error<&[u8]>>(input)
         .expect("Size of stream should have been guaranteed to hold 2 bytes")
 }
@@ -510,9 +363,6 @@ mod test {
     use mc_sgx_core_sys_types::sgx_report_body_t;
     use mc_sgx_core_types::CpuSvn;
     use yare::parameterized;
-
-    extern crate alloc;
-    use alloc::vec::Vec;
 
     /// A P-256 public key uncompressed in raw bytes. This was taken from a HW
     /// quote.
@@ -654,7 +504,7 @@ mod test {
 
         assert_eq!(
             Quote3::try_from(bytes.as_ref()),
-            Err(Error::Version(version))
+            Err(Quote3Error::Version(version))
         );
     }
 
@@ -664,7 +514,7 @@ mod test {
         let bytes = quotify_bytes(binding.as_mut_slice());
         assert_eq!(
             Quote3::try_from(&bytes[..bytes.len() - 1]),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 required: MIN_QUOTE_SIZE,
                 actual: MIN_QUOTE_SIZE - 1
             })
@@ -682,7 +532,7 @@ mod test {
 
         assert_eq!(
             Quote3::try_from(&bytes[..]),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 actual: MIN_QUOTE_SIZE,
                 required: MIN_QUOTE_SIZE + 1,
             })
@@ -783,7 +633,7 @@ mod test {
         let bytes = [0u8; MIN_AUTH_DATA_SIZE - 1];
         assert_eq!(
             AuthenticationData::try_from(bytes.as_slice()),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 actual: MIN_AUTH_DATA_SIZE - 1,
                 required: MIN_AUTH_DATA_SIZE
             })
@@ -798,80 +648,9 @@ mod test {
 
         assert_eq!(
             AuthenticationData::try_from(bytes.as_slice()),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 actual: MIN_AUTH_DATA_SIZE,
                 required: MIN_AUTH_DATA_SIZE + 1
-            })
-        );
-    }
-
-    #[test]
-    fn zero_certification_data() {
-        let bytes = [0u8; MIN_CERT_DATA_SIZE];
-        let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(certification_data.data_type, 0);
-        assert_eq!(certification_data.data, []);
-    }
-
-    #[test]
-    fn one_byte_certification_data() {
-        let mut bytes = [8u8; MIN_CERT_DATA_SIZE + 1];
-
-        // Little endian u16 type across 2 bytes
-        bytes[0] = 2;
-        bytes[1] = 0;
-
-        // Little endian u32 size across 4 bytes
-        bytes[2] = 1;
-        bytes[3] = 0;
-        bytes[4] = 0;
-        bytes[5] = 0;
-
-        let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(certification_data.data_type, 2);
-        assert_eq!(certification_data.data, [8]);
-    }
-
-    #[test]
-    fn multiple_byte_certification_data() {
-        let mut bytes = [4u8; MIN_CERT_DATA_SIZE + 30];
-
-        // Little endian u16 type across 2 bytes
-        bytes[0] = 3;
-        bytes[1] = 0;
-
-        // Little endian u32 size across 4 bytes
-        bytes[2] = 7;
-        bytes[3] = 0;
-        bytes[4] = 0;
-        bytes[5] = 0;
-
-        let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(certification_data.data_type, 3);
-        assert_eq!(certification_data.data, [4u8; 7]);
-    }
-
-    #[test]
-    fn certification_data_less_than_min() {
-        let bytes = [0u8; MIN_CERT_DATA_SIZE - 1];
-        assert_eq!(
-            CertificationData::try_from(bytes.as_slice()),
-            Err(Error::InputLength {
-                actual: MIN_CERT_DATA_SIZE - 1,
-                required: MIN_CERT_DATA_SIZE
-            })
-        );
-    }
-
-    #[test]
-    fn certification_data_too_small_for_data() {
-        let mut bytes = [0u8; MIN_CERT_DATA_SIZE];
-        bytes[2] = 1;
-        assert_eq!(
-            CertificationData::try_from(bytes.as_slice()),
-            Err(Error::InputLength {
-                actual: MIN_CERT_DATA_SIZE,
-                required: MIN_CERT_DATA_SIZE + 1
             })
         );
     }
@@ -912,7 +691,7 @@ mod test {
             Signature::try_from([3u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, []);
-        assert_eq!(signature_data.certification_data().data, []);
+        assert_eq!(signature_data.certification_data().data(), []);
     }
 
     #[test]
@@ -948,7 +727,7 @@ mod test {
             Signature::try_from([4u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, []);
-        assert_eq!(signature_data.certification_data().data, []);
+        assert_eq!(signature_data.certification_data().data(), []);
     }
 
     #[test]
@@ -956,7 +735,7 @@ mod test {
         let bytes = [2u8; MIN_SIGNATURE_DATA_SIZE - 1];
         assert_eq!(
             SignatureData::try_from(bytes.as_slice()),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 actual: MIN_SIGNATURE_DATA_SIZE - 1,
                 required: MIN_SIGNATURE_DATA_SIZE,
             })
@@ -998,7 +777,7 @@ mod test {
 
         assert_eq!(
             SignatureData::try_from(bytes.as_ref()),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 actual: MIN_SIGNATURE_DATA_SIZE,
                 required: MIN_SIGNATURE_DATA_SIZE + auth_data_size,
             })
@@ -1026,7 +805,7 @@ mod test {
             signature_data.qe_report_signature,
             Signature::try_from([7u8; 64].as_slice()).unwrap()
         );
-        assert_eq!(signature_data.certification_data().data, [11, 11]);
+        assert_eq!(signature_data.certification_data().data(), [11, 11]);
     }
 
     #[test]
@@ -1045,7 +824,7 @@ mod test {
 
         assert_eq!(
             SignatureData::try_from(bytes.as_ref()),
-            Err(Error::InputLength {
+            Err(Quote3Error::InputLength {
                 actual: MIN_SIGNATURE_DATA_SIZE + 1,
                 required: MIN_SIGNATURE_DATA_SIZE + 2,
             })
@@ -1081,276 +860,6 @@ mod test {
             Signature::try_from([7u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
-        assert_eq!(signature_data.certification_data().data, [23u8; 4]);
-    }
-
-    const LEAF_CERT: &str = "
-        -----BEGIN CERTIFICATE-----
-        MIIEjzCCBDSgAwIBAgIVAPtJxlxRlleZOb/spRh9U8K7AT/3MAoGCCqGSM49BAMC
-        MHExIzAhBgNVBAMMGkludGVsIFNHWCBQQ0sgUHJvY2Vzc29yIENBMRowGAYDVQQK
-        DBFJbnRlbCBDb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNV
-        BAgMAkNBMQswCQYDVQQGEwJVUzAeFw0yMjA2MTMyMTQ2MzRaFw0yOTA2MTMyMTQ2
-        MzRaMHAxIjAgBgNVBAMMGUludGVsIFNHWCBQQ0sgQ2VydGlmaWNhdGUxGjAYBgNV
-        BAoMEUludGVsIENvcnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkG
-        A1UECAwCQ0ExCzAJBgNVBAYTAlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
-        j/Ee1lkGJofDX745Ks5qxqu7Mk7Mqcwkx58TCSTsabRCSvobSl/Ts8b0dltKUW3j
-        qRd+SxnPEWJ+jUw+SpzwWaOCAqgwggKkMB8GA1UdIwQYMBaAFNDoqtp11/kuSReY
-        PHsUZdDV8llNMGwGA1UdHwRlMGMwYaBfoF2GW2h0dHBzOi8vYXBpLnRydXN0ZWRz
-        ZXJ2aWNlcy5pbnRlbC5jb20vc2d4L2NlcnRpZmljYXRpb24vdjMvcGNrY3JsP2Nh
-        PXByb2Nlc3NvciZlbmNvZGluZz1kZXIwHQYDVR0OBBYEFKy9gk624HzNnDyCw7QW
-        nhmVfE31MA4GA1UdDwEB/wQEAwIGwDAMBgNVHRMBAf8EAjAAMIIB1AYJKoZIhvhN
-        AQ0BBIIBxTCCAcEwHgYKKoZIhvhNAQ0BAQQQ36FQl3ntUr3KUwbEFvmRGzCCAWQG
-        CiqGSIb4TQENAQIwggFUMBAGCyqGSIb4TQENAQIBAgERMBAGCyqGSIb4TQENAQIC
-        AgERMBAGCyqGSIb4TQENAQIDAgECMBAGCyqGSIb4TQENAQIEAgEEMBAGCyqGSIb4
-        TQENAQIFAgEBMBEGCyqGSIb4TQENAQIGAgIAgDAQBgsqhkiG+E0BDQECBwIBBjAQ
-        BgsqhkiG+E0BDQECCAIBADAQBgsqhkiG+E0BDQECCQIBADAQBgsqhkiG+E0BDQEC
-        CgIBADAQBgsqhkiG+E0BDQECCwIBADAQBgsqhkiG+E0BDQECDAIBADAQBgsqhkiG
-        +E0BDQECDQIBADAQBgsqhkiG+E0BDQECDgIBADAQBgsqhkiG+E0BDQECDwIBADAQ
-        BgsqhkiG+E0BDQECEAIBADAQBgsqhkiG+E0BDQECEQIBCzAfBgsqhkiG+E0BDQEC
-        EgQQERECBAGABgAAAAAAAAAAADAQBgoqhkiG+E0BDQEDBAIAADAUBgoqhkiG+E0B
-        DQEEBAYAkG7VAAAwDwYKKoZIhvhNAQ0BBQoBADAKBggqhkjOPQQDAgNJADBGAiEA
-        1XJi0ht4hw8YtC6E4rYscp9bF+7UOhVGeKePA5TW2FQCIQCIUAaewOuWOIvstZN4
-        V8Zu8NFCC4vFg+cZqO6QfezEaA==
-        -----END CERTIFICATE-----
-        ";
-
-    const INTERMEDIATE_CA: &str = "
-        -----BEGIN CERTIFICATE-----
-        MIICmDCCAj6gAwIBAgIVANDoqtp11/kuSReYPHsUZdDV8llNMAoGCCqGSM49BAMC
-        MGgxGjAYBgNVBAMMEUludGVsIFNHWCBSb290IENBMRowGAYDVQQKDBFJbnRlbCBD
-        b3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNBMQsw
-        CQYDVQQGEwJVUzAeFw0xODA1MjExMDUwMTBaFw0zMzA1MjExMDUwMTBaMHExIzAh
-        BgNVBAMMGkludGVsIFNHWCBQQ0sgUHJvY2Vzc29yIENBMRowGAYDVQQKDBFJbnRl
-        bCBDb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNB
-        MQswCQYDVQQGEwJVUzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABL9q+NMp2IOg
-        tdl1bk/uWZ5+TGQm8aCi8z78fs+fKCQ3d+uDzXnVTAT2ZhDCifyIuJwvN3wNBp9i
-        HBSSMJMJrBOjgbswgbgwHwYDVR0jBBgwFoAUImUM1lqdNInzg7SVUr9QGzknBqww
-        UgYDVR0fBEswSTBHoEWgQ4ZBaHR0cHM6Ly9jZXJ0aWZpY2F0ZXMudHJ1c3RlZHNl
-        cnZpY2VzLmludGVsLmNvbS9JbnRlbFNHWFJvb3RDQS5kZXIwHQYDVR0OBBYEFNDo
-        qtp11/kuSReYPHsUZdDV8llNMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG
-        AQH/AgEAMAoGCCqGSM49BAMCA0gAMEUCIQCJgTbtVqOyZ1m3jqiAXM6QYa6r5sWS
-        4y/G7y8uIJGxdwIgRqPvBSKzzQagBLQq5s5A70pdoiaRJ8z/0uDz4NgV91k=
-        -----END CERTIFICATE-----
-        ";
-
-    const ROOT_CA: &str = "
-        -----BEGIN CERTIFICATE-----
-        MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
-        aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
-        cnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJ
-        BgNVBAYTAlVTMB4XDTE4MDUyMTEwNDUxMFoXDTQ5MTIzMTIzNTk1OVowaDEaMBgG
-        A1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENvcnBvcmF0
-        aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJBgNVBAYT
-        AlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEC6nEwMDIYZOj/iPWsCzaEKi7
-        1OiOSLRFhWGjbnBVJfVnkY4u3IjkDYYL0MxO4mqsyYjlBalTVYxFP2sJBK5zlKOB
-        uzCBuDAfBgNVHSMEGDAWgBQiZQzWWp00ifODtJVSv1AbOScGrDBSBgNVHR8ESzBJ
-        MEegRaBDhkFodHRwczovL2NlcnRpZmljYXRlcy50cnVzdGVkc2VydmljZXMuaW50
-        ZWwuY29tL0ludGVsU0dYUm9vdENBLmRlcjAdBgNVHQ4EFgQUImUM1lqdNInzg7SV
-        Ur9QGzknBqwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwCgYI
-        KoZIzj0EAwIDSQAwRgIhAOW/5QkR+S9CiSDcNoowLuPRLsWGf/Yi7GSX94BgwTwg
-        AiEA4J0lrHoMs+Xo5o/sX6O9QWxHRAvZUGOdRQ7cvqRXaqI=
-        -----END CERTIFICATE-----
-        ";
-
-    #[test]
-    fn iterate_over_a_empty_certification_data() {
-        let cert_data = [0u8; MIN_CERT_DATA_SIZE];
-        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        let certs = cert_iter.collect::<Vec<_>>();
-        assert!(certs.is_empty());
-    }
-
-    #[test]
-    fn iterate_over_one_pem() {
-        let raw_cert = textwrap::dedent(LEAF_CERT);
-        let cert = raw_cert.trim_start().as_bytes();
-        let mut cert_data = Vec::new();
-        cert_data.push(5); // Concatenated PCK Cert Chain
-        cert_data.push(0);
-        let size = cert.len() as u32;
-        let size_bytes = size.to_le_bytes();
-        cert_data.extend(size_bytes);
-        cert_data.extend(cert);
-
-        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        let certs = cert_iter.collect::<Vec<_>>();
-        assert_eq!(certs, &[cert]);
-    }
-
-    #[test]
-    fn iterate_over_a_cert_chain() {
-        let mut cert_chain = Vec::new();
-        cert_chain.push(5); // Concatenated PCK Cert Chain
-        cert_chain.push(0);
-
-        let mut size = 0;
-        let pems = [LEAF_CERT, INTERMEDIATE_CA, ROOT_CA]
-            .iter()
-            .map(|p| textwrap::dedent(p))
-            .collect::<Vec<_>>();
-        let pem_bytes = pems
-            .iter()
-            .map(|p| p.trim_start().as_bytes())
-            .collect::<Vec<_>>();
-        for pem in &pem_bytes {
-            size += pem.len();
-            cert_chain.extend(*pem);
-        }
-
-        let size_32 = size as u32;
-        let size_bytes = size_32.to_le_bytes();
-        cert_chain.splice(2..2, size_bytes);
-
-        let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        let certs = cert_iter.collect::<Vec<_>>();
-        assert_eq!(certs, pem_bytes);
-    }
-
-    #[test]
-    fn iterate_over_a_partial_pem_is_none() {
-        let partial_pem = "
-            -----BEGIN CERTIFICATE-----
-            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
-            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
-            ";
-        let raw_pem = textwrap::dedent(partial_pem);
-        let pem = raw_pem.trim_start().as_bytes();
-        let mut cert_data = Vec::new();
-        cert_data.push(5); // Concatenated PCK Cert Chain
-        cert_data.push(0);
-        let size = pem.len() as u32;
-        let size_bytes = size.to_le_bytes();
-        cert_data.extend(size_bytes);
-        cert_data.extend(pem);
-
-        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        assert!(cert_iter.collect::<Vec<_>>().is_empty());
-    }
-
-    #[test]
-    fn iterate_over_a_malformed_pem() {
-        // The logic brings out a pem from begin to end, it's up to the decoder
-        // that uses the pem to fail parsing it.
-        let funky_pem = "
-            -----BEGIN CERTIFICATE-----
-            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
-            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
-            -----BEGIN CERTIFICATE-----
-            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
-            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
-            -----END CERTIFICATE-----
-            ";
-        let raw_pem = textwrap::dedent(funky_pem);
-        let pem = raw_pem.trim_start().as_bytes();
-        let mut cert_data = Vec::new();
-        cert_data.push(5); // Concatenated PCK Cert Chain
-        cert_data.push(0);
-        let size = pem.len() as u32;
-        let size_bytes = size.to_le_bytes();
-        cert_data.extend(size_bytes);
-        cert_data.extend(pem);
-
-        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
-    }
-
-    #[test]
-    fn iterate_over_an_unmatched_nested_end() {
-        // the middle end has a different label so will be treated as part of
-        // the body.
-        let funky_pem = "
-            -----BEGIN CERTIFICATE-----
-            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
-            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
-            -----END SOMETHING-----
-            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
-            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
-            -----END CERTIFICATE-----
-            ";
-        let raw_pem = textwrap::dedent(funky_pem);
-        let pem = raw_pem.trim_start().as_bytes();
-        let mut cert_data = Vec::new();
-        cert_data.push(5); // Concatenated PCK Cert Chain
-        cert_data.push(0);
-        let size = pem.len() as u32;
-        let size_bytes = size.to_le_bytes();
-        cert_data.extend(size_bytes);
-        cert_data.extend(pem);
-
-        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
-    }
-
-    #[test]
-    fn iterate_over_a_non_certificate_pem() {
-        // Showing the iterator doesn't care what the pem is
-        // Generated via
-        // ```
-        // openssl ecparam -name prime256v1 -genkey -out private-key.pem
-        // openssl ec -in private-key.pem -pubout -out public-key.pem
-        // ```
-        let pem = "
-            -----BEGIN PUBLIC KEY-----
-            MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEusf6HZYngTI8XRXWlsQk3EwXbdd5
-            2GlcHz8b0Y8b2qgyKDsKkL0j70cej1n7oMcqc+FKTVAa12QpFYSiaHJvGQ==
-            -----END PUBLIC KEY-----
-        ";
-
-        let raw_key = textwrap::dedent(pem);
-        let key = raw_key.trim_start().as_bytes();
-        let mut cert_data = Vec::new();
-        cert_data.push(5); // Concatenated PCK Cert Chain
-        cert_data.push(0);
-        let size = key.len() as u32;
-        let size_bytes = size.to_le_bytes();
-        cert_data.extend(size_bytes);
-        cert_data.extend(key);
-
-        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        let certs = cert_iter.collect::<Vec<_>>();
-        assert_eq!(certs, &[key]);
-    }
-
-    #[test]
-    fn ignore_contents_before_between_and_after_pems() {
-        let padding_text = b"Some padding text\n";
-        let mut cert_chain = Vec::new();
-        cert_chain.push(5); // Concatenated PCK Cert Chain
-        cert_chain.push(0);
-
-        let mut size = 0;
-        size += padding_text.len();
-        cert_chain.extend(padding_text);
-
-        let pems = [LEAF_CERT, INTERMEDIATE_CA, ROOT_CA]
-            .iter()
-            .map(|p| textwrap::dedent(p))
-            .collect::<Vec<_>>();
-        let pem_bytes = pems
-            .iter()
-            .map(|p| p.trim_start().as_bytes())
-            .collect::<Vec<_>>();
-        for pem in &pem_bytes {
-            size += pem.len();
-            cert_chain.extend(*pem);
-            size += padding_text.len();
-            cert_chain.extend(padding_text);
-        }
-
-        let size_32 = size as u32;
-        let size_bytes = size_32.to_le_bytes();
-        cert_chain.splice(2..2, size_bytes);
-
-        let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
-        let certs = cert_iter.collect::<Vec<_>>();
-        assert_eq!(certs, pem_bytes);
+        assert_eq!(signature_data.certification_data().data(), [23u8; 4]);
     }
 }
