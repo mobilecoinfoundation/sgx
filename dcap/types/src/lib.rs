@@ -14,7 +14,7 @@ mod request_policy;
 
 pub use crate::{
     error::QlError,
-    quote3::{Error as Quote3Error, Quote3},
+    quote3::{CertificationData, Error as Quote3Error, Quote3, SignatureData},
     quoting_enclave::ReportInfo,
     request_policy::RequestPolicy,
 };
