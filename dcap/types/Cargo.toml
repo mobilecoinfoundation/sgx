@@ -30,4 +30,5 @@ subtle = { version = "2.4.1", default-features = false }
 
 [dev-dependencies]
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.3.1-beta.0" }
+textwrap = "0.16.0"
 yare = "1.0.1"

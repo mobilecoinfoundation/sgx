@@ -378,6 +378,67 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
     }
 }
 
+impl<'a> IntoIterator for &'a CertificationData<'a> {
+    type Item = &'a [u8];
+    type IntoIter = PemIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PemIterator {
+            pem_data: self.data,
+        }
+    }
+}
+
+const BEGIN_PEM: &[u8] = b"-----BEGIN ";
+const END_PEM: &[u8] = b"-----END ";
+
+struct PemIterator<'a> {
+    pem_data: &'a [u8],
+}
+
+/// Iterator over each PEM in a provided buffer.
+impl<'a> Iterator for PemIterator<'a> {
+    type Item = &'a [u8];
+    fn next(&mut self) -> Option<&'a [u8]> {
+        if self.pem_data.is_empty() {
+            return None;
+        }
+
+        let mut label: &[u8] = b"";
+        let mut start = None;
+        let mut offset = 0;
+
+        // The data comes across the wire and should only use "\n" and thus
+        // won't be platform specific
+        let lines = self.pem_data.split_inclusive(|e| *e == b'\n');
+        for line in lines {
+            match start {
+                None => {
+                    if line.starts_with(BEGIN_PEM) {
+                        start = Some(offset);
+                        label = &line[BEGIN_PEM.len()..];
+                    }
+                }
+                Some(start) => {
+                    if line.starts_with(END_PEM) {
+                        // In the unlikely event there is an end footer exposed
+                        // with a different label we walk over, just like if
+                        // there happens to be a nested begin.
+                        if &line[END_PEM.len()..] == label {
+                            let end = offset + line.len();
+                            let pem = &self.pem_data[start..end];
+                            self.pem_data = &self.pem_data[end..];
+                            return Some(pem);
+                        }
+                    }
+                }
+            }
+            offset += line.len();
+        }
+        None
+    }
+}
+
 /// Read a u32 from the provided `input` stream.
 ///
 /// It is assumed that `input` has enough bytes to contain the value
@@ -435,6 +496,9 @@ mod test {
     use mc_sgx_core_sys_types::sgx_report_body_t;
     use mc_sgx_core_types::CpuSvn;
     use yare::parameterized;
+
+    extern crate alloc;
+    use alloc::vec::Vec;
 
     /// A P-256 public key uncompressed in raw bytes. This was taken from a HW
     /// quote.
@@ -985,5 +1049,275 @@ mod test {
         );
         assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
         assert_eq!(signature_data.certification_data.data, [23u8; 4]);
+    }
+
+    const LEAF_CERT: &str = "
+        -----BEGIN CERTIFICATE-----
+        MIIEjzCCBDSgAwIBAgIVAPtJxlxRlleZOb/spRh9U8K7AT/3MAoGCCqGSM49BAMC
+        MHExIzAhBgNVBAMMGkludGVsIFNHWCBQQ0sgUHJvY2Vzc29yIENBMRowGAYDVQQK
+        DBFJbnRlbCBDb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNV
+        BAgMAkNBMQswCQYDVQQGEwJVUzAeFw0yMjA2MTMyMTQ2MzRaFw0yOTA2MTMyMTQ2
+        MzRaMHAxIjAgBgNVBAMMGUludGVsIFNHWCBQQ0sgQ2VydGlmaWNhdGUxGjAYBgNV
+        BAoMEUludGVsIENvcnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkG
+        A1UECAwCQ0ExCzAJBgNVBAYTAlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
+        j/Ee1lkGJofDX745Ks5qxqu7Mk7Mqcwkx58TCSTsabRCSvobSl/Ts8b0dltKUW3j
+        qRd+SxnPEWJ+jUw+SpzwWaOCAqgwggKkMB8GA1UdIwQYMBaAFNDoqtp11/kuSReY
+        PHsUZdDV8llNMGwGA1UdHwRlMGMwYaBfoF2GW2h0dHBzOi8vYXBpLnRydXN0ZWRz
+        ZXJ2aWNlcy5pbnRlbC5jb20vc2d4L2NlcnRpZmljYXRpb24vdjMvcGNrY3JsP2Nh
+        PXByb2Nlc3NvciZlbmNvZGluZz1kZXIwHQYDVR0OBBYEFKy9gk624HzNnDyCw7QW
+        nhmVfE31MA4GA1UdDwEB/wQEAwIGwDAMBgNVHRMBAf8EAjAAMIIB1AYJKoZIhvhN
+        AQ0BBIIBxTCCAcEwHgYKKoZIhvhNAQ0BAQQQ36FQl3ntUr3KUwbEFvmRGzCCAWQG
+        CiqGSIb4TQENAQIwggFUMBAGCyqGSIb4TQENAQIBAgERMBAGCyqGSIb4TQENAQIC
+        AgERMBAGCyqGSIb4TQENAQIDAgECMBAGCyqGSIb4TQENAQIEAgEEMBAGCyqGSIb4
+        TQENAQIFAgEBMBEGCyqGSIb4TQENAQIGAgIAgDAQBgsqhkiG+E0BDQECBwIBBjAQ
+        BgsqhkiG+E0BDQECCAIBADAQBgsqhkiG+E0BDQECCQIBADAQBgsqhkiG+E0BDQEC
+        CgIBADAQBgsqhkiG+E0BDQECCwIBADAQBgsqhkiG+E0BDQECDAIBADAQBgsqhkiG
+        +E0BDQECDQIBADAQBgsqhkiG+E0BDQECDgIBADAQBgsqhkiG+E0BDQECDwIBADAQ
+        BgsqhkiG+E0BDQECEAIBADAQBgsqhkiG+E0BDQECEQIBCzAfBgsqhkiG+E0BDQEC
+        EgQQERECBAGABgAAAAAAAAAAADAQBgoqhkiG+E0BDQEDBAIAADAUBgoqhkiG+E0B
+        DQEEBAYAkG7VAAAwDwYKKoZIhvhNAQ0BBQoBADAKBggqhkjOPQQDAgNJADBGAiEA
+        1XJi0ht4hw8YtC6E4rYscp9bF+7UOhVGeKePA5TW2FQCIQCIUAaewOuWOIvstZN4
+        V8Zu8NFCC4vFg+cZqO6QfezEaA==
+        -----END CERTIFICATE-----
+        ";
+
+    const INTERMEDIATE_CA: &str = "
+        -----BEGIN CERTIFICATE-----
+        MIICmDCCAj6gAwIBAgIVANDoqtp11/kuSReYPHsUZdDV8llNMAoGCCqGSM49BAMC
+        MGgxGjAYBgNVBAMMEUludGVsIFNHWCBSb290IENBMRowGAYDVQQKDBFJbnRlbCBD
+        b3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNBMQsw
+        CQYDVQQGEwJVUzAeFw0xODA1MjExMDUwMTBaFw0zMzA1MjExMDUwMTBaMHExIzAh
+        BgNVBAMMGkludGVsIFNHWCBQQ0sgUHJvY2Vzc29yIENBMRowGAYDVQQKDBFJbnRl
+        bCBDb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNB
+        MQswCQYDVQQGEwJVUzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABL9q+NMp2IOg
+        tdl1bk/uWZ5+TGQm8aCi8z78fs+fKCQ3d+uDzXnVTAT2ZhDCifyIuJwvN3wNBp9i
+        HBSSMJMJrBOjgbswgbgwHwYDVR0jBBgwFoAUImUM1lqdNInzg7SVUr9QGzknBqww
+        UgYDVR0fBEswSTBHoEWgQ4ZBaHR0cHM6Ly9jZXJ0aWZpY2F0ZXMudHJ1c3RlZHNl
+        cnZpY2VzLmludGVsLmNvbS9JbnRlbFNHWFJvb3RDQS5kZXIwHQYDVR0OBBYEFNDo
+        qtp11/kuSReYPHsUZdDV8llNMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG
+        AQH/AgEAMAoGCCqGSM49BAMCA0gAMEUCIQCJgTbtVqOyZ1m3jqiAXM6QYa6r5sWS
+        4y/G7y8uIJGxdwIgRqPvBSKzzQagBLQq5s5A70pdoiaRJ8z/0uDz4NgV91k=
+        -----END CERTIFICATE-----
+        ";
+
+    const ROOT_CA: &str = "
+        -----BEGIN CERTIFICATE-----
+        MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+        aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+        cnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJ
+        BgNVBAYTAlVTMB4XDTE4MDUyMTEwNDUxMFoXDTQ5MTIzMTIzNTk1OVowaDEaMBgG
+        A1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENvcnBvcmF0
+        aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJBgNVBAYT
+        AlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEC6nEwMDIYZOj/iPWsCzaEKi7
+        1OiOSLRFhWGjbnBVJfVnkY4u3IjkDYYL0MxO4mqsyYjlBalTVYxFP2sJBK5zlKOB
+        uzCBuDAfBgNVHSMEGDAWgBQiZQzWWp00ifODtJVSv1AbOScGrDBSBgNVHR8ESzBJ
+        MEegRaBDhkFodHRwczovL2NlcnRpZmljYXRlcy50cnVzdGVkc2VydmljZXMuaW50
+        ZWwuY29tL0ludGVsU0dYUm9vdENBLmRlcjAdBgNVHQ4EFgQUImUM1lqdNInzg7SV
+        Ur9QGzknBqwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwCgYI
+        KoZIzj0EAwIDSQAwRgIhAOW/5QkR+S9CiSDcNoowLuPRLsWGf/Yi7GSX94BgwTwg
+        AiEA4J0lrHoMs+Xo5o/sX6O9QWxHRAvZUGOdRQ7cvqRXaqI=
+        -----END CERTIFICATE-----
+        ";
+
+    #[test]
+    fn iterate_over_a_empty_certification_data() {
+        let cert_data = [0u8; MIN_CERT_DATA_SIZE];
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        let certs = cert_iter.collect::<Vec<_>>();
+        assert!(certs.is_empty());
+    }
+
+    #[test]
+    fn iterate_over_one_pem() {
+        let raw_cert = textwrap::dedent(LEAF_CERT);
+        let cert = raw_cert.trim_start().as_bytes();
+        let mut cert_data = Vec::new();
+        cert_data.push(5); // Concatenated PCK Cert Chain
+        cert_data.push(0);
+        let size = cert.len() as u32;
+        let size_bytes = size.to_le_bytes();
+        cert_data.extend(size_bytes);
+        cert_data.extend(cert);
+
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        let certs = cert_iter.collect::<Vec<_>>();
+        assert_eq!(certs, &[cert]);
+    }
+
+    #[test]
+    fn iterate_over_a_cert_chain() {
+        let mut cert_chain = Vec::new();
+        cert_chain.push(5); // Concatenated PCK Cert Chain
+        cert_chain.push(0);
+
+        let mut size = 0;
+        let pems = [LEAF_CERT, INTERMEDIATE_CA, ROOT_CA]
+            .iter()
+            .map(|p| textwrap::dedent(p))
+            .collect::<Vec<_>>();
+        let pem_bytes = pems
+            .iter()
+            .map(|p| p.trim_start().as_bytes())
+            .collect::<Vec<_>>();
+        for pem in &pem_bytes {
+            size += pem.len();
+            cert_chain.extend(*pem);
+        }
+
+        let size_32 = size as u32;
+        let size_bytes = size_32.to_le_bytes();
+        cert_chain.splice(2..2, size_bytes);
+
+        let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        let certs = cert_iter.collect::<Vec<_>>();
+        assert_eq!(certs, pem_bytes);
+    }
+
+    #[test]
+    fn iterate_over_a_partial_pem_is_none() {
+        let partial_pem = "
+            -----BEGIN CERTIFICATE-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            ";
+        let raw_pem = textwrap::dedent(partial_pem);
+        let pem = raw_pem.trim_start().as_bytes();
+        let mut cert_data = Vec::new();
+        cert_data.push(5); // Concatenated PCK Cert Chain
+        cert_data.push(0);
+        let size = pem.len() as u32;
+        let size_bytes = size.to_le_bytes();
+        cert_data.extend(size_bytes);
+        cert_data.extend(pem);
+
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        assert!(cert_iter.collect::<Vec<_>>().is_empty());
+    }
+
+    #[test]
+    fn iterate_over_a_malformed_pem() {
+        // The logic brings out a pem from begin to end, it's up to the decoder
+        // that uses the pem to fail parsing it.
+        let funky_pem = "
+            -----BEGIN CERTIFICATE-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            -----BEGIN CERTIFICATE-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            -----END CERTIFICATE-----
+            ";
+        let raw_pem = textwrap::dedent(funky_pem);
+        let pem = raw_pem.trim_start().as_bytes();
+        let mut cert_data = Vec::new();
+        cert_data.push(5); // Concatenated PCK Cert Chain
+        cert_data.push(0);
+        let size = pem.len() as u32;
+        let size_bytes = size.to_le_bytes();
+        cert_data.extend(size_bytes);
+        cert_data.extend(pem);
+
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
+    }
+
+    #[test]
+    fn iterate_over_an_unmatched_nested_end() {
+        // the middle end has a different label so will be treated as part of
+        // the body.
+        let funky_pem = "
+            -----BEGIN CERTIFICATE-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            -----END SOMETHING-----
+            MIICjzCCAjSgAwIBAgIUImUM1lqdNInzg7SVUr9QGzknBqwwCgYIKoZIzj0EAwIw
+            aDEaMBgGA1UEAwwRSW50ZWwgU0dYIFJvb3QgQ0ExGjAYBgNVBAoMEUludGVsIENv
+            -----END CERTIFICATE-----
+            ";
+        let raw_pem = textwrap::dedent(funky_pem);
+        let pem = raw_pem.trim_start().as_bytes();
+        let mut cert_data = Vec::new();
+        cert_data.push(5); // Concatenated PCK Cert Chain
+        cert_data.push(0);
+        let size = pem.len() as u32;
+        let size_bytes = size.to_le_bytes();
+        cert_data.extend(size_bytes);
+        cert_data.extend(pem);
+
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
+    }
+
+    #[test]
+    fn iterate_over_a_non_certificate_pem() {
+        // Showing the iterator doesn't care what the pem is
+        // Generated via
+        // ```
+        // openssl ecparam -name prime256v1 -genkey -out private-key.pem
+        // openssl ec -in private-key.pem -pubout -out public-key.pem
+        // ```
+        let pem = "
+            -----BEGIN PUBLIC KEY-----
+            MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEusf6HZYngTI8XRXWlsQk3EwXbdd5
+            2GlcHz8b0Y8b2qgyKDsKkL0j70cej1n7oMcqc+FKTVAa12QpFYSiaHJvGQ==
+            -----END PUBLIC KEY-----
+        ";
+
+        let raw_key = textwrap::dedent(pem);
+        let key = raw_key.trim_start().as_bytes();
+        let mut cert_data = Vec::new();
+        cert_data.push(5); // Concatenated PCK Cert Chain
+        cert_data.push(0);
+        let size = key.len() as u32;
+        let size_bytes = size.to_le_bytes();
+        cert_data.extend(size_bytes);
+        cert_data.extend(key);
+
+        let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        let certs = cert_iter.collect::<Vec<_>>();
+        assert_eq!(certs, &[key]);
+    }
+
+    #[test]
+    fn ignore_contents_before_between_and_after_pems() {
+        let padding_text = b"Some padding text\n";
+        let mut cert_chain = Vec::new();
+        cert_chain.push(5); // Concatenated PCK Cert Chain
+        cert_chain.push(0);
+
+        let mut size = 0;
+        size += padding_text.len();
+        cert_chain.extend(padding_text);
+
+        let pems = [LEAF_CERT, INTERMEDIATE_CA, ROOT_CA]
+            .iter()
+            .map(|p| textwrap::dedent(p))
+            .collect::<Vec<_>>();
+        let pem_bytes = pems
+            .iter()
+            .map(|p| p.trim_start().as_bytes())
+            .collect::<Vec<_>>();
+        for pem in &pem_bytes {
+            size += pem.len();
+            cert_chain.extend(*pem);
+            size += padding_text.len();
+            cert_chain.extend(padding_text);
+        }
+
+        let size_32 = size as u32;
+        let size_bytes = size_32.to_le_bytes();
+        cert_chain.splice(2..2, size_bytes);
+
+        let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
+        let cert_iter = certification_data.into_iter();
+        let certs = cert_iter.collect::<Vec<_>>();
+        assert_eq!(certs, pem_bytes);
     }
 }
