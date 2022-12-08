@@ -99,7 +99,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo build --release --locked
+      - run: cargo +${{ matrix.rust }} build --release --locked
 
   test:
     runs-on: ubuntu-22.04
@@ -128,7 +128,7 @@ jobs:
         # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
         # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
-        run: unset SGX_AESM_ADDR && cargo test --release --locked --features "sim alloc"
+        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --locked --features "sim alloc"
 
   doc:
     runs-on: ubuntu-22.04
@@ -146,7 +146,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo doc --release --locked --no-deps --features sim
+      - run: cargo +${{ matrix.rust }} doc --release --locked --no-deps --features sim
 
   coverage:
     runs-on: ubuntu-22.04
@@ -188,12 +188,15 @@ jobs:
           - thumbv7m-none-eabi
           - aarch64-linux-android
           - aarch64-apple-ios
+        rust:
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@master
         with:
-          targets: ${{ matrix.target }}
-      - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+          toolchain: ${{ matrix.rust }}
+          targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
+          components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
       - name: Build types with no alloc crate on various platfroms
         # Some notes on this build command:
@@ -205,7 +208,7 @@ jobs:
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
+            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +${{ matrix.rust }} build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
 
   notify:
     runs-on: ubuntu-latest
