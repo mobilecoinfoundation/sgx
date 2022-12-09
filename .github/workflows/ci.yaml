@@ -16,17 +16,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
           components: rustfmt
-          override: true
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - run: cargo fmt --all -- --check
 
   markdown-lint:
     runs-on: ubuntu-22.04
@@ -62,16 +56,8 @@ jobs:
       - "markdown-lint"
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-sort
-          version: latest
-          use-tool-cache: true
-      # We run this manually because actions-rs/cargo doesn't have output redirect
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-sort
       - run: cargo sort --workspace --check >/dev/null
 
   clippy:
@@ -84,17 +70,11 @@ jobs:
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.15.100.3-jammy1
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
           components: clippy
-          override: true
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all --all-features --locked -- -D warnings
+      - run: cargo clippy --all --all-features --locked -- -D warnings
 
   build:
     runs-on: ubuntu-22.04
@@ -115,16 +95,11 @@ jobs:
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.15.100.3-jammy1
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
-          override: true
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --locked
+      - run: cargo +${{ matrix.rust }} build --release --locked
 
   test:
     runs-on: ubuntu-22.04
@@ -145,17 +120,15 @@ jobs:
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.15.100.3-jammy1
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
-          override: true
       - uses: r7kamura/rust-problem-matchers@v1
       - name: Run tests
         # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
         # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
-        run: unset SGX_AESM_ADDR && cargo test --release --locked --features "sim alloc"
+        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --locked --features "sim alloc"
 
   doc:
     runs-on: ubuntu-22.04
@@ -169,16 +142,11 @@ jobs:
           - beta
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
-          override: true
       - uses: r7kamura/rust-problem-matchers@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --release --locked --no-deps --features sim
+      - run: cargo +${{ matrix.rust }} doc --release --locked --no-deps --features sim
 
   coverage:
     runs-on: ubuntu-22.04
@@ -193,11 +161,8 @@ jobs:
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.15.100.3-jammy1
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
           components: llvm-tools-preview
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Run tests with coverage
@@ -223,14 +188,15 @@ jobs:
           - thumbv7m-none-eabi
           - aarch64-linux-android
           - aarch64-apple-ios
+        rust:
+          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+          toolchain: ${{ matrix.rust }}
+          targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
+          components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
       - name: Build types with no alloc crate on various platfroms
         # Some notes on this build command:
@@ -242,7 +208,7 @@ jobs:
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
+            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +${{ matrix.rust }} build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
 
   notify:
     runs-on: ubuntu-latest
