@@ -16,14 +16,45 @@ type Result<T> = ::core::result::Result<T, Quote3Error>;
 /// Table 9 of
 /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct CertificationData<'a> {
-    // The `Certification Data` field as described in the QuoteLibReference.
-    // The length of this *will* equal the `size` field as described in the
-    // QuoteLibReference
+pub enum CertificationData<'a> {
+    /// Contains:
+    /// - Platform provisioning ID(PPID)
+    /// - CPU security version number (CPUSVN)
+    /// - Provisioning certification enclave security version number (PCESVN)
+    /// - Provisioning certification enclave ID (PCEID)
+    Ppid(&'a [u8]),
+
+    /// Contains the following encrypted with RSA 2048:
+    /// - Platform provisioning ID(PPID)
+    /// - CPU security version number (CPUSVN)
+    /// - Provisioning certification enclave security version number (PCESVN)
+    /// - Provisioning certification enclave ID (PCEID)
+    PpidEncryptedRsa2048(&'a [u8]),
+
+    /// Contains the following encrypted with RSA 3072:
+    /// - Platform provisioning ID(PPID)
+    /// - CPU security version number (CPUSVN)
+    /// - Provisioning certification enclave security version number (PCESVN)
+    /// - Provisioning certification enclave ID (PCEID)
+    PpidEncryptedRsa3072(&'a [u8]),
+
+    /// Contains the provisioning certification key leaf certificate
+    Pck(&'a [u8]),
+
+    /// Contains the provisioning certification key chain
+    PckCertChain(PckCertChain<'a>),
+
+    /// ECDSA signature auxiliary data of an Intel SGX quote
+    /// See `sgx_ql_cert_key_type_t::ECDSA_SIG_AUX_DATA`
+    EcdsaSignatureAuxData(&'a [u8]),
+
+    /// Platform manifest
+    PlatformManifest(&'a [u8]),
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct PckCertChain<'a> {
     data: &'a [u8],
-    // The `Certification Data Type` field as described in the
-    // QuoteLibReference.
-    data_type: u16,
 }
 
 impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
@@ -44,13 +75,20 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
 
         required += data_size;
         if actual < required {
-            Err(Quote3Error::InputLength { required, actual })
-        } else {
-            Ok(Self {
-                data: &bytes[..data_size],
-                data_type,
-            })
+            return Err(Quote3Error::InputLength { required, actual });
         }
+        let bytes = &bytes[..data_size];
+        let data = match data_type {
+            1 => CertificationData::Ppid(bytes),
+            2 => CertificationData::PpidEncryptedRsa2048(bytes),
+            3 => CertificationData::PpidEncryptedRsa3072(bytes),
+            4 => CertificationData::Pck(bytes),
+            5 => CertificationData::PckCertChain(PckCertChain { data: bytes }),
+            6 => CertificationData::EcdsaSignatureAuxData(bytes),
+            7 => CertificationData::PlatformManifest(bytes),
+            x => return Err(Quote3Error::CertificationDataType(x)),
+        };
+        Ok(data)
     }
 }
 
@@ -59,12 +97,20 @@ impl<'a> CertificationData<'a> {
     ///
     /// `Certification Data` member from Table 9 of
     /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
-    pub fn data(&self) -> &[u8] {
-        self.data
+    pub fn raw_data(&self) -> &[u8] {
+        match self {
+            Self::Ppid(data) => data,
+            Self::PpidEncryptedRsa2048(data) => data,
+            Self::PpidEncryptedRsa3072(data) => data,
+            Self::Pck(data) => data,
+            Self::PckCertChain(pck_cert_chain) => pck_cert_chain.data,
+            Self::EcdsaSignatureAuxData(data) => data,
+            Self::PlatformManifest(data) => data,
+        }
     }
 }
 
-impl<'a> IntoIterator for &'a CertificationData<'a> {
+impl<'a> IntoIterator for &'a PckCertChain<'a> {
     type Item = &'a [u8];
     type IntoIter = PemIterator<'a>;
 
@@ -132,13 +178,41 @@ mod test {
 
     extern crate alloc;
     use alloc::vec::Vec;
+    use yare::parameterized;
 
     #[test]
-    fn zero_certification_data() {
+    fn zero_type_is_error() {
         let bytes = [0u8; MIN_CERT_DATA_SIZE];
+        assert_eq!(
+            CertificationData::try_from(bytes.as_slice()),
+            Err(Quote3Error::CertificationDataType(0))
+        );
+    }
+
+    #[test]
+    fn type_eight_is_error() {
+        let mut bytes = [0u8; MIN_CERT_DATA_SIZE];
+        bytes[0] = 8;
+        assert_eq!(
+            CertificationData::try_from(bytes.as_slice()),
+            Err(Quote3Error::CertificationDataType(8))
+        );
+    }
+
+    #[parameterized(
+    one = {1, CertificationData::Ppid(&[])},
+    two = {2, CertificationData::PpidEncryptedRsa2048(&[])},
+    three = {3, CertificationData::PpidEncryptedRsa3072(&[])},
+    four = {4, CertificationData::Pck(&[])},
+    five = {5, CertificationData::PckCertChain(PckCertChain{data: &[]})},
+    six = {6, CertificationData::EcdsaSignatureAuxData(&[])},
+    seven = {7, CertificationData::PlatformManifest(&[])},
+    )]
+    fn type_is_valid(data_type: u8, expected: CertificationData) {
+        let mut bytes = [0u8; MIN_CERT_DATA_SIZE];
+        bytes[0] = data_type;
         let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(certification_data.data_type, 0);
-        assert_eq!(certification_data.data, []);
+        assert_eq!(certification_data, expected);
     }
 
     #[test]
@@ -156,8 +230,10 @@ mod test {
         bytes[5] = 0;
 
         let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(certification_data.data_type, 2);
-        assert_eq!(certification_data.data, [8]);
+        assert_eq!(
+            certification_data,
+            CertificationData::PpidEncryptedRsa2048(&[8])
+        );
     }
 
     #[test]
@@ -175,8 +251,11 @@ mod test {
         bytes[5] = 0;
 
         let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
-        assert_eq!(certification_data.data_type, 3);
-        assert_eq!(certification_data.data, [4u8; 7]);
+        assert_eq!(
+            certification_data,
+            CertificationData::PpidEncryptedRsa3072(&[4u8; 7])
+        );
+        assert_eq!(certification_data.raw_data(), [4u8; 7]);
     }
 
     #[test]
@@ -273,10 +352,15 @@ mod test {
         ";
 
     #[test]
-    fn iterate_over_a_empty_certification_data() {
-        let cert_data = [0u8; MIN_CERT_DATA_SIZE];
+    fn iterate_over_a_empty_pck_cert_chain() {
+        let mut cert_data = [0u8; MIN_CERT_DATA_SIZE];
+        cert_data[0] = 5;
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert!(certs.is_empty());
     }
@@ -294,7 +378,11 @@ mod test {
         cert_data.extend(cert);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert_eq!(certs, &[cert]);
     }
@@ -324,7 +412,11 @@ mod test {
         cert_chain.splice(2..2, size_bytes);
 
         let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert_eq!(certs, pem_bytes);
     }
@@ -347,7 +439,11 @@ mod test {
         cert_data.extend(pem);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         assert!(cert_iter.collect::<Vec<_>>().is_empty());
     }
 
@@ -375,7 +471,11 @@ mod test {
         cert_data.extend(pem);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
     }
 
@@ -403,7 +503,11 @@ mod test {
         cert_data.extend(pem);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         assert_eq!(cert_iter.collect::<Vec<_>>(), [pem]);
     }
 
@@ -433,7 +537,11 @@ mod test {
         cert_data.extend(key);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert_eq!(certs, &[key]);
     }
@@ -469,7 +577,11 @@ mod test {
         cert_chain.splice(2..2, size_bytes);
 
         let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
-        let cert_iter = certification_data.into_iter();
+        let cert_chain = match certification_data {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let cert_iter = cert_chain.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert_eq!(certs, pem_bytes);
     }

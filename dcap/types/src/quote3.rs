@@ -424,6 +424,7 @@ mod test {
     /// - Put a valid public key in the signature data
     /// - Zero the tail of `bytes`.  This ensures that the dynamically sized
     ///   trailing structures show up as empty
+    /// - Set the certification data type to 1. 0 is invalid.
     ///
     /// # Arguments:
     /// * `bytes` -  the bytes to update to be a valid signature data. `bytes`
@@ -435,6 +436,7 @@ mod test {
         let key_end = key_offset + KEY_SIZE;
         bytes[key_offset..key_end].copy_from_slice(&VALID_P256_KEY);
         bytes[mem::size_of::<sgx_ql_ecdsa_sig_data_t>()..].fill(0);
+        bytes[mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + MIN_AUTH_DATA_SIZE] = 1;
 
         bytes
     }
@@ -452,6 +454,10 @@ mod test {
             )
         };
         let mut bytes: [u8; MIN_SIGNATURE_DATA_SIZE] = [0; MIN_SIGNATURE_DATA_SIZE];
+
+        // 0 is an invalid certification data type, so default to 1
+        bytes[mem::size_of::<sgx_ql_ecdsa_sig_data_t>() + MIN_AUTH_DATA_SIZE] = 1;
+
         bytes[..mem::size_of::<sgx_ql_ecdsa_sig_data_t>()].copy_from_slice(alias_bytes);
         bytes
     }
@@ -501,11 +507,13 @@ mod test {
         assert_eq!(quote.raw_bytes, hw_quote);
         let signature_data = quote.signature_data();
 
+        let cert_chain = match signature_data.certification_data() {
+            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+
         // 3 for Root CA, Intermediate CA, and the PCK cert
-        let pems = signature_data
-            .certification_data()
-            .into_iter()
-            .collect::<Vec<_>>();
+        let pems = cert_chain.into_iter().collect::<Vec<_>>();
         assert_eq!(pems.len(), 3);
     }
 
@@ -709,7 +717,7 @@ mod test {
             Signature::try_from([3u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, []);
-        assert_eq!(signature_data.certification_data().data(), []);
+        assert_eq!(signature_data.certification_data().raw_data(), []);
     }
 
     #[test]
@@ -745,7 +753,7 @@ mod test {
             Signature::try_from([4u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, []);
-        assert_eq!(signature_data.certification_data().data(), []);
+        assert_eq!(signature_data.certification_data().raw_data(), []);
     }
 
     #[test]
@@ -771,6 +779,9 @@ mod test {
         start += mem::size_of::<u16>();
         let end = start + size as usize;
         bytes[start..end].fill(20);
+
+        let cert_data_type = 1;
+        bytes[end] = cert_data_type;
 
         // Test focuses on the auth parsing, so only spot checking one field
         // of SignatureData
@@ -823,7 +834,7 @@ mod test {
             signature_data.qe_report_signature,
             Signature::try_from([7u8; 64].as_slice()).unwrap()
         );
-        assert_eq!(signature_data.certification_data().data(), [11, 11]);
+        assert_eq!(signature_data.certification_data().raw_data(), [11, 11]);
     }
 
     #[test]
@@ -862,7 +873,10 @@ mod test {
         let end = start + size as usize;
         bytes[start..end].fill(14);
 
-        // cert data, skip over the data type
+        start = end;
+        let data_type = 1;
+        bytes[start] = data_type;
+
         start = end + mem::size_of::<u16>();
         let size = 4;
         bytes[start] = size;
@@ -878,6 +892,6 @@ mod test {
             Signature::try_from([7u8; 64].as_slice()).unwrap()
         );
         assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
-        assert_eq!(signature_data.certification_data().data(), [23u8; 4]);
+        assert_eq!(signature_data.certification_data().raw_data(), [23u8; 4]);
     }
 }
