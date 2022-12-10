@@ -4,3 +4,4 @@ Cargo.lock merge=theirs
 **/*.bin binary
 **/*.mdb binary
 **/*.pub binary
+core/build/headers/** linguist-vendored
