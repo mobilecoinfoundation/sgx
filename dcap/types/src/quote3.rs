@@ -508,7 +508,7 @@ mod test {
         let signature_data = quote.signature_data();
 
         let cert_chain = match signature_data.certification_data() {
-            CertificationData::PckCertChain(cert_chain) => cert_chain,
+            CertificationData::PckCertificateChain(cert_chain) => cert_chain,
             _ => panic!("expected a PckCertChain"),
         };
 
