@@ -14,7 +14,10 @@ mod quoting_enclave;
 mod request_policy;
 
 pub use crate::{
-    certification_data::CertificationData,
+    certification_data::{
+        CertificationData, EcdsaSignatureAuxData, Pck, PckCertificateChain, PlatformManifest, Ppid,
+        PpidEncryptedRsa2048, PpidEncryptedRsa3072,
+    },
     error::{QlError, Quote3Error},
     quote3::{Quote3, SignatureData},
     quoting_enclave::ReportInfo,

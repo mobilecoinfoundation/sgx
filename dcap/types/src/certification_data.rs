@@ -119,6 +119,11 @@ trait CertificationDataKind {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// Contains the following data:
+/// - Platform provisioning ID (PPID)
+/// - CPU security version number (CPUSVN)
+/// - Provisioning certification enclave security version number (PCESVN)
+/// - Provisioning certification enclave ID (PCEID)
 pub struct Ppid<'a>(&'a [u8]);
 
 impl<'a> CertificationDataKind for Ppid<'a> {
@@ -126,6 +131,11 @@ impl<'a> CertificationDataKind for Ppid<'a> {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// Contains the following data encrypted with RSA 2048:
+/// - Platform provisioning ID (PPID)
+/// - CPU security version number (CPUSVN)
+/// - Provisioning certification enclave security version number (PCESVN)
+/// - Provisioning certification enclave ID (PCEID)
 pub struct PpidEncryptedRsa2048<'a>(&'a [u8]);
 
 impl<'a> CertificationDataKind for PpidEncryptedRsa2048<'a> {
@@ -133,6 +143,11 @@ impl<'a> CertificationDataKind for PpidEncryptedRsa2048<'a> {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// Contains the following data encrypted with RSA 3072:
+/// - Platform provisioning ID (PPID)
+/// - CPU security version number (CPUSVN)
+/// - Provisioning certification enclave security version number (PCESVN)
+/// - Provisioning certification enclave ID (PCEID)
 pub struct PpidEncryptedRsa3072<'a>(&'a [u8]);
 
 impl<'a> CertificationDataKind for PpidEncryptedRsa3072<'a> {
@@ -140,6 +155,7 @@ impl<'a> CertificationDataKind for PpidEncryptedRsa3072<'a> {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// Contains the provisioning certification key (PCK) leaf certificate
 pub struct Pck<'a>(&'a [u8]);
 
 impl<'a> CertificationDataKind for Pck<'a> {
@@ -147,6 +163,8 @@ impl<'a> CertificationDataKind for Pck<'a> {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// Contains the certificate chain for the provisioning certification key
+/// (PCK).
 pub struct PckCertificateChain<'a> {
     data: &'a [u8],
 }
@@ -167,6 +185,8 @@ impl<'a> IntoIterator for &'a PckCertificateChain<'a> {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// ECDSA signature auxiliary data of an Intel SGX quote
+/// See `sgx_ql_cert_key_type_t::ECDSA_SIG_AUX_DATA`
 pub struct EcdsaSignatureAuxData<'a>(&'a [u8]);
 
 impl<'a> CertificationDataKind for EcdsaSignatureAuxData<'a> {
@@ -174,6 +194,7 @@ impl<'a> CertificationDataKind for EcdsaSignatureAuxData<'a> {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+/// Platform manifest
 pub struct PlatformManifest<'a>(&'a [u8]);
 
 impl<'a> CertificationDataKind for PlatformManifest<'a> {
