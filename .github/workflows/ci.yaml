@@ -94,7 +94,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2022-07-22
+          - nightly-2022-12-13
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -119,7 +119,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2022-07-22
+          - nightly-2022-12-13
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -199,7 +199,7 @@ jobs:
           - aarch64-linux-android
           - aarch64-apple-ios
         rust:
-          - nightly-2022-07-22
+          - nightly-2022-12-13
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
