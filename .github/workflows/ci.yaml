@@ -94,7 +94,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2022-07-22
+          - nightly-2022-12-13
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -119,7 +119,7 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2022-07-22
+          - nightly-2022-12-13
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -198,13 +198,11 @@ jobs:
           - thumbv7m-none-eabi
           - aarch64-linux-android
           - aarch64-apple-ios
-        rust:
-          - nightly-2022-07-22
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: nightly-2022-12-13
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
@@ -218,7 +216,7 @@ jobs:
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +${{ matrix.rust }} build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
+            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +nightly-2022-12-13 build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
 
   notify:
     runs-on: ubuntu-latest
