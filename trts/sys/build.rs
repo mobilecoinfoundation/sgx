@@ -23,7 +23,7 @@ fn main() {
     cargo_emit::rustc_link_search!(link_path);
 
     let sgx_suffix = mc_sgx_core_build::sgx_library_suffix();
-    cargo_emit::rustc_link_lib!(&format!("static=sgx_trts{}", sgx_suffix));
+    cargo_emit::rustc_link_lib!(&format!("static=sgx_trts{sgx_suffix}"));
 
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")

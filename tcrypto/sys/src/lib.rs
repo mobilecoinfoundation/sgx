@@ -37,7 +37,7 @@ mod tests {
 
         let expected = {
             let mut hasher = Sha256::new();
-            hasher.update(&bytes);
+            hasher.update(bytes);
             hasher.finalize()
         };
         assert_eq!(hash, expected[..]);
@@ -53,7 +53,7 @@ mod tests {
 
         let expected = {
             let mut hasher = Sha256::new();
-            hasher.update(&bytes);
+            hasher.update(bytes);
             hasher.finalize()
         };
         assert_eq!(hash, expected[..]);

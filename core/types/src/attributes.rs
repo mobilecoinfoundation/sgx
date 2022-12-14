@@ -62,7 +62,7 @@ mod test {
     #[test]
     fn sgx_attributes_to_attributes() {
         let sgx_attributes = sgx_attributes_t { flags: 1, xfrm: 2 };
-        let attributes: Attributes = sgx_attributes.clone().into();
+        let attributes: Attributes = sgx_attributes.into();
         assert_eq!(attributes.0, sgx_attributes);
     }
 

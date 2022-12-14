@@ -274,8 +274,7 @@ pub trait Unseal: AsRef<[u8]> {
         // If the sizes are different than we have unexpected behavior.
         if data_length != data_length_u32 as usize || mac_length_u32 != 0 {
             return Err(Error::Unexpected(format!(
-                "'sgx_unseal_data()' set the data length to {} when given length {}",
-                data_length_u32, data_length
+                "'sgx_unseal_data()' set the data length to {data_length_u32} when given length {data_length}"
             )));
         }
 

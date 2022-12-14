@@ -73,7 +73,7 @@ pub fn sgx_builder() -> Builder {
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
         .clang_args(env_c_flags())
-        .clang_arg(format!("-I{}", include_path));
+        .clang_arg(format!("-I{include_path}"));
 
     cargo_emit::rerun_if_changed!(include_path);
 
