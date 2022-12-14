@@ -22,24 +22,24 @@ pub enum CertificationData<'a> {
     /// - CPU security version number (CPUSVN)
     /// - Provisioning certification enclave security version number (PCESVN)
     /// - Provisioning certification enclave ID (PCEID)
-    Ppid(&'a [u8]),
+    Ppid(Ppid<'a>),
 
     /// Contains the following data encrypted with RSA 2048:
     /// - Platform provisioning ID (PPID)
     /// - CPU security version number (CPUSVN)
     /// - Provisioning certification enclave security version number (PCESVN)
     /// - Provisioning certification enclave ID (PCEID)
-    PpidEncryptedRsa2048(&'a [u8]),
+    PpidEncryptedRsa2048(PpidEncryptedRsa2048<'a>),
 
     /// Contains the following data encrypted with RSA 3072:
     /// - Platform provisioning ID (PPID)
     /// - CPU security version number (CPUSVN)
     /// - Provisioning certification enclave security version number (PCESVN)
     /// - Provisioning certification enclave ID (PCEID)
-    PpidEncryptedRsa3072(&'a [u8]),
+    PpidEncryptedRsa3072(PpidEncryptedRsa3072<'a>),
 
     /// Contains the provisioning certification key (PCK) leaf certificate
-    Pck(&'a [u8]),
+    Pck(Pck<'a>),
 
     /// Contains the certificate chain for the provisioning certification key
     /// (PCK).
@@ -47,15 +47,10 @@ pub enum CertificationData<'a> {
 
     /// ECDSA signature auxiliary data of an Intel SGX quote
     /// See `sgx_ql_cert_key_type_t::ECDSA_SIG_AUX_DATA`
-    EcdsaSignatureAuxData(&'a [u8]),
+    EcdsaSignatureAuxData(EcdsaSignatureAuxData<'a>),
 
     /// Platform manifest
-    PlatformManifest(&'a [u8]),
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct PckCertificateChain<'a> {
-    data: &'a [u8],
+    PlatformManifest(PlatformManifest<'a>),
 }
 
 impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
@@ -80,13 +75,21 @@ impl<'a> TryFrom<&'a [u8]> for CertificationData<'a> {
         }
         let bytes = &bytes[..data_size];
         let data = match data_type {
-            1 => CertificationData::Ppid(bytes),
-            2 => CertificationData::PpidEncryptedRsa2048(bytes),
-            3 => CertificationData::PpidEncryptedRsa3072(bytes),
-            4 => CertificationData::Pck(bytes),
-            5 => CertificationData::PckCertificateChain(PckCertificateChain { data: bytes }),
-            6 => CertificationData::EcdsaSignatureAuxData(bytes),
-            7 => CertificationData::PlatformManifest(bytes),
+            Ppid::KIND => CertificationData::Ppid(Ppid(bytes)),
+            PpidEncryptedRsa2048::KIND => {
+                CertificationData::PpidEncryptedRsa2048(PpidEncryptedRsa2048(bytes))
+            }
+            PpidEncryptedRsa3072::KIND => {
+                CertificationData::PpidEncryptedRsa3072(PpidEncryptedRsa3072(bytes))
+            }
+            Pck::KIND => CertificationData::Pck(Pck(bytes)),
+            PckCertificateChain::KIND => {
+                CertificationData::PckCertificateChain(PckCertificateChain { data: bytes })
+            }
+            EcdsaSignatureAuxData::KIND => {
+                CertificationData::EcdsaSignatureAuxData(EcdsaSignatureAuxData(bytes))
+            }
+            PlatformManifest::KIND => CertificationData::PlatformManifest(PlatformManifest(bytes)),
             x => return Err(Quote3Error::CertificationDataType(x)),
         };
         Ok(data)
@@ -100,15 +103,56 @@ impl<'a> CertificationData<'a> {
     /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
     pub fn raw_data(&self) -> &[u8] {
         match self {
-            Self::Ppid(data) => data,
-            Self::PpidEncryptedRsa2048(data) => data,
-            Self::PpidEncryptedRsa3072(data) => data,
-            Self::Pck(data) => data,
+            Self::Ppid(ppid) => ppid.0,
+            Self::PpidEncryptedRsa2048(ppid_encrypted_rsa2048) => ppid_encrypted_rsa2048.0,
+            Self::PpidEncryptedRsa3072(ppid_encrypted_rsa3072) => ppid_encrypted_rsa3072.0,
+            Self::Pck(pck) => pck.0,
             Self::PckCertificateChain(pck_cert_chain) => pck_cert_chain.data,
-            Self::EcdsaSignatureAuxData(data) => data,
-            Self::PlatformManifest(data) => data,
+            Self::EcdsaSignatureAuxData(ecdsa_signature_aux_data) => ecdsa_signature_aux_data.0,
+            Self::PlatformManifest(platform_manifest) => platform_manifest.0,
         }
     }
+}
+
+trait CertificationDataKind {
+    const KIND: u16;
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Ppid<'a>(&'a [u8]);
+
+impl<'a> CertificationDataKind for Ppid<'a> {
+    const KIND: u16 = 1;
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct PpidEncryptedRsa2048<'a>(&'a [u8]);
+
+impl<'a> CertificationDataKind for PpidEncryptedRsa2048<'a> {
+    const KIND: u16 = 2;
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct PpidEncryptedRsa3072<'a>(&'a [u8]);
+
+impl<'a> CertificationDataKind for PpidEncryptedRsa3072<'a> {
+    const KIND: u16 = 3;
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Pck<'a>(&'a [u8]);
+
+impl<'a> CertificationDataKind for Pck<'a> {
+    const KIND: u16 = 4;
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct PckCertificateChain<'a> {
+    data: &'a [u8],
+}
+
+impl<'a> CertificationDataKind for PckCertificateChain<'a> {
+    const KIND: u16 = 5;
 }
 
 impl<'a> IntoIterator for &'a PckCertificateChain<'a> {
@@ -120,6 +164,20 @@ impl<'a> IntoIterator for &'a PckCertificateChain<'a> {
             pem_data: self.data,
         }
     }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct EcdsaSignatureAuxData<'a>(&'a [u8]);
+
+impl<'a> CertificationDataKind for EcdsaSignatureAuxData<'a> {
+    const KIND: u16 = 6;
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct PlatformManifest<'a>(&'a [u8]);
+
+impl<'a> CertificationDataKind for PlatformManifest<'a> {
+    const KIND: u16 = 7;
 }
 
 const BEGIN_PEM: &[u8] = b"-----BEGIN ";
@@ -197,13 +255,13 @@ mod test {
     }
 
     #[parameterized(
-    byte_value_one = {1, CertificationData::Ppid(&[])},
-    byte_value_two = {2, CertificationData::PpidEncryptedRsa2048(&[])},
-    byte_value_three = {3, CertificationData::PpidEncryptedRsa3072(&[])},
-    byte_value_four = {4, CertificationData::Pck(&[])},
+    byte_value_one = {1, CertificationData::Ppid(Ppid(&[]))},
+    byte_value_two = {2, CertificationData::PpidEncryptedRsa2048(PpidEncryptedRsa2048(&[]))},
+    byte_value_three = {3, CertificationData::PpidEncryptedRsa3072(PpidEncryptedRsa3072(&[]))},
+    byte_value_four = {4, CertificationData::Pck(Pck(&[]))},
     byte_value_five = {5, CertificationData::PckCertificateChain(PckCertificateChain{data: &[]})},
-    byte_value_six = {6, CertificationData::EcdsaSignatureAuxData(&[])},
-    byte_value_seven = {7, CertificationData::PlatformManifest(&[])},
+    byte_value_six = {6, CertificationData::EcdsaSignatureAuxData(EcdsaSignatureAuxData(&[]))},
+    byte_value_seven = {7, CertificationData::PlatformManifest(PlatformManifest(&[]))},
     )]
     fn type_is_valid(data_type: u8, expected: CertificationData) {
         let mut bytes = [0u8; MIN_CERT_DATA_SIZE];
@@ -229,7 +287,7 @@ mod test {
         let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
         assert_eq!(
             certification_data,
-            CertificationData::PpidEncryptedRsa2048(&[8])
+            CertificationData::PpidEncryptedRsa2048(PpidEncryptedRsa2048(&[8]))
         );
     }
 
@@ -250,7 +308,7 @@ mod test {
         let certification_data = CertificationData::try_from(bytes.as_slice()).unwrap();
         assert_eq!(
             certification_data,
-            CertificationData::PpidEncryptedRsa3072(&[4u8; 7])
+            CertificationData::PpidEncryptedRsa3072(PpidEncryptedRsa3072(&[4u8; 7]))
         );
         assert_eq!(certification_data.raw_data(), [4u8; 7]);
     }
