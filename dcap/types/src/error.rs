@@ -20,6 +20,8 @@ pub enum Quote3Error {
     Version(u16),
     /// Failure to convert from bytes to ECDSA types
     Ecdsa,
+    /// Invalid certification data type: {0}, should be 1 - 7
+    CertificationDataType(u16),
 }
 
 impl Quote3Error {
