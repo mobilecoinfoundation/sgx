@@ -17,5 +17,5 @@ Idiomatic rust wrappers for common SGX types.
 [crate-link]: https://crates.io/crates/mc-sgx-core-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-core-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-core-types
-[deps-image]: https://deps.rs/crate/mc-sgx-core-types/0.3.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-core-types/0.3.0
+[deps-image]: https://deps.rs/crate/mc-sgx-core-types/0.4.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-core-types/0.4.0

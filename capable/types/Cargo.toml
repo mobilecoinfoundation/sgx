@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-capable-types"
-version = "0.3.1-beta.0"
+version = "0.4.0"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for SGX capabilities types."
@@ -20,9 +20,9 @@ serde = [
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
-mc-sgx-capable-sys-types = { path = "../sys/types", version = "=0.3.1-beta.0" }
-mc-sgx-core-types = { path = "../../core/types", version = "=0.3.1-beta.0" }
-mc-sgx-util = { path = "../../util", version = "=0.3.1-beta.0" }
+mc-sgx-capable-sys-types = { path = "../sys/types", version = "=0.4.0" }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.4.0" }
+mc-sgx-util = { path = "../../util", version = "=0.4.0" }
 serde = { version = "1.0.150", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
