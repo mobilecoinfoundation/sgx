@@ -58,5 +58,5 @@ and add back the development suffix.
 [deps-link]: https://deps.rs/repo/github/mobilecoinfoundation/sgx
 [codecov-image]: https://img.shields.io/codecov/c/github/mobilecoinfoundation/sgx/develop?style=flat-square
 [codecov-link]: https://codecov.io/gh/mobilecoinfoundation/sgx
-[gha-image]: https://img.shields.io/github/workflow/status/mobilecoinfoundation/sgx/rust/main?style=flat-square
+[gha-image]: https://img.shields.io/github/actions/workflow/status/mobilecoinfoundation/sgx/ci.yaml?branch=main&style=flat-square
 [gha-link]: https://github.com/mobilecoinfoundation/sgx/actions/workflows/ci.yaml?query=branch%3Amain
