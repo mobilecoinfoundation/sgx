@@ -714,6 +714,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "mc-sgx-sdk-tools"
+version = "0.4.1-beta.0"
+
+[[package]]
 name = "mc-sgx-tcrypto-sys"
 version = "0.4.1-beta.0"
 dependencies = [
