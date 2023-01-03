@@ -1,4 +1,4 @@
-// Copyright (c) 2022 MobileCoin Foundation
+// Copyright (c) 2022-2023 MobileCoin Foundation
 
 //! Provides functionality for interacting with the quoting enclaves.  The
 //! QE(Quoting Enclave), PCE(Provisioning Certificate Enclave), and the

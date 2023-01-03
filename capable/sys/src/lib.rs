@@ -1,4 +1,4 @@
-// Copyright (c) 2022 MobileCoin Inc.
+// Copyright (c) 2022-2023 MobileCoin Inc.
 
 #![doc = include_str!("../README.md")]
 #![allow(non_camel_case_types)]
