@@ -4,7 +4,8 @@
 -->![License][license-image]<!--
 -->[![Dependency Status][deps-image]][deps-link]<!--
 -->[![CodeCov Status][codecov-image]][codecov-link]<!--
--->[![GitHub Workflow Status][gha-image]][gha-link]
+-->[![GitHub Workflow Status][gha-image]][gha-link]<!--
+-->[![Contributor Covenant][conduct-image]][conduct-link]
 
 A collection of crates which wrap Intel's [SGX SDK][sgx] and [Data Center Attestation Primitives][dcap] suites.
 
@@ -60,3 +61,5 @@ and add back the development suffix.
 [codecov-link]: https://codecov.io/gh/mobilecoinfoundation/sgx
 [gha-image]: https://img.shields.io/github/actions/workflow/status/mobilecoinfoundation/sgx/ci.yaml?branch=main&style=flat-square
 [gha-link]: https://github.com/mobilecoinfoundation/sgx/actions/workflows/ci.yaml?query=branch%3Amain
+[conduct-link]: CODE_OF_CONDUCT.md
+[conduct-image]: https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=flat-square
