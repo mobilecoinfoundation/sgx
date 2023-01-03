@@ -15,8 +15,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: |
-            '*.rs'
-            '*.proto'
+            **/*.rs
+            **/*.proto
           assignees: '@mobilecoinfoundation/coredev'
           labels: "copyright"
           transform: (?<=^\/\/ Copyright \(c\) )(?<from>\d{4})?-?(\d{4})?
