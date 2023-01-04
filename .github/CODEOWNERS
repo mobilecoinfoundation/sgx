@@ -1,1 +1,14 @@
-* @mobilecoinfoundation/coredev
+/capable/       @jcape
+/.github/       @jcape @nick-mobilecoin
+/core/          @nick-mobilecoin
+/core/build/    @jcape @nick-mobilecoin
+/dcap/          @nick-mobilecoin
+/tcrypto/       @nick-mobilecoin
+/test_enclave/  @nick-mobilecoin
+/trts/          @nick-mobilecoin
+/tservice/      @nick-mobilecoin
+/tstdc/         @nick-mobilecoin
+/urts/          @awygle
+/util/          @jcape
+/*.*            @jcape
+/LICENSE        @jcape
