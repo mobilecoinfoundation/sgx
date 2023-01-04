@@ -29,6 +29,6 @@ default = []
 sim = []
 
 [dev-dependencies]
-serial_test = { version = "0.9.0", default-features = false }
+serial_test = { version = "0.10.0", default-features = false }
 tempfile = "3.3.0"
 yare = "1.0.1"
