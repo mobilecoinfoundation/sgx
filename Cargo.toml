@@ -18,7 +18,7 @@ members = [
     "dcap/sys/types",
     "dcap/tvl/sys",
     "dcap/types",
-    "sdk_tools",
+    "sdk-tools",
     "tcrypto/sys",
     "tcrypto/sys/types",
     "trts",
