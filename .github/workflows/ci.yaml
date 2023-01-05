@@ -195,7 +195,9 @@ jobs:
     strategy:
       matrix:
         target:
+          - thumbv6m-none-eabi
           - thumbv7m-none-eabi
+          - thumbv8m.main-none-eabi
           - aarch64-linux-android
           - aarch64-apple-ios
     steps:
