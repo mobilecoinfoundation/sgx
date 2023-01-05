@@ -1,4 +1,4 @@
-// Copyright (c) 2022 MobileCoin Foundation
+// Copyright (c) 2022-2023 The MobileCoin Foundation
 
 //! This module contains logic to assist in verifying a DCAP quote
 
