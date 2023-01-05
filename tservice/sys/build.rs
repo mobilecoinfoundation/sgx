@@ -1,4 +1,4 @@
-// Copyright (c) 2022 The MobileCoin Foundation
+// Copyright (c) 2022-2023 The MobileCoin Foundation
 
 //! Builds the FFI function bindings for tservice, (trusted service) of the
 //! Intel Intel SGX SDK

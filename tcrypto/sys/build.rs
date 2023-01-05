@@ -1,4 +1,4 @@
-// Copyright (c) 2022 The MobileCoin Foundation
+// Copyright (c) 2022-2023 The MobileCoin Foundation
 //! Builds the FFI function bindings for trusted crypto (tcrypto) of the
 //! Intel SGX SDK
 
