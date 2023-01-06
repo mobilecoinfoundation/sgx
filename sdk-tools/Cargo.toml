@@ -1,0 +1,12 @@
+[package]
+name = "mc-sgx-sdk-tools"
+version = "0.4.1-beta.0"
+edition = "2021"
+authors = ["MobileCoin"]
+rust-version = "1.65"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+description = "Tools for building SGX enclaves"
+categories = ["development-tools::build-utils"]
+keywords = ["build", "sgx"]
