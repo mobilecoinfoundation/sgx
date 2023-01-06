@@ -2,4 +2,6 @@
 
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
-pub mod edger8r;
+mod edger8r;
+
+pub use crate::edger8r::Edger8r;

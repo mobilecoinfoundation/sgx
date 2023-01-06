@@ -20,7 +20,7 @@ use std::{
     io::Error as IoError,
     path::{Path, PathBuf},
     process::Command,
-    string::{FromUtf8Error, String},
+    string::String,
 };
 
 /// Errors which can occur when working with the edger8r tool.
@@ -28,19 +28,11 @@ use std::{
 pub enum Error {
     /// There was an error running the command: {0}
     Io(IoError),
-    /// The edger8r command failed, and also printed invalid UTF-8
-    Utf8Error,
     /**
      * There was an error generating the code,
      * command:\n{0}\nstdout:\n{0}\n\nstderr:\n{1}
      */
     Generate(String, String, String),
-}
-
-impl From<FromUtf8Error> for Error {
-    fn from(_src: FromUtf8Error) -> Error {
-        Error::Utf8Error
-    }
 }
 
 impl From<IoError> for Error {
@@ -66,7 +58,7 @@ pub enum OutputKind {
 pub struct Edger8r {
     /// The path to the `sgx_edger8r` executable.
     edger8r_path: PathBuf,
-    /// The build output directory.
+    /// The output directory to generate the code files into
     out_dir: Option<PathBuf>,
     /// The path to the EDL file to generate code for.
     edl_file: PathBuf,
@@ -123,7 +115,7 @@ impl Edger8r {
     ///
     /// # Returns:
     /// The paths to the generated files.
-    pub fn generate(&self) -> Result<Edger8rFiles, Error> {
+    pub fn generate(self) -> Result<Edger8rFiles, Error> {
         let mut command = Command::new(&self.edger8r_path);
 
         let mut dirs = vec![];
@@ -158,8 +150,8 @@ impl Edger8r {
         } else {
             Err(Error::Generate(
                 format!("{command:?}"),
-                String::from_utf8(output.stdout)?,
-                String::from_utf8(output.stderr)?,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             ))
         }
     }
