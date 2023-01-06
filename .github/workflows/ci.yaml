@@ -82,7 +82,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} clippy --all --all-features --locked -- -D warnings
+      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
 
   build:
     runs-on: ubuntu-22.04
@@ -107,7 +107,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} build --release --locked
+      - run: cargo +${{ matrix.rust }} build --release
 
   test:
     runs-on: ubuntu-22.04
@@ -136,7 +136,7 @@ jobs:
         # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
         # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
-        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --locked --features "sim alloc"
+        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --features "sim alloc"
 
   doc:
     runs-on: ubuntu-22.04
@@ -156,7 +156,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} doc --release --locked --no-deps --features sim
+      - run: cargo +${{ matrix.rust }} doc --release --no-deps --features sim
 
   coverage:
     runs-on: ubuntu-22.04
