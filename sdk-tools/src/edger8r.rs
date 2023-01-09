@@ -215,7 +215,17 @@ impl Edger8r {
 mod tests {
     use super::*;
     use std::fs;
-    use tempfile::tempdir;
+
+    /// Create a temporary directory.
+    ///
+    /// The directory will be automatically deleted when the `TempDir`s
+    /// destructor is run.
+    ///
+    /// # Panics
+    /// When unable to create the temporary directory
+    fn tempdir() -> tempfile::TempDir {
+        tempfile::tempdir().expect("Failed to create temporary directory")
+    }
 
     static EMPTY_EDL: &str = "enclave { trusted { public void nothing(); }; };";
 
@@ -234,23 +244,23 @@ mod tests {
         edl_file_name: impl AsRef<str>,
     ) -> Edger8r {
         let edl_file = dir.as_ref().join(edl_file_name.as_ref());
-        fs::write(&edl_file, EMPTY_EDL).unwrap();
+        fs::write(&edl_file, EMPTY_EDL).expect("Failed to write out EDL file");
         Edger8r::new(edl_file).out_dir(dir)
     }
 
     #[test]
     fn non_existent_edl() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir();
         let error = Edger8r::new("foo.edl")
             .out_dir(&dir)
             .generate()
-            .unwrap_err();
+            .expect_err("A non existent EDL file should cause `sgx_edger8r` to fail.");
         assert!(matches!(error, Error::Generate(_, _, _)));
     }
 
     #[test]
     fn edl_with_default_out_dir() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir();
 
         // Setting `OUT_DIR` explicitly to mimic executing from a build script
         // see https://github.com/rust-lang/cargo/issues/879
@@ -261,7 +271,9 @@ mod tests {
 
         let mut edger8r = edger8r_with_minimal_edl_file(&dir, "my.edl");
         edger8r.out_dir = None;
-        let result = edger8r.generate().unwrap();
+        let result = edger8r
+            .generate()
+            .expect("Failed to generate code from EDL file");
 
         let expected_files = Edger8rFiles {
             trusted: ["my_t.h", "my_t.c"]
@@ -285,13 +297,13 @@ mod tests {
 
     #[test]
     fn edl_with_user_specified_out_dir() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir();
 
         let out_dir = dir.path().join("my_out_dir");
         let result = edger8r_with_minimal_edl_file(&dir, "my.edl")
             .out_dir(&out_dir)
             .generate()
-            .unwrap();
+            .expect("Failed to generate code from EDL file");
         let expected_files = Edger8rFiles {
             trusted: ["my_t.h", "my_t.c"]
                 .into_iter()
@@ -314,12 +326,12 @@ mod tests {
 
     #[test]
     fn generate_only_untrusted() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir();
 
         let result = edger8r_with_minimal_edl_file(&dir, "my.edl")
             .output_kind(OutputKind::Untrusted)
             .generate()
-            .unwrap();
+            .expect("Failed to generate code from EDL file");
         let expected_files = Edger8rFiles {
             trusted: vec![],
             untrusted: ["my_u.h", "my_u.c"]
@@ -341,12 +353,12 @@ mod tests {
 
     #[test]
     fn generate_only_trusted() {
-        let dir = tempdir().unwrap();
+        let dir = tempdir();
 
         let result = edger8r_with_minimal_edl_file(&dir, "my.edl")
             .output_kind(OutputKind::Trusted)
             .generate()
-            .unwrap();
+            .expect("Failed to generate code from EDL file");
         let expected_files = Edger8rFiles {
             trusted: ["my_t.h", "my_t.c"]
                 .into_iter()
