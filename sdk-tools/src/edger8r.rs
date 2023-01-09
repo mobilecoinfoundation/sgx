@@ -30,7 +30,7 @@ pub enum Error {
     Io(IoError),
     /**
      * There was an error generating the code,
-     * command:\n{0}\nstdout:\n{0}\n\nstderr:\n{1}
+     * command:\n{0}\nstdout:\n{1}\n\nstderr:\n{2}
      */
     Generate(String, String, String),
 }
@@ -97,7 +97,7 @@ impl Edger8r {
     ///
     /// # Arguments
     /// * `kind` - The kind of code to generate
-    pub fn output_kind(&mut self, kind: OutputKind) -> &mut Self {
+    pub fn output_kind(mut self, kind: OutputKind) -> Self {
         self.output_kind = kind;
         self
     }
@@ -106,7 +106,7 @@ impl Edger8r {
     ///
     /// # Arguments
     /// * `out_dir` - the output directory to place the generated files in.
-    pub fn out_dir(&mut self, out_dir: impl AsRef<Path>) -> &mut Self {
+    pub fn out_dir(mut self, out_dir: impl AsRef<Path>) -> Self {
         self.out_dir = Some(out_dir.as_ref().to_owned());
         self
     }
@@ -235,17 +235,16 @@ mod tests {
     ) -> Edger8r {
         let edl_file = dir.as_ref().join(edl_file_name.as_ref());
         fs::write(&edl_file, EMPTY_EDL).unwrap();
-        let mut edger8r = Edger8r::new(edl_file);
-        edger8r.out_dir(dir);
-        edger8r
+        Edger8r::new(edl_file).out_dir(dir)
     }
 
     #[test]
     fn non_existent_edl() {
         let dir = tempdir().unwrap();
-        let mut edger8r = Edger8r::new("foo.edl");
-        edger8r.out_dir(&dir);
-        let error = edger8r.generate().unwrap_err();
+        let error = Edger8r::new("foo.edl")
+            .out_dir(&dir)
+            .generate()
+            .unwrap_err();
         assert!(matches!(error, Error::Generate(_, _, _)));
     }
 
@@ -287,11 +286,12 @@ mod tests {
     #[test]
     fn edl_with_user_specified_out_dir() {
         let dir = tempdir().unwrap();
-        let mut edger8r = edger8r_with_minimal_edl_file(&dir, "my.edl");
 
         let out_dir = dir.path().join("my_out_dir");
-        edger8r.out_dir(&out_dir);
-        let result = edger8r.generate().unwrap();
+        let result = edger8r_with_minimal_edl_file(&dir, "my.edl")
+            .out_dir(&out_dir)
+            .generate()
+            .unwrap();
         let expected_files = Edger8rFiles {
             trusted: ["my_t.h", "my_t.c"]
                 .into_iter()
@@ -316,9 +316,10 @@ mod tests {
     fn generate_only_untrusted() {
         let dir = tempdir().unwrap();
 
-        let mut edger8r = edger8r_with_minimal_edl_file(&dir, "my.edl");
-        edger8r.output_kind(OutputKind::Untrusted);
-        let result = edger8r.generate().unwrap();
+        let result = edger8r_with_minimal_edl_file(&dir, "my.edl")
+            .output_kind(OutputKind::Untrusted)
+            .generate()
+            .unwrap();
         let expected_files = Edger8rFiles {
             trusted: vec![],
             untrusted: ["my_u.h", "my_u.c"]
@@ -342,9 +343,10 @@ mod tests {
     fn generate_only_trusted() {
         let dir = tempdir().unwrap();
 
-        let mut edger8r = edger8r_with_minimal_edl_file(&dir, "my.edl");
-        edger8r.output_kind(OutputKind::Trusted);
-        let result = edger8r.generate().unwrap();
+        let result = edger8r_with_minimal_edl_file(&dir, "my.edl")
+            .output_kind(OutputKind::Trusted)
+            .generate()
+            .unwrap();
         let expected_files = Edger8rFiles {
             trusted: ["my_t.h", "my_t.c"]
                 .into_iter()
