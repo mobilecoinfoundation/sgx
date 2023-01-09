@@ -15,9 +15,12 @@ jobs:
       - uses: FantasticFiasco/action-update-license-year@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # don't do `**/*.h` as we vendor in some headers
           path: |
             **/*.rs
             **/*.proto
+            **/*.c
+            **/*.edl
           assignees: '@mobilecoinfoundation/coredev'
           labels: "copyright"
           transform: (?<=^\/\/ Copyright \(c\) )(?<from>\d{4})?-?(\d{4})?

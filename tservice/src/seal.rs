@@ -1,4 +1,4 @@
-// Copyright (c) 2022 The MobileCoin Foundation
+// Copyright (c) 2022-2023 The MobileCoin Foundation
 //! Functions used for sealing and unsealing of secrets
 
 use alloc::{format, string::String, vec, vec::Vec};

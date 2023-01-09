@@ -1,4 +1,4 @@
-// Copyright (c) 2022 The MobileCoin Foundation
+// Copyright (c) 2022-2023 The MobileCoin Foundation
 /*
  * A basic function that just adds 2 to its input
  */

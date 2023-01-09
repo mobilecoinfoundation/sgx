@@ -1,4 +1,4 @@
-// Copyright (c) 2022 The MobileCoin Foundation
+// Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Config ID
 
 use crate::new_type_accessors_impls;
