@@ -4,14 +4,6 @@
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
 //! Edger8r Tool Wrapper
-//!
-//! The Edger8r tool ships as part of the Intel® Software Guard Extensions SDK.
-//! It generates edge routines by reading a user-provided Enclave Description
-//! Language (EDL) file. These edge routines define the interface between the
-//! untrusted application and the enclave.
-//!
-//! See https://download.01.org/intel-sgx/sgx-linux/2.18/docs/Intel_SGX_Developer_Reference_Linux_2.18_Open_Source.pdf#%5B%7B%22num%22%3A84%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C94.5%2C406.5%2C0%5D
-//! for more details.
 
 use displaydoc::Display;
 use std::{
@@ -54,6 +46,14 @@ pub enum OutputKind {
 }
 
 /// Wrapper for the edger8r tool.
+///
+/// The Edger8r tool ships as part of the Intel® Software Guard Extensions SDK.
+/// It generates edge routines by reading a user-provided Enclave Description
+/// Language (EDL) file. These edge routines define the interface between the
+/// untrusted application and the enclave.
+///
+/// See [Edger8r Tool Documentation](https://download.01.org/intel-sgx/sgx-linux/2.18/docs/Intel_SGX_Developer_Reference_Linux_2.18_Open_Source.pdf#%5B%7B%22num%22%3A84%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C94.5%2C406.5%2C0%5D)
+/// for more details.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Edger8r {
     /// The path to the `sgx_edger8r` executable.
