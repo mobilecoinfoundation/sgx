@@ -2,39 +2,43 @@
 //! Builds the FFI type bindings for tstdc (trusted standard C) of the
 //! Intel SGX SDK
 
-use bindgen::callbacks::ParseCallbacks;
+use mc_sgx_core_build::SgxParseCallbacks;
 
-#[derive(Debug)]
-struct TstdcParseCallbacks;
+const TSTDC_TYPES: &[&str] = &[
+    "sgx_thread_t",
+    "_sgx_thread_queue_t",
+    "_sgx_thread_cond_t",
+    "_sgx_thread_mutex_t",
+    "_sgx_thread_cond_attr_t",
+    "_sgx_thread_rwlock_t",
+    "_sgx_thread_rwlock_attr_t",
+    "_sgx_thread_mutex_attr_t",
+    "sgx_spinlock_t",
+];
 
-impl ParseCallbacks for TstdcParseCallbacks {
-    fn item_name(&self, name: &str) -> Option<String> {
-        mc_sgx_core_build::normalize_item_name(name).map(|normie| match normie.as_str() {
-            "sgx_thread_cond_attr_t" | "sgx_thread_rwlock_attr_t" | "sgx_thread_mutex_attr_t" => {
-                normie.replace("_attr_", "attr_")
-            }
-            _ => normie,
-        })
-    }
-}
+const TSTDC_CONSTS: &[&str] = &[
+    "SGX_THREAD_MUTEX_NONRECURSIVE",
+    "SGX_THREAD_MUTEX_RECURSIVE",
+];
 
 fn main() {
-    let out_path = mc_sgx_core_build::build_output_dir();
+    let callback = SgxParseCallbacks::default();
 
-    mc_sgx_core_build::sgx_builder()
-        // override the default ParseCallbacks impl provided by mc_sgx_core_build
-        .parse_callbacks(Box::new(TstdcParseCallbacks))
+    let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
-        .allowlist_recursively(false)
-        .allowlist_type("sgx_thread_t")
-        .allowlist_type("_sgx_thread_queue_t")
-        .allowlist_type("_sgx_thread_cond_t")
-        .allowlist_type("_sgx_thread_mutex_t")
-        .allowlist_type("_sgx_thread_cond_attr_t")
-        .allowlist_type("_sgx_thread_rwlock_t")
-        .allowlist_type("_sgx_thread_rwlock_attr_t")
-        .allowlist_type("_sgx_thread_mutex_attr_t")
-        .allowlist_type("sgx_spinlock_t")
+        .parse_callbacks(Box::new(callback))
+        .blocklist_function("*");
+
+    for t in TSTDC_TYPES {
+        builder = builder.allowlist_type(t);
+    }
+
+    for c in TSTDC_CONSTS.iter() {
+        builder = builder.allowlist_var(c)
+    }
+
+    let out_path = mc_sgx_core_build::build_output_dir();
+    builder
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(out_path.join("bindings.rs"))
