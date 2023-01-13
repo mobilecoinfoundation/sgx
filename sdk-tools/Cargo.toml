@@ -10,3 +10,10 @@ repository = "https://github.com/mobilecoinfoundation/sgx"
 description = "Tools for building SGX enclaves"
 categories = ["development-tools::build-utils"]
 keywords = ["build", "sgx"]
+
+[dependencies]
+displaydoc = "0.2.3"
+mc-sgx-core-build = { path = "../core/build", version = "=0.4.1-beta.0" }
+
+[dev-dependencies]
+tempfile = "3.3.0"
