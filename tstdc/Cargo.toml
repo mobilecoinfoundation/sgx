@@ -1,0 +1,23 @@
+[package]
+name = "mc-sgx-tstdc"
+version = "0.4.1-beta.0"
+edition = "2021"
+authors = ["MobileCoin"]
+rust-version = "1.62.1"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+description = "Rust wrappers around SGX synchronization primitives"
+categories = ["api-bindings", "hardware-support"]
+keywords = ["sgx"]
+
+[lib]
+# test false due to needing an enclave to fully link
+test = false
+doctest = false
+
+[dependencies]
+displaydoc = { version = "0.2.3", default-features = false }
+libc = { version = "0.2.139", default-features = false }
+mc-sgx-tstdc-sys = { path = "sys", version = "0.4.1-beta.0" }
+mc-sgx-tstdc-sys-types = { path = "sys/types", version = "0.4.1-beta.0" }
