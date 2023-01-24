@@ -100,6 +100,14 @@ impl Mutex {
             _ => Err(Error::Invalid),
         }
     }
+
+    /// Get at the underlying SGX mutex primitive.
+    ///
+    /// Callers are responsible for ensuring the returned value is *not* used
+    /// after the original [`Mutex`]'s lifetime.
+    pub(crate) unsafe fn raw(&self) -> *mut sgx_thread_mutex_t {
+        self.0.get()
+    }
 }
 
 impl Drop for Mutex {
