@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Synchronization constants and defaults to `mc-sgx-tstdc-sys-types`.
+
 ## [0.4.0] - 2022-12-14
 
 ### Added

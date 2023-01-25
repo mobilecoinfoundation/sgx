@@ -43,6 +43,10 @@ pub fn normalize_item_name(name: &str) -> Option<String> {
         name.push_str("_t");
     }
 
+    // Some types come through as `_sgx_thread_mutex_attr_t` which map to a real
+    // type of `sgx_thread_mutexattr_t`
+    let mut name = name.replace("_attr_", "attr_");
+
     if STRIP_UNDERSCORE_PREFIX
         .iter()
         .any(|prefix| name.starts_with(prefix))
