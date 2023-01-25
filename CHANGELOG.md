@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Synchronization constants and defaults to `mc-sgx-tstdc-sys-types`.
+- `mc-sgx-tstdc` crate with rust wrappers around synchronization primitives.
 
 ## [0.4.0] - 2022-12-14
 
