@@ -15,12 +15,12 @@ use mc_sgx_tstdc_sys_types::{sgx_thread_rwlock_t, SGX_THREAD_LOCK_INITIALIZER};
 pub enum Error {
     /// Invalid operation on the [`RwLock`]
     Invalid,
-    /// [`RwLock`] is currently locked by another thread
-    Busy,
     /// [`RwLock`] is already locked for write by this thread
     WriteLocked,
     /// Ran out of memory
-    NoMemory,
+    OutOfMemory,
+    /// Mutex is currently locked by another thread
+    LockNotOwned,
 }
 
 type Result<T> = core::result::Result<T, Error>;
@@ -89,23 +89,21 @@ impl RwLock {
     /// Try to acquire a reader lock on the [`RwLock`] instance.
     ///
     /// If no other threads hold a writer lock on the [`RwLock`] instance, the
-    /// reader lock is acquired. If another thread is currently holding a writer
-    /// lock, returns [`Error::Busy`].
+    /// reader lock is acquired and `true` is returned. If another thread is
+    /// currently holding a writer lock, returns `false`.
     ///
     /// NB: This acquires **a** reader lock on the [`RwLock`] instance, it does
     ///     not keep track of which threads have reader locks.
     ///
     /// # Errors
-    /// - [`Error::Busy`] if another thread has a writer lock on the [`RwLock`]
-    ///   instance.
     /// - [`Error::WriteLocked`] if the current thread has a write lock on the
     ///   [`RwLock`] instance.
     /// - [`Error::Invalid`] if the [`RwLock`] instance is invalid.
-    pub fn try_read(&self) -> Result<()> {
+    pub fn try_read(&self) -> Result<bool> {
         let result = unsafe { sgx_thread_rwlock_tryrdlock(self.0.get()) };
         match result {
-            0 => Ok(()),
-            libc::EBUSY => Err(Error::Busy),
+            0 => Ok(true),
+            libc::EBUSY => Ok(false),
             libc::EDEADLK => Err(Error::WriteLocked),
             _ => Err(Error::Invalid),
         }
@@ -135,20 +133,18 @@ impl RwLock {
     /// Try to acquire a writer lock on the [`RwLock`] instance.
     ///
     /// If no other threads hold either a reader lock or a writer lock on the
-    /// [`RwLock`] instance, the writer lock is acquired. If another thread
-    /// holds a lock, the function returns [`Error::Busy`].
+    /// [`RwLock`] instance, the writer lock is acquired and `true` is returned.
+    /// If another thread holds a lock, the function returns `false`.
     ///
     /// # Errors
-    /// - [`Error::Busy`] if another thread has either a reader or a writer lock
-    ///   on the [`RwLock`] instance.
     /// - [`Error::WriteLocked`] if the current thread already has the write
     ///   lock on the [`RwLock`] instance.
     /// - [`Error::Invalid`] if the [`RwLock`] instance is invalid.
-    pub fn try_write(&self) -> Result<()> {
+    pub fn try_write(&self) -> Result<bool> {
         let result = unsafe { sgx_thread_rwlock_trywrlock(self.0.get()) };
         match result {
-            0 => Ok(()),
-            libc::EBUSY => Err(Error::Busy),
+            0 => Ok(true),
+            libc::EBUSY => Ok(false),
             libc::EDEADLK => Err(Error::WriteLocked),
             _ => Err(Error::Invalid),
         }
@@ -173,15 +169,17 @@ impl RwLock {
     /// Release a write lock on the [`RwLock`] instance.
     ///
     /// # Errors
-    /// - [`Error::NoMemory`] if out of memory occurs when trying to wake up
+    /// - [`Error::OutOfMemory`] if out of memory occurs when trying to wake up
     ///   threads waiting for reader locks.
-    /// - [`Error::Invalid`] if the [`RwLock`] instance is invalid or the
-    ///   current thread doesn't hold the write lock.
+    /// - [`Error::LockNotOwned`] if the current thread doesn't hold the write
+    ///   lock.
+    /// - [`Error::Invalid`] if the [`RwLock`] instance is invalid
     pub fn write_unlock(&self) -> Result<()> {
         let result = unsafe { sgx_thread_rwlock_wrunlock(self.0.get()) };
         match result {
             0 => Ok(()),
-            libc::ENOMEM => Err(Error::NoMemory),
+            libc::ENOMEM => Err(Error::OutOfMemory),
+            libc::EPERM => Err(Error::LockNotOwned),
             _ => Err(Error::Invalid),
         }
     }
