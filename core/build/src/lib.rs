@@ -94,7 +94,6 @@ fn env_c_flags() -> Vec<String> {
     env_flags.map_or_else(Vec::new, |flags| {
         flags
             .split_whitespace()
-            .into_iter()
             .map(String::from)
             .collect::<Vec<_>>()
     })
