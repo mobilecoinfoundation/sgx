@@ -15,7 +15,7 @@ pub enum Error {
     /// Invalid operation on the mutex
     Invalid,
     /// Mutex is currently locked by another thread
-    Busy,
+    LockNotOwned,
 }
 
 type Result<T> = core::result::Result<T, Error>;
@@ -69,18 +69,17 @@ impl Mutex {
 
     /// Try to lock this [`Mutex`] instance
     ///
-    /// Returns immediately with the mutex or an [`Error`]
+    /// Returns `true` if the `Mutex` was locked, `false` if another thread has
+    /// the `Mutex` locked.
     ///
     /// # Errors
-    /// - [`Error::Busy`] if another thread has the lock, or higher precedence
-    ///   in obtaining the lock.
     /// - [`Error::Invalid`] if self is invalid or trying to lock self when
-    ///   already holding a lock on self.
-    pub fn try_lock(&self) -> Result<()> {
+    /// already holding a lock on self.
+    pub fn try_lock(&self) -> Result<bool> {
         let result = unsafe { sgx_thread_mutex_trylock(self.0.get()) };
         match result {
-            0 => Ok(()),
-            libc::EBUSY => Err(Error::Busy),
+            0 => Ok(true),
+            libc::EBUSY => Ok(false),
             _ => Err(Error::Invalid),
         }
     }
@@ -90,14 +89,14 @@ impl Mutex {
     /// Returns immediately with [`Ok`] or an [`Error`].
     ///
     /// # Errors
-    /// - [`Error::Busy`] if another thread has the lock.
-    /// - [`Error::Invalid`] if self is invalid or trying to unlock self when
-    ///   self is not locked.
+    /// - [`Error::LockNotOwned`] if another thread has the lock.
+    /// - [`Error::Invalid`] if the `Mutex` is invalid or trying to unlock the
+    ///   `Mutex` when it's not locked.
     pub fn unlock(&self) -> Result<()> {
         let result = unsafe { sgx_thread_mutex_unlock(self.0.get()) };
         match result {
             0 => Ok(()),
-            libc::EPERM => Err(Error::Busy),
+            libc::EPERM => Err(Error::LockNotOwned),
             _ => Err(Error::Invalid),
         }
     }
