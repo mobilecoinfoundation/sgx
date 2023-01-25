@@ -4,5 +4,7 @@
 #![deny(missing_docs, missing_debug_implementations)]
 #![no_std]
 
+mod condvar;
 mod mutex;
+pub use condvar::{Condvar, Error as CondvarError};
 pub use mutex::{Error as MutexError, Mutex};
