@@ -6,5 +6,7 @@
 
 mod condvar;
 mod mutex;
+mod rwlock;
 pub use condvar::{Condvar, Error as CondvarError};
 pub use mutex::{Error as MutexError, Mutex};
+pub use rwlock::{Error as RwLockError, RwLock};
