@@ -18,7 +18,7 @@ pub enum Error {
     /// The paired mutex is locked by another thread
     MutexLock,
     /// Ran out of memory
-    NoMemory,
+    OutOfMemory,
 }
 
 type Result<T> = core::result::Result<T, Error>;
@@ -110,14 +110,14 @@ impl Condvar {
     /// variable nothing happens.
     ///
     /// # Errors
-    /// - [`Error::NoMemory`] if out of memory occurs when notifying all waiting
-    ///     threads
+    /// - [`Error::OutOfMemory`] if out of memory occurs when notifying all
+    ///   waiting threads
     /// - [`Error::Invalid`] if self is invalid
     pub fn notify_all(&self) -> Result<()> {
         let result = unsafe { sgx_thread_cond_broadcast(self.0.get()) };
         match result {
             0 => Ok(()),
-            libc::ENOMEM => Err(Error::NoMemory),
+            libc::ENOMEM => Err(Error::OutOfMemory),
             _ => Err(Error::Invalid),
         }
     }
