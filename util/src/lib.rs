@@ -79,7 +79,7 @@ pub trait ResultFrom<ST>: TryFrom<ST> {
 /// they should attach [`ResultFrom`] to the intended error wrapper associated
 /// with it, and they will get this for free.
 pub trait ResultInto<T: TryFrom<Self>>: Sized {
-    /// Flips the result of T::TryFrom<Self>.
+    /// Flips the result of `T::TryFrom<Self>`.
     fn into_result(self) -> Result<<T as TryFrom<Self>>::Error, T> {
         match T::try_from(self) {
             Ok(err) => Err(err),
