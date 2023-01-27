@@ -12,7 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Synchronization constants and defaults to `mc-sgx-tstdc-sys-types`.
-- `mc-sgx-tstdc` crate with rust wrappers around synchronization primitives.
+- `mc-sgx-tstdc` crate with rust wrappers providing low-level constructs
+  around synchronization primitives. `mc-sgx-sync` should be used for the
+  higher-level constructs that mimic `std::sync`.
+- `mc-sgx-sdk-tools` crate which provides rust wrappers around enclave building
+  utilities.
 
 ## [0.4.0] - 2022-12-14
 
