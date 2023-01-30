@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-util"
-version = "0.4.1-beta.0"
+version = "0.4.1"
 authors = ["MobileCoin"]
 categories = ["no-std"]
 description = "Utilities shared by SGX libraries"
