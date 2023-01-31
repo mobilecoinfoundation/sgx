@@ -3,7 +3,7 @@
 /core/          @nick-mobilecoin
 /core/build/    @jcape @nick-mobilecoin
 /dcap/          @nick-mobilecoin
-/sdk-tools/     @nick-mobilecoin
+/sdk-tools/     @nick-mobilecoin @varsha888
 /tcrypto/       @nick-mobilecoin
 /test_enclave/  @nick-mobilecoin
 /trts/          @nick-mobilecoin
