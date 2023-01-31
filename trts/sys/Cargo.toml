@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-trts-sys"
-version = "0.4.1"
+version = "0.4.2-beta.0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]
 description = "FFI bindings for `sgx_trts`."
@@ -22,9 +22,9 @@ default = []
 sim = []
 
 [dependencies]
-mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.4.1" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.4.2-beta.0" }
 
 [build-dependencies]
 bindgen = "0.63.0"
 cargo-emit = "0.2.1"
-mc-sgx-core-build = { path = "../../core/build", version = "=0.4.1" }
+mc-sgx-core-build = { path = "../../core/build", version = "=0.4.2-beta.0" }
