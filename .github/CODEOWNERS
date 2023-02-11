@@ -5,7 +5,6 @@
 /dcap/          @nick-mobilecoin
 /sdk-tools/     @nick-mobilecoin @varsha888
 /tcrypto/       @nick-mobilecoin
-/test_enclave/  @nick-mobilecoin
 /trts/          @nick-mobilecoin
 /tservice/      @nick-mobilecoin
 /tstdc/         @nick-mobilecoin
