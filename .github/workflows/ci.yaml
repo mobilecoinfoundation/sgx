@@ -84,14 +84,13 @@ jobs:
           
           set -e
           
-          exit $STATUS
+          # TODO: Once we're ready to start failing PRs for lack of dependency reviews
+          # exit $STATUS 
+          exit 0
         shell: bash
       - uses: mshick/add-pr-comment@v2
-        if: success() || failure()
         with:
           message: |
-            #### :heavy_check_mark: No unreviewed dependencies found
-          message-failure: |
             #### :x: Unreviewed dependencies found
             
             | Crate | Version | Reviews (N/2) | LoC | Left-Pad Index | Geiger | Flags |
