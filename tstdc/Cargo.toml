@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-tstdc"
-version = "0.4.2-beta.0"
+version = "0.4.2"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.4.2] - 2023-02-10
+
+### Added
+
+- Build script wrapper for SGX sign utility.
+
 ## [0.4.1] - 2023-01-30
 
 ### Added
@@ -91,7 +97,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.2.1...v0.3.0
