@@ -97,23 +97,33 @@ jobs:
             | ----- | ------- | ------------- | --- | -------------- | ------ | ----- |
             ${{ steps.cargo-crev.outputs.UNREVIEWED_DEPENDENCIES }}
 
-  deny:
+  deny-advisories:
     runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
-    strategy:
-      matrix:
-        checks:
-          - advisories
-          - bans licenses sources
-    # Prevent sudden announcement of a new advisory from failing ci:
-    continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: EmbarkStudios/cargo-deny-action@v1
-      with:
-        command: check ${{ matrix.checks }}
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: "true"
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check advisories
+
+  deny-bans-licenses-sources:
+    runs-on: ubuntu-22.04
+    needs:
+      - "rustfmt"
+      - "markdown-lint"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: "true"
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check bans licenses sources
 
   sort:
     runs-on: ubuntu-22.04
@@ -292,7 +302,8 @@ jobs:
     needs:
       - rustfmt
       - markdown-lint
-      - deny
+      - deny-advisories
+      - deny-bans-licenses-sources
       - sort
       - clippy
       - build
