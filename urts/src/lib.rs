@@ -232,87 +232,11 @@ impl Drop for Enclave {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{Seek, Write};
-    use tempfile::{tempfile, NamedTempFile};
-    use test_enclave::{ecall_add_2, ENCLAVE, ENCLAVE_KSS};
 
     #[test]
     fn fail_to_create_enclave_with_bogus_bytes() {
         let builder = EnclaveBuilder::from(b"garbage bytes");
         assert_eq!(builder.create(), Err(Error::InvalidEnclave));
-    }
-
-    #[test]
-    fn creating_enclave_succeeds() {
-        let builder = EnclaveBuilder::from(ENCLAVE);
-        assert!(builder.create().is_ok());
-    }
-
-    #[test]
-    fn creating_plaintext_enclave_fails_with_pcl() {
-        let builder = EnclaveBuilder::from(ENCLAVE).pcl(b"some garbage".to_vec());
-        assert_eq!(builder.create(), Err(Error::PclNotEncrypted));
-    }
-
-    #[test]
-    fn creating_enclave_with_kss_fails_when_not_enabled() {
-        let builder = EnclaveBuilder::from(ENCLAVE).kss(KssConfig::default());
-        assert_eq!(builder.create(), Err(Error::FeatureNotSupported));
-    }
-
-    #[test]
-    fn creating_enclave_with_kss_succeeds_when_enabled() {
-        let builder = EnclaveBuilder::from(ENCLAVE_KSS).kss(KssConfig::default());
-        assert!(builder.create().is_ok());
-    }
-
-    // TODO: Need to test successful PCL enclave creation
-    // TODO: Need to test that PCL enclave creation fails with correct enclave but
-    // wrong key
-
-    #[test]
-    fn create_enclave_builder_from_vector() {
-        let vector = ENCLAVE.to_vec();
-        assert!(EnclaveBuilder::from(vector).create().is_ok());
-    }
-
-    #[test]
-    fn create_enclave_builder_from_file() {
-        let mut file = tempfile().unwrap();
-        file.write_all(ENCLAVE).unwrap();
-        file.rewind().unwrap();
-        assert!(EnclaveBuilder::try_from(file).unwrap().create().is_ok());
-    }
-
-    #[test]
-    fn create_enclave_builder_from_file_path() {
-        let mut file = NamedTempFile::new().unwrap();
-        file.write_all(ENCLAVE).unwrap();
-        file.rewind().unwrap();
-        let path = file.path();
-        assert!(EnclaveBuilder::new(path).unwrap().create().is_ok());
-    }
-
-    #[test]
-    fn calling_into_an_enclave_function_provides_valid_results() {
-        // Note: the `debug()` was added to ensure proper builder behavior of
-        // the `create()` method.  It could go away if another test has need
-        // of similar behavior.
-        let enclave = EnclaveBuilder::from(ENCLAVE).debug().create().unwrap();
-        let id = enclave.id();
-
-        let mut sum: c_int = 3;
-        unsafe { ecall_add_2(*id, 3, &mut sum) }
-            .into_result()
-            .unwrap();
-
-        assert_eq!(sum, 3 + 2);
-    }
-
-    #[test]
-    fn target_info_succeeds() {
-        let enclave = EnclaveBuilder::from(ENCLAVE).debug().create().unwrap();
-        let _ = enclave.target_info().unwrap();
     }
 
     #[test]

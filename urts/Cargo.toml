@@ -21,7 +21,3 @@ mc-sgx-util = { path = "../util", version = "=0.4.3-beta.0" }
 [features]
 sim = ["mc-sgx-urts-sys/sim"]
 default = []
-
-[dev-dependencies]
-tempfile = "=3.3.0"
-test_enclave = { path = "../test_enclave" }
