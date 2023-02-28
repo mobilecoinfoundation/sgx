@@ -2,8 +2,8 @@
 //! SGX TargetInfo
 
 use crate::{
-    config_id::ConfigId, new_type_accessors_impls, Attributes, ConfigSvn, Measurement,
-    MiscellaneousSelect,
+    config_id::ConfigId, new_type_accessors_impls, Attributes, ConfigSvn, MiscellaneousSelect,
+    MrEnclave,
 };
 use mc_sgx_core_sys_types::sgx_target_info_t;
 
@@ -14,8 +14,8 @@ pub struct TargetInfo(sgx_target_info_t);
 
 impl TargetInfo {
     /// The MRENCLAVE measurement
-    pub fn mr_enclave(&self) -> Measurement {
-        Measurement::MrEnclave(self.0.mr_enclave.into())
+    pub fn mr_enclave(&self) -> MrEnclave {
+        self.0.mr_enclave.into()
     }
 
     /// The attributes
@@ -46,7 +46,6 @@ new_type_accessors_impls! {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::MrEnclave;
     use mc_sgx_core_sys_types::{
         SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_TARGET_INFO_RESERVED1_BYTES,
         SGX_TARGET_INFO_RESERVED2_BYTES, SGX_TARGET_INFO_RESERVED3_BYTES,
@@ -55,10 +54,7 @@ mod test {
     #[test]
     fn default_target_info() {
         let info = TargetInfo::default();
-        assert_eq!(
-            info.mr_enclave(),
-            Measurement::MrEnclave(MrEnclave::default())
-        );
+        assert_eq!(info.mr_enclave(), MrEnclave::default());
         assert_eq!(info.attributes(), Attributes::default());
         assert_eq!(info.config_svn(), ConfigSvn::default());
         assert_eq!(info.miscellaneous_select(), MiscellaneousSelect::default());
@@ -83,10 +79,7 @@ mod test {
 
         let info: TargetInfo = info.into();
 
-        assert_eq!(
-            info.mr_enclave(),
-            Measurement::MrEnclave(MrEnclave::from([1u8; SGX_HASH_SIZE]))
-        );
+        assert_eq!(info.mr_enclave(), MrEnclave::from([1u8; SGX_HASH_SIZE]));
         assert_eq!(
             info.attributes(),
             Attributes::default()

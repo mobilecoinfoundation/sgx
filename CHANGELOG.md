@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- `mc_sgx_core_types::ReportBody::mr_enclave()` now returns a `MrEnclave`
+  instead of a `Measurement`.
+- `mc_sgx_core_types::ReportBody::mr_signer()` now returns a `MrSigner`
+  instead of a `Measurement`.
+- `mc_sgx_core_types::TargetInfo::mr_enclave()` now returns a `MrEnclave`
+  instead of a `Measurement`.
+
+### Removed
+
+- `mc_sgx_core_types::Measurement` has been removed. Use `MrEnclave` or
+  `MrSigner` instead.
+
 ## [0.4.2] - 2023-02-10
 
 ### Added
