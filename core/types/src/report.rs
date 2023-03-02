@@ -3,8 +3,7 @@
 
 use crate::{
     config_id::ConfigId, impl_newtype_for_bytestruct, key_request::KeyId, new_type_accessors_impls,
-    Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, Measurement, MiscellaneousSelect, MrEnclave,
-    MrSigner,
+    Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner,
 };
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
@@ -88,13 +87,13 @@ impl ReportBody {
     }
 
     /// The MRENCLAVE measurement
-    pub fn mr_enclave(&self) -> Measurement {
-        Measurement::MrEnclave(self.0.mr_enclave.into())
+    pub fn mr_enclave(&self) -> MrEnclave {
+        self.0.mr_enclave.into()
     }
 
     /// The MRSIGNER measurement
-    pub fn mr_signer(&self) -> Measurement {
-        Measurement::MrSigner(self.0.mr_signer.into())
+    pub fn mr_signer(&self) -> MrSigner {
+        self.0.mr_signer.into()
     }
 
     /// The Config ID
@@ -308,11 +307,8 @@ mod test {
         assert_eq!(body.miscellaneous_select(), MiscellaneousSelect::default());
         assert_eq!(body.isv_extended_product_id(), ExtendedProductId::default());
         assert_eq!(body.attributes(), Attributes::default());
-        assert_eq!(
-            body.mr_enclave(),
-            Measurement::MrEnclave(MrEnclave::default())
-        );
-        assert_eq!(body.mr_signer(), Measurement::MrSigner(MrSigner::default()));
+        assert_eq!(body.mr_enclave(), MrEnclave::default());
+        assert_eq!(body.mr_signer(), MrSigner::default());
         assert_eq!(body.config_id(), ConfigId::default());
         assert_eq!(body.isv_product_id(), IsvProductId::default());
         assert_eq!(body.isv_svn(), IsvSvn::default());
@@ -338,15 +334,9 @@ mod test {
                 .set_flags(5)
                 .set_extended_features_mask(6)
         );
-        assert_eq!(
-            body.mr_enclave(),
-            Measurement::MrEnclave(MrEnclave::from([7u8; SGX_HASH_SIZE]))
-        );
+        assert_eq!(body.mr_enclave(), MrEnclave::from([7u8; SGX_HASH_SIZE]));
         assert_eq!(body.0.reserved2, [8u8; SGX_REPORT_BODY_RESERVED2_BYTES]);
-        assert_eq!(
-            body.mr_signer(),
-            Measurement::MrSigner(MrSigner::from([9u8; SGX_HASH_SIZE]))
-        );
+        assert_eq!(body.mr_signer(), MrSigner::from([9u8; SGX_HASH_SIZE]));
         assert_eq!(body.0.reserved3, [10u8; SGX_REPORT_BODY_RESERVED3_BYTES]);
         assert_eq!(body.config_id(), ConfigId::from([11u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(12));
@@ -391,15 +381,9 @@ mod test {
                 .set_flags(52)
                 .set_extended_features_mask(62)
         );
-        assert_eq!(
-            body.mr_enclave(),
-            Measurement::MrEnclave(MrEnclave::from([72u8; SGX_HASH_SIZE]))
-        );
+        assert_eq!(body.mr_enclave(), MrEnclave::from([72u8; SGX_HASH_SIZE]));
         assert_eq!(body.0.reserved2, [82u8; SGX_REPORT_BODY_RESERVED2_BYTES]);
-        assert_eq!(
-            body.mr_signer(),
-            Measurement::MrSigner(MrSigner::from([92u8; SGX_HASH_SIZE]))
-        );
+        assert_eq!(body.mr_signer(), MrSigner::from([92u8; SGX_HASH_SIZE]));
         assert_eq!(body.0.reserved3, [102u8; SGX_REPORT_BODY_RESERVED3_BYTES]);
         assert_eq!(body.config_id(), ConfigId::from([112u8; SGX_CONFIGID_SIZE]));
         assert_eq!(body.isv_product_id(), IsvProductId(122));

@@ -25,7 +25,7 @@ pub use crate::{
     config_id::ConfigId,
     error::{Error, FfiError},
     key_request::{KeyName, KeyPolicy, KeyRequest, KeyRequestBuilder},
-    measurement::{Measurement, MrEnclave, MrSigner},
+    measurement::{MrEnclave, MrSigner},
     quote::QuoteNonce,
     report::{Report, ReportBody, ReportData},
     svn::{ConfigSvn, CpuSvn, IsvSvn},

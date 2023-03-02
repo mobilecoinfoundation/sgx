@@ -29,43 +29,35 @@ impl_newtype_for_bytestruct! {
     MrSigner, sgx_measurement_t, SGX_HASH_SIZE, m;
 }
 
-/// An enumeration of measurement options, mainly useful for describing
-/// enclave-vs-author attestation policy.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum Measurement {
-    /// A MRENCLAVE measurement
-    MrEnclave(MrEnclave),
-    /// A MRSIGNER measurement
-    MrSigner(MrSigner),
-}
-
-impl From<MrEnclave> for Measurement {
-    fn from(mr_enclave: MrEnclave) -> Self {
-        Measurement::MrEnclave(mr_enclave)
-    }
-}
-
-impl From<MrSigner> for Measurement {
-    fn from(mr_signer: MrSigner) -> Self {
-        Measurement::MrSigner(mr_signer)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
-    fn from_mr_enclave() {
-        let mr_enclave = MrEnclave::from([5u8; MrEnclave::SIZE]);
-        let measurement: Measurement = mr_enclave.into();
-        assert_eq!(measurement, Measurement::MrEnclave(mr_enclave));
+    fn from_sgx_mr_enclave() {
+        let sgx_mr_enclave = sgx_measurement_t { m: [5u8; 32] };
+        let mr_enclave: MrEnclave = sgx_mr_enclave.into();
+        assert_eq!(mr_enclave.0, sgx_mr_enclave);
     }
 
     #[test]
-    fn from_mr_signer() {
-        let mr_signer = MrSigner::from([8u8; MrSigner::SIZE]);
-        let measurement: Measurement = mr_signer.into();
-        assert_eq!(measurement, Measurement::MrSigner(mr_signer));
+    fn sgx_mr_enclave_from_mr_enclave() {
+        let mr_enclave = MrEnclave::default();
+        let sgx_mr_enclave: sgx_measurement_t = mr_enclave.into();
+        assert_eq!(sgx_mr_enclave.m, [0u8; 32]);
+    }
+
+    #[test]
+    fn from_sgx_mr_signer() {
+        let sgx_mr_signer = sgx_measurement_t { m: [9u8; 32] };
+        let mr_signer: MrSigner = sgx_mr_signer.into();
+        assert_eq!(mr_signer.0, sgx_mr_signer);
+    }
+
+    #[test]
+    fn sgx_mr_signer_from_mr_signer() {
+        let mr_signer = MrSigner::default();
+        let sgx_mr_signer: sgx_measurement_t = mr_signer.into();
+        assert_eq!(sgx_mr_signer.m, [0u8; 32]);
     }
 }
