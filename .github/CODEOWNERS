@@ -1,13 +1,13 @@
-/capable/       @jcape
+/capable/       @jcape @nick-mobilecoin
 /.github/       @jcape @nick-mobilecoin
-/core/          @nick-mobilecoin
+/core/          @nick-mobilecoin @jcape
 /core/build/    @jcape @nick-mobilecoin
-/dcap/          @nick-mobilecoin
+/dcap/          @nick-mobilecoin @jcape
 /sdk-tools/     @nick-mobilecoin @varsha888
-/tcrypto/       @nick-mobilecoin
-/trts/          @nick-mobilecoin
-/tservice/      @nick-mobilecoin
-/tstdc/         @nick-mobilecoin
-/urts/          @awygle
-/util/          @jcape
-/LICENSE        @jcape
+/tcrypto/       @nick-mobilecoin @jcape
+/trts/          @nick-mobilecoin @jcape
+/tservice/      @nick-mobilecoin @jcape
+/tstdc/         @nick-mobilecoin @jcape
+/urts/          @awygle @nick-mobilecoin
+/util/          @jcape @awygle
+/LICENSE        @jcape @nick-mobilecoin
