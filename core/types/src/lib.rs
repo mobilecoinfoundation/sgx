@@ -27,7 +27,7 @@ pub use crate::{
     key_request::{KeyName, KeyPolicy, KeyRequest, KeyRequestBuilder},
     measurement::{MrEnclave, MrSigner},
     quote::QuoteNonce,
-    report::{Report, ReportBody, ReportData},
+    report::{ExtendedProductId, FamilyId, IsvProductId, Report, ReportBody, ReportData},
     svn::{ConfigSvn, CpuSvn, IsvSvn},
     target_info::TargetInfo,
 };
