@@ -69,7 +69,7 @@ new_type_accessors_impls! {
 }
 
 /// ISV Product ID
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 #[repr(transparent)]
 pub struct IsvProductId(sgx_prod_id_t);
 

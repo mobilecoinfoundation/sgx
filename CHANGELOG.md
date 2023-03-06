@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `BitAnd` implementation for `mc_sgx_core_types::ReportData`.
+- `Copy` trait to:
+  - `mc_sgx_core_types::MiscellaneousSelect`
+  - `mc_sgx_core_types::IsvProductId`
+  - `mc_sgx_core_types::ConfigSvn`
+  - `mc_sgx_core_types::IsvSvn`
 
 ### Changed
 
@@ -26,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `mc_sgx_core_types::Measurement` has been removed. Use `MrEnclave` or
   `MrSigner` instead.
+- Copy trait from `mc_sgx_core_types::MrEnclave` and
+  `mc_sgx_core_types::MrSigner`
 
 ## [0.4.2] - 2023-02-10
 

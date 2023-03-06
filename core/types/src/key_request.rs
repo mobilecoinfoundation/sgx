@@ -140,7 +140,7 @@ impl KeyRequestBuilder {
     ///
     /// * `isv_svn` - The ISV SVN to use
     pub fn isv_svn(mut self, isv_svn: &IsvSvn) -> Self {
-        self.0.isv_svn = isv_svn.clone().into();
+        self.0.isv_svn = (*isv_svn).into();
         self
     }
 
@@ -170,7 +170,7 @@ impl KeyRequestBuilder {
     ///
     /// * `miscellaneous_select` - The miscellaneous select values to use
     pub fn miscellaneous_select(mut self, miscellaneous_select: &MiscellaneousSelect) -> Self {
-        self.0.misc_mask = miscellaneous_select.clone().into();
+        self.0.misc_mask = (*miscellaneous_select).into();
         self
     }
 
@@ -180,7 +180,7 @@ impl KeyRequestBuilder {
     ///
     /// * `config_svn` - The config SVN to use
     pub fn config_svn(mut self, config_svn: &ConfigSvn) -> Self {
-        self.0.config_svn = config_svn.clone().into();
+        self.0.config_svn = (*config_svn).into();
         self
     }
 }
