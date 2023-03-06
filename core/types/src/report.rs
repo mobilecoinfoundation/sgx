@@ -5,6 +5,7 @@ use crate::{
     config_id::ConfigId, impl_newtype_for_bytestruct, key_request::KeyId, new_type_accessors_impls,
     Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner,
 };
+use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
     sgx_report_data_t, sgx_report_t, SGX_CONFIGID_SIZE, SGX_CPUSVN_SIZE, SGX_HASH_SIZE,
@@ -31,6 +32,22 @@ pub struct ReportData(sgx_report_data_t);
 
 impl_newtype_for_bytestruct! {
     ReportData, sgx_report_data_t, SGX_REPORT_DATA_SIZE, d;
+}
+
+/// There are times when only part of [`ReportData`] is of interest. [`BitAnd`]
+/// allows clients to mask off the parts of [`ReportData`] that are not of
+/// interest.
+impl BitAnd for ReportData {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        // NB: Due to use in verification, this must be constant time.
+        let mut output = Self::default();
+        for (i, (a, b)) in self.0.d.iter().zip(rhs.0.d.iter()).enumerate() {
+            output.0.d[i] = a & b;
+        }
+        output
+    }
 }
 
 /// ISV Family ID
@@ -229,6 +246,7 @@ mod test {
     use crate::{key_request::KeyId, MrEnclave, MrSigner};
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
+    use yare::parameterized;
 
     fn report_body_1() -> sgx_report_body_t {
         sgx_report_body_t {
@@ -422,5 +440,52 @@ mod test {
         assert_eq!(report.body(), ReportBody::default());
         assert_eq!(report.key_id(), KeyId::default());
         assert_eq!(report.mac(), Mac::default());
+    }
+
+    #[parameterized(
+        all_zeros = {&[0u8; SGX_REPORT_DATA_SIZE], &[0u8; SGX_REPORT_DATA_SIZE], &[0u8; SGX_REPORT_DATA_SIZE]},
+        all_ones = {&[0b1111_1111u8; SGX_REPORT_DATA_SIZE], &[0b1111_1111u8; SGX_REPORT_DATA_SIZE], &[0b1111_1111u8; SGX_REPORT_DATA_SIZE]},
+        ones_and_zeros_are_zeros = {&[0b1111_1111u8; SGX_REPORT_DATA_SIZE], &[0u8; SGX_REPORT_DATA_SIZE], &[0u8; SGX_REPORT_DATA_SIZE]},
+        lower_nybble_matches = {&[0b1010_1010u8; SGX_REPORT_DATA_SIZE], &[0b0000_1010u8; SGX_REPORT_DATA_SIZE], &[0b0000_1010u8; SGX_REPORT_DATA_SIZE]},
+    )]
+    fn bitwise_and_report_data(left: &[u8], right: &[u8], expected: &[u8]) {
+        let left = ReportData::try_from(left).expect("Expected valid left ReportData");
+        let right = ReportData::try_from(right).expect("Expected valid right ReportData");
+        let expected = ReportData::try_from(expected).expect("Expected valid expected ReportData");
+        assert_eq!(left & right, expected);
+    }
+
+    #[test]
+    fn bitwise_and_report_data_looks_at_first_byte() {
+        let mut left = [1u8; SGX_REPORT_DATA_SIZE];
+        let mut right = [0u8; SGX_REPORT_DATA_SIZE];
+        let mut expected = [0u8; SGX_REPORT_DATA_SIZE];
+
+        // Keeping the first byte different than the other bytes to ensure it is
+        // independent from the other bytes in the array.
+        left[0] = 0b1111_0000u8;
+        right[0] = 0b1111_0000u8;
+        expected[0] = 0b1111_0000u8;
+        assert_eq!(
+            ReportData::from(left) & ReportData::from(right),
+            ReportData::from(expected)
+        );
+    }
+
+    #[test]
+    fn bitwise_and_report_data_looks_at_last_byte() {
+        let mut left = [1u8; SGX_REPORT_DATA_SIZE];
+        let mut right = [0u8; SGX_REPORT_DATA_SIZE];
+        let mut expected = [0u8; SGX_REPORT_DATA_SIZE];
+
+        // Keeping the last byte different than the other bytes to ensure it is
+        // independent from the other bytes in the array.
+        left[left.len() - 1] = 0b1010_1010u8;
+        right[right.len() - 1] = 0b1010_1010u8;
+        expected[expected.len() - 1] = 0b1010_1010u8;
+        assert_eq!(
+            ReportData::from(left) & ReportData::from(right),
+            ReportData::from(expected)
+        );
     }
 }
