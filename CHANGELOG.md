@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- `BitAnd` implementation for `mc_sgx_core_types::ReportData`.
+
 ### Changed
 
 - `mc_sgx_core_types::ReportBody::mr_enclave()` now returns a `MrEnclave`
