@@ -37,16 +37,24 @@ impl_newtype_for_bytestruct! {
 /// There are times when only part of [`ReportData`] is of interest. [`BitAnd`]
 /// allows clients to mask off the parts of [`ReportData`] that are not of
 /// interest.
-impl BitAnd for ReportData {
-    type Output = Self;
+impl BitAnd for &ReportData {
+    type Output = ReportData;
 
     fn bitand(self, rhs: Self) -> Self::Output {
         // NB: Due to use in verification, this must be constant time.
-        let mut output = Self::default();
+        let mut output = ReportData::default();
         for (i, (a, b)) in self.0.d.iter().zip(rhs.0.d.iter()).enumerate() {
             output.0.d[i] = a & b;
         }
         output
+    }
+}
+
+impl BitAnd for ReportData {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        &self & &rhs
     }
 }
 
@@ -485,6 +493,18 @@ mod test {
         expected[expected.len() - 1] = 0b1010_1010u8;
         assert_eq!(
             ReportData::from(left) & ReportData::from(right),
+            ReportData::from(expected)
+        );
+    }
+
+    #[test]
+    fn bitwise_and_report_data_by_ref() {
+        let left = [1u8; SGX_REPORT_DATA_SIZE];
+        let right = [0u8; SGX_REPORT_DATA_SIZE];
+        let expected = [0u8; SGX_REPORT_DATA_SIZE];
+
+        assert_eq!(
+            &ReportData::from(left) & &ReportData::from(right),
             ReportData::from(expected)
         );
     }
