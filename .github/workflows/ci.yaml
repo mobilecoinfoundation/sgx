@@ -349,7 +349,7 @@ jobs:
       - "test"
       - "test-intel"
       - "test-crossplatform"
-      - "test-embedded"
+      - "build-embedded"
       - "doc"
       - "coverage"
     steps:
