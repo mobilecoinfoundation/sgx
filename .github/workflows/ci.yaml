@@ -149,7 +149,6 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2023-01-04
     runs-on: ubuntu-22.04
     needs:
       - "lint"
@@ -182,7 +181,6 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2023-01-04
         os:
           - ubuntu-22.04
           - windows-latest
@@ -274,7 +272,7 @@ jobs:
           CFLAGS: "-isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers -isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers/tlibc"
         run: |-
           env
-          cross +nightly-2023-01-04 test \
+          cross +nightly-2023-03-08 test \
             -Z build-std=core \
             --target ${{ matrix.target }} \
             --release \
