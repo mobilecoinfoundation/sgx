@@ -37,7 +37,7 @@ impl Attributes {
 
 /// Miscellaneous select bits for target enclave. Reserved for future extension.
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct MiscellaneousSelect(sgx_misc_select_t);
 
 new_type_accessors_impls! {
