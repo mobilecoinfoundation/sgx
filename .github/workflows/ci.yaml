@@ -215,7 +215,7 @@ jobs:
             os: macos-latest
           # FIXME: Add self-hosted M1 runner until https://github.com/github/roadmap/issues/528
           #        is fixed.
-    runs-on: ${{ strategy.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
@@ -332,7 +332,14 @@ jobs:
         # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
         # The FFI bindings crates always report 100% because they have no code
-        run: unset SGX_AESM_ADDR && cargo llvm-cov --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
+        run: |-
+          unset SGX_AESM_ADDR
+          cargo llvm-cov \
+            --features "sim alloc" \
+            --ignore-filename-regex '\/sys/src/lib\.rs' \
+            --workspace \
+            --lcov \
+            --output-path lcov.info
       - uses: codecov/codecov-action@v3
         with:
           files: lcov.info
