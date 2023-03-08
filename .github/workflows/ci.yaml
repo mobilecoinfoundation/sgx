@@ -220,7 +220,7 @@ jobs:
           target: ${{ matrix.target }}
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
-        run: |
+        run: |-
           unset SGX_AESM_ADDR
           cargo +${{ matrix.rust }} test \
             --target ${{ matrix.target }} \
