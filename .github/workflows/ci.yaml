@@ -143,7 +143,7 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
 
-  # Test the crates which are supposed to run in/around an enclave
+  # All our crates are supposed to work on x86_64
   test-intel:
     strategy:
       matrix:
@@ -154,6 +154,7 @@ jobs:
     needs:
       - "lint"
     steps:
+      - run: env
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
@@ -169,11 +170,9 @@ jobs:
       - name: cargo test
         run: |
           unset SGX_AESM_ADDR
-          cargo +${{ matrix.rust }} test \
-            --release \
-            --features="sim alloc"
+          cargo +${{ matrix.rust }} test --release --features="sim alloc"
 
-  # Build and test the crates that apps are supposed to use
+  # Only the types crates are intended to be used on non-intel platforms
   test-crossplatform:
     needs:
       - "lint"
