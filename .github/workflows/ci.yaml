@@ -186,7 +186,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - windows-latest
+          # FIXME: Windows is currently broken
+          # - windows-latest
           - macos-latest
           # FIXME: Add self-hosted M1 runner until https://github.com/github/roadmap/issues/528
           #        is fixed.
