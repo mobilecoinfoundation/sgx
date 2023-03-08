@@ -260,7 +260,7 @@ jobs:
           toolchain: nightly-2022-01-04
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
-      - run: cargo +nightly-2023-03-08 install cargo-cross
+      - run: cargo install cargo-cross
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
         # Some notes on this build command:
