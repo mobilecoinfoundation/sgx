@@ -258,9 +258,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.MC_NIGHTLY }}
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
-      - uses: RustCrypto/actions/cross-install@master
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
         # Some notes on this build command:
@@ -271,7 +270,7 @@ jobs:
         env:
           CFLAGS: "-isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers -isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers/tlibc"
         run: |-
-          cross +${{ env.MC_NIGHTLY }} build \
+          cargo +${{ env.MC_NIGHTLY }} build \
             -Z build-std=core \
             --target ${{ matrix.target }} \
             --release \
