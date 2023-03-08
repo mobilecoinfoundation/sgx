@@ -261,7 +261,7 @@ jobs:
           toolchain: ${{ env.MC_NIGHTLY }}
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
-      - run: cargo +${{ env.MC_NIGHTLY }} install cargo-cross
+      - run: cargo install cargo-cross
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
         # Some notes on this build command:
