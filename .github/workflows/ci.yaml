@@ -145,7 +145,7 @@ jobs:
 
   # All our crates are supposed to work on x86_64
   test-intel:
-    fail-fast: false
+    fast-fail: false
     strategy:
       matrix:
         rust:
@@ -183,7 +183,7 @@ jobs:
   test-desktop:
 >>>>>>> 8804d00 (Just do windows/mac for now)
     strategy:
-      fail-fast: false
+      fast-fail: false
       matrix:
         os:
           - windows-latest
