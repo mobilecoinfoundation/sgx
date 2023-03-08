@@ -199,6 +199,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
+        shell: bash
         run: |-
           cargo +${{ matrix.rust }} test \
             --release \
