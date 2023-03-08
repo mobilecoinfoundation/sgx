@@ -225,7 +225,6 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
         run: |-
-          unset SGX_AESM_ADDR
           cargo +${{ matrix.rust }} test \
             --target ${{ matrix.target }} \
             --release \
@@ -265,7 +264,7 @@ jobs:
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
-      - name: cargo test
+      - name: cargo build
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
         # - The vendored `tlibc` is used to get a compilable `time.h` for the target.
