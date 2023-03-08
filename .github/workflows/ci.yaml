@@ -272,13 +272,10 @@ jobs:
         env:
           CFLAGS: "-isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers -isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers/tlibc"
         run: |-
-          env
-          cross +${{ env.MC_NIGHTLY }} test \
+          cross +${{ env.MC_NIGHTLY }} build \
             -Z build-std=core \
-            -Z sparse-registry \
             --target ${{ matrix.target }} \
             --release \
-            --features="sim" \
             -p mc-sgx-capable-sys-types \
             -p mc-sgx-capable-types \
             -p mc-sgx-core-sys-types \
