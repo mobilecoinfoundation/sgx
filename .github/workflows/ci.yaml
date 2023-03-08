@@ -145,6 +145,7 @@ jobs:
 
   # All our crates are supposed to work on x86_64
   test-intel:
+    fail-fast: false
     strategy:
       matrix:
         rust:
@@ -182,15 +183,16 @@ jobs:
   test-desktop:
 >>>>>>> 8804d00 (Just do windows/mac for now)
     strategy:
+      fail-fast: false
       matrix:
-        rust:
-          - stable
-          - beta
         os:
           - windows-latest
           - macos-latest
           # FIXME: Add self-hosted M1 runner until https://github.com/github/roadmap/issues/528
           #        is fixed.
+        rust:
+          - stable
+          - beta
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
