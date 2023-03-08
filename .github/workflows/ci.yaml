@@ -259,9 +259,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.MC_NIGHTLY }}
-          targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
+          targets: ${{ matrix.target }}
           components: rust-src
-      - run: cargo install -Z sparse-registry cargo-cross
+      - uses: RustCrypto/actions/cross-install@master
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
         # Some notes on this build command:
