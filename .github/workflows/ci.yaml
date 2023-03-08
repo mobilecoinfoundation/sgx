@@ -172,47 +172,23 @@ jobs:
           unset SGX_AESM_ADDR
           cargo +${{ matrix.rust }} test --release --features="sim alloc"
 
+<<<<<<< HEAD
   # Only the types crates are intended to be used on non-intel platforms
   test-crossplatform:
     needs:
       - "lint"
+=======
+  # Unit-test types crates on windows/mac
+  test-desktop:
+>>>>>>> 8804d00 (Just do windows/mac for now)
     strategy:
       matrix:
         rust:
           - stable
           - beta
         os:
-          - ubuntu-22.04
           - windows-latest
           - macos-latest
-        include:
-          # PC
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          # Android
-          - target: aarch64-linux-android
-            os: ubuntu-22.04
-          - target: armv7-linux-androideabi
-            os: ubuntu-22.04
-          - target: i686-linux-android
-            os: ubuntu-22.04
-          - target: x86_64-linux-android
-            os: ubuntu-22.04
-          # Apple
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-apple-ios-sim
-            os: macos-latest
-          - target: aarch64-apple-ios-macabi
-            os: macos-latest
-          - target: aarch64-apple-ios
-            os:  macos-latest
-          - target: x86_64-apple-ios-macabi
-            os: macos-latest
-          - target: x86_64-apple-ios
-            os: macos-latest
-          - target: aarch64-apple-ios
-            os: macos-latest
           # FIXME: Add self-hosted M1 runner until https://github.com/github/roadmap/issues/528
           #        is fixed.
     runs-on: ${{ matrix.os }}
@@ -221,12 +197,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
       - uses: r7kamura/rust-problem-matchers@v1
       - name: cargo test
         run: |-
           cargo +${{ matrix.rust }} test \
-            --target ${{ matrix.target }} \
             --release \
             --features="alloc" \
             -p mc-sgx-capable-sys-types \
@@ -355,7 +329,7 @@ jobs:
       - "clippy"
       - "test"
       - "test-intel"
-      - "test-crossplatform"
+      - "test-desktop"
       - "build-embedded"
       - "doc"
       - "coverage"
