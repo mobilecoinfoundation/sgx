@@ -136,7 +136,7 @@ pub trait BaseQuote {
         let bytes = self.raw_quote().bytes[2..4]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `sign_type`");
-        sgx_quote_sign_type_t(u16::from_le_bytes(bytes) as u32).try_into()
+        sgx_quote_sign_type_t(u16::from_le_bytes(bytes).into()).try_into()
     }
 
     /// EPID group id
