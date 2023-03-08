@@ -217,7 +217,7 @@ jobs:
             -p mc-sgx-urts-sys-types
 
   # Android
-  test-android-tier3:
+  test-android-tier2:
     strategy:
       fail-fast: false
       matrix:
@@ -229,7 +229,7 @@ jobs:
           - armv7-linux-androideabi
           - i686-linux-android
           - x86_64-linux-android
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
