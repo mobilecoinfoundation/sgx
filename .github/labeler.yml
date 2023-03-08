@@ -10,3 +10,9 @@ github_actions:
   - '.github/workflows/**'
   - '.github/labeler.yml'
   - '.github/triage-labeler.yml'
+
+python:
+  - '**/*.py'
+  - '**/poetry.lock'
+  - '**/pyproject.toml'
+  - '**/requirements.txt'

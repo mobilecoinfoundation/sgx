@@ -12,7 +12,7 @@ env:
   CARGO_UNSTABLE_SPARSE_REGISTRY: true
 
 jobs:
-  rustfmt:
+  lint:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -21,10 +21,6 @@ jobs:
           components: rustfmt
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo fmt --all -- --check
-
-  markdown-lint:
-    runs-on: ubuntu-22.04
-    steps:
       - uses: actions/checkout@v3
       - uses: xt0rted/markdownlint-problem-matcher@v2
       - uses: DavidAnson/markdownlint-cli2-action@v9
@@ -100,8 +96,7 @@ jobs:
   deny-advisories:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
@@ -114,8 +109,7 @@ jobs:
   deny-bans-licenses-sources:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
@@ -128,8 +122,7 @@ jobs:
   sort:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -139,8 +132,7 @@ jobs:
   clippy:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     strategy:
       matrix:
         rust:
@@ -163,8 +155,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     strategy:
       matrix:
         rust:
@@ -188,8 +179,7 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     strategy:
       matrix:
         rust:
@@ -217,8 +207,7 @@ jobs:
   doc:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     strategy:
       matrix:
         rust:
@@ -237,8 +226,7 @@ jobs:
   coverage:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     steps:
       - uses: actions/checkout@v3
       - uses: mobilecoinfoundation/actions/sgxsdk@main
@@ -266,8 +254,7 @@ jobs:
   build-no-alloc:
     runs-on: ubuntu-22.04
     needs:
-      - "rustfmt"
-      - "markdown-lint"
+      - "lint"
     strategy:
       matrix:
         target:
