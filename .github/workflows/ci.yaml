@@ -261,8 +261,6 @@ jobs:
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
-      - name: set CFLAGS
-        run: echo "CFLAGS=\"-isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers -isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers/tlibc\"" >> $GITHUB_ENV
       - name: cargo test
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
@@ -270,7 +268,7 @@ jobs:
         # - In the unlikely event that the target was installed with rustup, this would error out with
         #   duplicate core symbols due to `-Z build-std=core`.
         run: |-
-          env
+          CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" \
           cargo +${{ env.MC_NIGHTLY }} build \
             -Z build-std=core \
             --target ${{ matrix.target }} \
