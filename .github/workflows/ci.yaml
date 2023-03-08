@@ -165,7 +165,9 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: |
+      - run: env
+      - name: cargo test
+        run: |
           unset SGX_AESM_ADDR
           cargo +${{ matrix.rust }} test \
             --release \
@@ -219,7 +221,8 @@ jobs:
           toolchain: ${{ matrix.rust }}
           target: ${{ matrix.target }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: |
+      - name: cargo test
+        run: |
           unset SGX_AESM_ADDR
           cargo +${{ matrix.rust }} test \
             --target ${{ matrix.target }} \
@@ -261,7 +264,7 @@ jobs:
           components: rust-src
       - run: cargo install cargo-cross
       - uses: r7kamura/rust-problem-matchers@v1
-      - name: Test types without alloc on various platfroms
+      - name: cargo test
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
         # - The vendored `tlibc` is used to get a compilable `time.h` for the target.
@@ -270,6 +273,7 @@ jobs:
         env:
           CFLAGS: "-isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers -isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers/tlibc"
         run: |-
+          env
           cross +nightly-2023-01-04 test \
             -Z build-std=core \
             --target ${{ matrix.target }} \
