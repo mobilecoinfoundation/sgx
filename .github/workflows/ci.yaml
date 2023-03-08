@@ -9,7 +9,6 @@ on:
 env:
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-Dwarnings"
-  CARGO_UNSTABLE_SPARSE_REGISTRY: true
 
 jobs:
   lint:
