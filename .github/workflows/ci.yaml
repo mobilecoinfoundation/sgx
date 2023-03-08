@@ -228,7 +228,7 @@ jobs:
           cargo +${{ matrix.rust }} test \
             --target ${{ matrix.target }} \
             --release \
-            --features="sim alloc" \
+            --features="alloc" \
             -p mc-sgx-capable-sys-types \
             -p mc-sgx-capable-types \
             -p mc-sgx-core-sys-types \
