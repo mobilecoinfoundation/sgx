@@ -270,6 +270,7 @@ jobs:
         env:
           CFLAGS: "-isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers -isystem${{ env.GITHUB_WORKSPACE }}/core/build/headers/tlibc"
         run: |-
+          env
           cargo +${{ env.MC_NIGHTLY }} build \
             -Z build-std=core \
             --target ${{ matrix.target }} \
