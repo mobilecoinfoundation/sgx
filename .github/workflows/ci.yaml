@@ -217,7 +217,7 @@ jobs:
             -p mc-sgx-urts-sys-types
 
   # Android
-  test-android32:
+  test-android:
     strategy:
       fail-fast: false
       matrix:
@@ -239,6 +239,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: android-actions/setup-android@v2
+      - run: |-
+          export ANDROID_VERSION=31
+          export ANDROID_BUILD_TOOLS_VERSION=32.0.0
+          ${ANDROID_HOME}/cmdline-tools/tools/bin/sdkmanager --install \
+            "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
+            "platforms;android-${ANDROID_VERSION}" \
+            "ndk-bundle"
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
