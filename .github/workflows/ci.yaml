@@ -250,6 +250,8 @@ jobs:
           ls -l ${ANDROID_NDK}/toolchains/llvm
           ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt
           ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64
+          ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot
+          echo "Done"
           exit -1
 
           # if [[ "x${{ matrix.target }}" == "xaarch64-linux-android" ]] || [[ "x${{ matrix.target }}" == "x86_64-linux-android" ]]; then
