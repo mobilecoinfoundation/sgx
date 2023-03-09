@@ -217,7 +217,7 @@ jobs:
             -p mc-sgx-urts-sys-types
 
   # Android
-  test-android-tier2:
+  test-android32:
     strategy:
       fail-fast: false
       matrix:
@@ -230,6 +230,9 @@ jobs:
           - i686-linux-android
           - x86_64-linux-android
     runs-on: ubuntu-22.04
+    env:
+      API_LEVEL_32BIT: 19
+      API_LEVEL_64BIT: 21 
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -243,28 +246,49 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - name: setup env
         run: |-
-          env
-      # - name: cargo test
-      #   run: |-
-      #     cargo +${{ matrix.rust }} test \
-      #       --target ${{ matrix.target }}
-      #       --release \
-      #       --features="alloc" \
-      #       -p mc-sgx-capable-sys-types \
-      #       -p mc-sgx-capable-types \
-      #       -p mc-sgx-core-sys-types \
-      #       -p mc-sgx-core-types \
-      #       -p mc-sgx-dcap-ql-sys-types \
-      #       -p mc-sgx-dcap-ql-types \
-      #       -p mc-sgx-dcap-quoteverify-sys-types \
-      #       -p mc-sgx-dcap-quoteverify-types \
-      #       -p mc-sgx-dcap-sys-types \
-      #       -p mc-sgx-dcap-types \
-      #       -p mc-sgx-tcrypto-sys-types \
-      #       -p mc-sgx-tservice-sys-types \
-      #       -p mc-sgx-tservice-types \
-      #       -p mc-sgx-tstdc-sys-types \
-      #       -p mc-sgx-urts-sys-types
+          if [[ "x${{ matrix.target }}" == "xaarch64-linux-android" ]] || [[ "x${{ matrix.target }}" == "x86_64-linux-android" ]]; then
+            echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
+          else
+            echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
+          fi
+
+          export MARKER="$RANDOM"
+          cat <<EOF_${MARKER} >> $GITHUB_ENV
+          ISYSROOT=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+          ISYSTEM=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/${{ matrix.target }}"
+          CXX="${{ matrix.target }}${API_LEVEL}-clang++"
+          CXX="${{ matrix.target }}${API_LEVEL}-clang"
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=aarch64-linux-android${API_LEVEL}-clang
+	        CARGO_TARGET_AARCH64_LINUX_ANDROID_AR=aarch64-linux-android-ar
+          CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=armv7a-linux-androideabi${API_LEVEL}-clang
+	        CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_AR=arm-linux-android-ar
+          CARGO_TARGET_I686_LINUX_ANDROID_LINKER=i686-linux-android${API_LEVEL}-clang
+	        CARGO_TARGET_I686_LINUX_ANDROID_AR=i686-linux-android-ar
+          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=x86_64-linux-android${API_LEVEL}-clang
+	        CARGO_TARGET_X86_64_LINUX_ANDROID_AR=x86_64-linux-android-ar
+          CMAKE_TARGET_OVERRIDE=${{ matrix.target}}${API_LEVEL}
+          EOF_${MARKER}
+      - name: cargo test
+        run: |-
+          cargo +${{ matrix.rust }} test \
+            --target ${{ matrix.target }}
+            --release \
+            --features="alloc" \
+            -p mc-sgx-capable-sys-types \
+            -p mc-sgx-capable-types \
+            -p mc-sgx-core-sys-types \
+            -p mc-sgx-core-types \
+            -p mc-sgx-dcap-ql-sys-types \
+            -p mc-sgx-dcap-ql-types \
+            -p mc-sgx-dcap-quoteverify-sys-types \
+            -p mc-sgx-dcap-quoteverify-types \
+            -p mc-sgx-dcap-sys-types \
+            -p mc-sgx-dcap-types \
+            -p mc-sgx-tcrypto-sys-types \
+            -p mc-sgx-tservice-sys-types \
+            -p mc-sgx-tservice-types \
+            -p mc-sgx-tstdc-sys-types \
+            -p mc-sgx-urts-sys-types
         
 
   # Build on platforms which do not support alloc
