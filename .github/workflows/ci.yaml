@@ -246,7 +246,8 @@ jobs:
       - name: setup env
         run: |-
           env | grep -i android
-          which sdkmanager
+          ls -l $ANDROID_NDK
+          exit -1
 
           # if [[ "x${{ matrix.target }}" == "xaarch64-linux-android" ]] || [[ "x${{ matrix.target }}" == "x86_64-linux-android" ]]; then
           #   echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
@@ -254,7 +255,7 @@ jobs:
           #   echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
           # fi
 
-          # ISYSROOT="${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+          # ISYSROOT="${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64"
           # export MARKER="$RANDOM"
           # cat <<EOF_${MARKER} >> $GITHUB_ENV
           # ISYSROOT="${ISYSROOT}"
