@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.5.0] - 2023-03-08
+
 ### Added
 
 - `BitAnd` implementation for `mc_sgx_core_types::ReportData`.
@@ -122,7 +124,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.3.0...v0.4.0

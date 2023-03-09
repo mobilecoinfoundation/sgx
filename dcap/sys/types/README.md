@@ -17,5 +17,5 @@ FFI type definitions used by various DCAP libraries.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-sys-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-sys-types/0.4.2/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-sys-types/0.4.2
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-sys-types/0.5.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-sys-types/0.5.0
