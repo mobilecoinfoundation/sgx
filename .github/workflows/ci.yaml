@@ -232,7 +232,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       API_LEVEL_32BIT: 19
-      API_LEVEL_64BIT: 21 
+      API_LEVEL_64BIT: 21
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -246,19 +246,15 @@ jobs:
       - name: setup env
         run: |-
           env | grep -i android
-          ls -l ${ANDROID_NDK}/toolchains
-          ls -l ${ANDROID_NDK}/toolchains/llvm
-          ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt
-          ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64
-          ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot
+          ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr
           echo "Done"
           exit -1
 
-          # if [[ "x${{ matrix.target }}" == "xaarch64-linux-android" ]] || [[ "x${{ matrix.target }}" == "x86_64-linux-android" ]]; then
-          #   echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
-          # else
-          #   echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
-          # fi
+          if [[ "x${{ matrix.target }}" == "xaarch64-linux-android" ]] || [[ "x${{ matrix.target }}" == "x86_64-linux-android" ]]; then
+            echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
+          else
+            echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
+          fi
 
           # ISYSROOT="${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64"
           # export MARKER="$RANDOM"
