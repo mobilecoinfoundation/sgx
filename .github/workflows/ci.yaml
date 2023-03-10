@@ -229,10 +229,9 @@ jobs:
           - armv7-linux-androideabi
           - i686-linux-android
           - x86_64-linux-android
-    runs-on: ubuntu-22.04
     env:
-      API_LEVEL_32BIT: 19
-      API_LEVEL_64BIT: 21
+      ANDROID_API_LEVEL: 33
+    runs-on: ubuntu-22.04
     needs:
       - "rustfmt"
       - "markdown-lint"
@@ -245,56 +244,42 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - name: setup env
         run: |-
-          env | grep -i android
-          ls -lR ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64
-          echo "Done"
-          exit -1
+          export BASE="${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64"
+          export CC="${BASE}/bin/${{ matrix.target }}${ANDROID_API_LEVEL}-clang"
+          export SCREAMING_TARGET="$(echo "${{ matrix.target }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
 
-          if [[ "x${{ matrix.target }}" == "xaarch64-linux-android" ]] || [[ "x${{ matrix.target }}" == "x86_64-linux-android" ]]; then
-            echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
-          else
-            echo API_LEVEL=${API_LEVEL_64BIT} >> $GITHUB_ENV
-          fi
+          export MARKER="$RANDOM"
+          cat <<EOF_${MARKER} >> $GITHUB_ENV
+          CXX="${BASE}/bin/${{ matrix.target }}${ANDROID_API_LEVEL}-clang++"
+          CC="${CC}"
 
-          # ISYSROOT="${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64"
-          # export MARKER="$RANDOM"
-          # cat <<EOF_${MARKER} >> $GITHUB_ENV
-          # ISYSROOT="${ISYSROOT}"
-          # ISYSTEM=${ISYSROOT}/usr/include/${{ matrix.target }}"
-          # CXX="${{ matrix.target }}${API_LEVEL}-clang++"
-          # CXX="${{ matrix.target }}${API_LEVEL}-clang"
-          # CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=aarch64-linux-android${API_LEVEL}-clang
-          # CARGO_TARGET_AARCH64_LINUX_ANDROID_AR=aarch64-linux-android-ar
-          # CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=armv7a-linux-androideabi${API_LEVEL}-clang
-          # CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_AR=arm-linux-android-ar
-          # CARGO_TARGET_I686_LINUX_ANDROID_LINKER=i686-linux-android${API_LEVEL}-clang
-          # CARGO_TARGET_I686_LINUX_ANDROID_AR=i686-linux-android-ar
-          # CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=x86_64-linux-android${API_LEVEL}-clang
-          # CARGO_TARGET_X86_64_LINUX_ANDROID_AR=x86_64-linux-android-ar
-          # CMAKE_TARGET_OVERRIDE=${{ matrix.target}}${API_LEVEL}
-          # BINDGEN_EXTRA_CLANG_ARGS="--sysroot ${ISYSROOT}"
-          # EOF_${MARKER}
-      # - name: cargo test
-      #   run: |-
-      #     cargo +${{ matrix.rust }} test \
-      #       --target ${{ matrix.target }}
-      #       --release \
-      #       --features="alloc" \
-      #       -p mc-sgx-capable-sys-types \
-      #       -p mc-sgx-capable-types \
-      #       -p mc-sgx-core-sys-types \
-      #       -p mc-sgx-core-types \
-      #       -p mc-sgx-dcap-ql-sys-types \
-      #       -p mc-sgx-dcap-ql-types \
-      #       -p mc-sgx-dcap-quoteverify-sys-types \
-      #       -p mc-sgx-dcap-quoteverify-types \
-      #       -p mc-sgx-dcap-sys-types \
-      #       -p mc-sgx-dcap-types \
-      #       -p mc-sgx-tcrypto-sys-types \
-      #       -p mc-sgx-tservice-sys-types \
-      #       -p mc-sgx-tservice-types \
-      #       -p mc-sgx-tstdc-sys-types \
-      #       -p mc-sgx-urts-sys-types
+          CARGO_TARGET_${SCREAMING_TARGET}_LINKER="${CC}"
+          CARGO_TARGET_${SCREAMING_TARGET}_AR=llvm-ar
+
+          CMAKE_TARGET_OVERRIDE=${{ matrix.target}}${API_LEVEL}
+
+          EOF_${MARKER}
+      - name: cargo test
+        run: |-
+          cargo +${{ matrix.rust }} test \
+            --target ${{ matrix.target }}
+            --release \
+            --features="alloc" \
+            -p mc-sgx-capable-sys-types \
+            -p mc-sgx-capable-types \
+            -p mc-sgx-core-sys-types \
+            -p mc-sgx-core-types \
+            -p mc-sgx-dcap-ql-sys-types \
+            -p mc-sgx-dcap-ql-types \
+            -p mc-sgx-dcap-quoteverify-sys-types \
+            -p mc-sgx-dcap-quoteverify-types \
+            -p mc-sgx-dcap-sys-types \
+            -p mc-sgx-dcap-types \
+            -p mc-sgx-tcrypto-sys-types \
+            -p mc-sgx-tservice-sys-types \
+            -p mc-sgx-tservice-types \
+            -p mc-sgx-tstdc-sys-types \
+            -p mc-sgx-urts-sys-types
         
 
   # Build on platforms which do not support alloc
@@ -423,5 +408,5 @@ jobs:
           url: ${{ github.repository_url }}/actions/runs/${{ github.run_id }}
           description: |
             [@${{ github.pusher }}](${{ github.url }}/${{ github.pusher }}] was the last one to touch ${{ github.repository }}, is all I'm saying...
-          avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
+          avatar_url: "https://media0.giphy.com/media/oe${API_LEVEL}xf3B50fsc/200.gif"
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
