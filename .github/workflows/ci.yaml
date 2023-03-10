@@ -93,7 +93,12 @@ jobs:
             | ----- | ------- | ------------- | --- | -------------- | ------ | ----- |
             ${{ steps.cargo-crev.outputs.UNREVIEWED_DEPENDENCIES }}
 
-  deny-advisories:
+  deny:
+    strategy:
+      matrix:
+        check:
+          - advisories
+          - bans licenses sources
     runs-on: ubuntu-22.04
     needs:
       - "lint"
@@ -104,20 +109,7 @@ jobs:
           cache-on-failure: "true"
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
-          command: check advisories
-
-  deny-bans-licenses-sources:
-    runs-on: ubuntu-22.04
-    needs:
-      - "lint"
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: "true"
-      - uses: EmbarkStudios/cargo-deny-action@v1
-        with:
-          command: check bans licenses sources
+          command: check ${{ matrix.check }}
 
   sort:
     runs-on: ubuntu-22.04
@@ -287,17 +279,15 @@ jobs:
     runs-on: ubuntu-latest
     if: failure() && ${{ github.event_name }} == 'push'
     needs:
-      - rustfmt
-      - markdown-lint
-      - deny-advisories
-      - deny-bans-licenses-sources
-      - sort
-      - clippy
-      - build
-      - build-no-alloc
-      - test
-      - doc
-      - coverage
+      - "lint"
+      - "deny"
+      - "sort"
+      - "clippy"
+      - "build"
+      - "build-no-alloc"
+      - "test"
+      - "doc"
+      - "coverage"
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
