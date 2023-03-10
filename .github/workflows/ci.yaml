@@ -246,7 +246,7 @@ jobs:
       - name: setup env
         run: |-
           env | grep -i android
-          ls -l ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr
+          ls -lR ${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64
           echo "Done"
           exit -1
 
