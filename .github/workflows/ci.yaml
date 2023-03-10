@@ -254,9 +254,11 @@ jobs:
           CC="${CC}"
 
           CARGO_TARGET_${SCREAMING_TARGET}_LINKER="${CC}"
-          CARGO_TARGET_${SCREAMING_TARGET}_AR=llvm-ar
+          CARGO_TARGET_${SCREAMING_TARGET}_AR="llvm-ar"
 
-          CMAKE_TARGET_OVERRIDE=${{ matrix.target}}${API_LEVEL}
+          CMAKE_TARGET_OVERRIDE="${{ matrix.target}}${API_LEVEL}"
+
+          BINDGEN_EXTRA_CLANG_ARGS="--sysroot ${BASE}/sysroot"
 
           EOF_${MARKER}
       - name: cargo test
