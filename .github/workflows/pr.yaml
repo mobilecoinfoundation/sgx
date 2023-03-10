@@ -28,6 +28,6 @@ jobs:
               "1000": "XXL",
               "1500": "OHLAWDHECOMIN"
             }
-    - uses: actions/labeler@v4
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: actions/labeler@v4
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
