@@ -4,20 +4,16 @@ on:
   pull_request:
 
 jobs:
-  add-to-project:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/add-to-project@v0.4.1
-        with:
-          github-token: "${{ secrets.ADD_TO_PROJECT_PAT }}"
-          project-url: https://github.com/orgs/mobilecoinfoundation/projects/5
-
-  size-label:
+  update-metadata:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
     steps:
+      - uses: actions/add-to-project@v0.4.1
+        with:
+          github-token: "${{ secrets.MEOWBLECOIN_PAT }}"
+          project-url: https://github.com/orgs/mobilecoinfoundation/projects/7
       - uses: pascalgn/size-label-action@v0.4.3
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
@@ -32,13 +28,6 @@ jobs:
               "1000": "XXL",
               "1500": "OHLAWDHECOMIN"
             }
-
-  label:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-    - uses: actions/labeler@v4
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: actions/labeler@v4
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
