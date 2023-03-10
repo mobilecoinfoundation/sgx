@@ -282,6 +282,7 @@ jobs:
       - "lint"
       - "deny"
       - "sort"
+      - "crev"
       - "clippy"
       - "build"
       - "build-no-alloc"
