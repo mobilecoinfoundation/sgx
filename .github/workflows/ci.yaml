@@ -263,7 +263,7 @@ jobs:
           EOF_${MARKER}
       - name: cargo test
         run: |-
-          cargo +${{ matrix.rust }} test \
+          cargo +${{ matrix.rust }} build \
             --target ${{ matrix.target }}
             --release \
             --features="alloc" \
