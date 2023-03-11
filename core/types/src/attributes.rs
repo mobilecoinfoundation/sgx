@@ -4,11 +4,23 @@
 
 use crate::new_type_accessors_impls;
 use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
+use subtle::{ConstantTimeEq, Choice};
 
 /// Attributes of the enclave
 #[repr(transparent)]
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Copy)]
 pub struct Attributes(sgx_attributes_t);
+
+impl ConstantTimeEq for Attributes {
+    fn ct_eq(&self, other: &Self) -> Choice {
+        let result1 = self.0.flags.ct_eq(&other.0.flags);
+        let result2 = self.0.xfrm.ct_eq(&other.0.xfrm);
+        return result1 & result2
+
+    }
+}
+
+
 new_type_accessors_impls! {
     Attributes, sgx_attributes_t;
 }
@@ -58,6 +70,19 @@ mod test {
     extern crate std;
     use super::*;
     use yare::parameterized;
+
+    #[test]
+    fn ct_time() {
+        let sgx_attributes = sgx_attributes_t { flags: 1, xfrm: 2 };
+        let attributes: Attributes = sgx_attributes.into();
+        let sgx_attribute = sgx_attributes_t { flags: 1, xfrm: 2 };
+        let attribute: Attributes = sgx_attribute.into();
+
+        assert_eq!(attributes.0, sgx_attributes);
+        let b = attributes.ct_eq(&attribute);
+        let p: bool = From::from(b);
+        assert!(p);
+    }
 
     #[test]
     fn sgx_attributes_to_attributes() {

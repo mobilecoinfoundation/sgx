@@ -9,6 +9,8 @@ use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,
     sgx_quote_nonce_t, sgx_quote_sign_type_t, sgx_update_info_bit_t, SGX_PLATFORM_INFO_SIZE,
 };
+use subtle::{ConstantTimeEq, Choice};
+
 
 /// Quoting Enclave Report Info
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]

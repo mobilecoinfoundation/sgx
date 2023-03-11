@@ -6,6 +6,7 @@
 
 use crate::impl_newtype_for_bytestruct;
 use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
+use subtle::{ConstantTimeEq, Choice};
 
 /// An opaque type for MRENCLAVE values
 ///
@@ -16,6 +17,12 @@ use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
 #[repr(transparent)]
 pub struct MrEnclave(sgx_measurement_t);
 
+impl ConstantTimeEq for MrEnclave {
+    fn ct_eq(&self, other: &Self) -> Choice {
+        self.0.m.ct_eq(&other.0.m)
+    }
+}
+
 /// An opaque type for MRSIGNER values.
 ///
 /// A MRSIGNER value is a cryptographic hash of the public key an enclave
@@ -23,6 +30,12 @@ pub struct MrEnclave(sgx_measurement_t);
 #[derive(Default, Debug, Clone, Eq, PartialEq)]
 #[repr(transparent)]
 pub struct MrSigner(sgx_measurement_t);
+
+impl ConstantTimeEq for MrSigner {
+    fn ct_eq(&self, other: &Self) -> Choice {
+        self.0.m.ct_eq(&other.0.m)
+    }
+}
 
 impl_newtype_for_bytestruct! {
     MrEnclave, sgx_measurement_t, SGX_HASH_SIZE, m;
@@ -32,6 +45,20 @@ impl_newtype_for_bytestruct! {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn ct_eq() {
+        let sgx_mr_enclave = sgx_measurement_t { m: [5u8; 32] };
+        let sgx_mr_enclav = sgx_measurement_t { m: [5u8; 32] };
+        let mr_enclave: MrEnclave = sgx_mr_enclave.into();
+        let mr_enclav: MrEnclave = sgx_mr_enclav.into();
+        assert_eq!(mr_enclave.0, sgx_mr_enclave);
+        let b = mr_enclave.ct_eq(&mr_enclav);
+        let p: bool = From::from(b);
+        assert!(p);
+    }
+
+
 
     #[test]
     fn from_sgx_mr_enclave() {
