@@ -47,6 +47,7 @@ pub enum KeyName {
 
 bitflags! {
     /// Policy to use for the key derivation
+    #[derive(Debug, Clone, Hash, PartialEq, Eq)]
     pub struct KeyPolicy: u16 {
         /// Derive key using the enclave's ENCLAVE measurement register
         const MRENCLAVE = SGX_KEYPOLICY_MRENCLAVE;
