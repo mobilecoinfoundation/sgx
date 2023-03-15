@@ -2,8 +2,8 @@
 //! Quote types
 
 use crate::{
-    attestation_key::QuoteSignatureKind, impl_newtype_for_bytestruct, new_type_accessors_impls,
-    report::Report, FfiError, IsvSvn, ReportBody, TargetInfo,
+    attestation_key::QuoteSignatureKind, impl_newtype, impl_newtype_for_bytestruct, report::Report,
+    FfiError, IsvSvn, ReportBody, TargetInfo,
 };
 use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,
@@ -32,7 +32,7 @@ impl QuotingEnclaveReportInfo {
     }
 }
 
-new_type_accessors_impls! {
+impl_newtype! {
     QuotingEnclaveReportInfo, sgx_qe_report_info_t;
 }
 
@@ -50,7 +50,7 @@ impl_newtype_for_bytestruct! {
 #[repr(transparent)]
 pub struct UpdateInfoBit(sgx_update_info_bit_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     UpdateInfoBit, sgx_update_info_bit_t;
 }
 
@@ -76,7 +76,7 @@ impl UpdateInfoBit {
 #[repr(transparent)]
 pub struct EpidGroupId(sgx_epid_group_id_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     EpidGroupId, sgx_epid_group_id_t;
 }
 
@@ -114,7 +114,7 @@ pub struct RawQuote<'a> {
 #[repr(transparent)]
 pub struct Version(u16);
 
-new_type_accessors_impls! {
+impl_newtype! {
     Version, u16;
 }
 

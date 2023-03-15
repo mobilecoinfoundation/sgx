@@ -7,7 +7,7 @@ pub(crate) use alloc::vec::Vec;
 /// an SgxWrapperType that don't depend on the contents of the inner
 /// type.
 #[macro_export]
-macro_rules! new_type_accessors_impls {
+macro_rules! newtype_accessors_impls {
     ($($wrapper:ident, $inner:ty;)*) => {$(
         impl AsMut<$inner> for $wrapper {
             fn as_mut(&mut self) -> &mut $inner {
@@ -42,6 +42,23 @@ macro_rules! new_type_accessors_impls {
     )*}
 }
 
+/// Newtype wrapper for a primitive or struct type
+#[macro_export]
+macro_rules! impl_newtype {
+    ($($wrapper:ident, $inner:ty;)*) => {$(
+        $crate::newtype_accessors_impls! {
+            $wrapper, $inner;
+        }
+
+        impl core::fmt::Display for$wrapper {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                core::fmt::Debug::fmt(&self.0, f)
+            }
+        }
+
+    )*}
+}
+
 /// This macro provides common byte-handling operations when the type being
 /// wrapped is a struct containing a single fixed-size array of bytes.
 ///
@@ -50,7 +67,7 @@ macro_rules! new_type_accessors_impls {
 macro_rules! impl_newtype_for_bytestruct {
     ($($wrapper:ident, $inner:ident, $size:ident, $fieldname:ident;)*) => {$(
 
-        $crate::new_type_accessors_impls! {
+        $crate::newtype_accessors_impls! {
             $wrapper, $inner;
         }
 
@@ -100,12 +117,27 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
+        impl core::fmt::Display for $wrapper {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                write!(f, "0x")?;
+                let inner: &[u8] = self.as_ref();
+                for byte in inner {
+                    write!(f, "{:02X}", byte)?;
+                }
+                Ok(())
+            }
+        }
+
     )*}
 }
 
 #[cfg(test)]
 mod test {
+    extern crate std;
+
     use crate::FfiError;
+    use std::format;
+    use std::string::ToString;
     use yare::parameterized;
 
     const FIELD_SIZE: usize = 24;
@@ -177,5 +209,68 @@ mod test {
     fn default() {
         let outer = Outer::default();
         assert_eq!(outer.0.field, [0u8; Outer::SIZE]);
+    }
+
+    #[test]
+    fn newtype_byte_array_display() {
+        let outer = Outer::from([
+            0xABu8, 0x00, 0xcd, 0x12, 0xfe, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0x0a,
+            0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13,
+        ]);
+        assert_eq!(
+            outer.to_string(),
+            "0xAB00CD12FE0102030405060708090A0B0C0D0E0F10111213"
+        );
+    }
+
+    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
+    struct StructInner {
+        field: u32,
+    }
+
+    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
+    #[repr(transparent)]
+    struct StructOuter(StructInner);
+    impl_newtype! {
+        StructOuter, StructInner;
+    }
+
+    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
+    #[repr(transparent)]
+    struct PrimitiveOuter(u32);
+    impl_newtype! {
+        PrimitiveOuter, u32;
+    }
+
+    #[test]
+    fn newtype_for_struct() {
+        let inner = StructInner { field: 30 };
+        let outer: StructOuter = inner.into();
+        assert_eq!(outer.0, inner);
+    }
+
+    #[test]
+    fn display_newtype_for_struct() {
+        let inner = StructInner { field: 20 };
+        let outer: StructOuter = inner.into();
+        assert_eq!(outer.to_string(), "StructInner { field: 20 }");
+    }
+
+    #[test]
+    fn display_newtype_for_struct_alternate() {
+        let inner = StructInner { field: 20 };
+        let outer: StructOuter = inner.into();
+        let expected = r#"
+            StructInner {
+                field: 20,
+            }"#;
+        assert_eq!(format!("\n{outer:#}"), textwrap::dedent(expected));
+    }
+
+    #[test]
+    fn display_newtype_for_primitive() {
+        let inner = 42;
+        let outer: PrimitiveOuter = inner.into();
+        assert_eq!(outer.to_string(), "42");
     }
 }

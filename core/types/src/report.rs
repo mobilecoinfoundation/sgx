@@ -2,8 +2,8 @@
 //! SGX Report
 
 use crate::{
-    config_id::ConfigId, impl_newtype_for_bytestruct, key_request::KeyId, new_type_accessors_impls,
-    Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner,
+    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, key_request::KeyId, Attributes,
+    ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner,
 };
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
@@ -21,7 +21,7 @@ use nom::number::complete::{le_u16, le_u32, le_u64};
 #[repr(transparent)]
 pub struct Mac(sgx_mac_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     Mac, sgx_mac_t;
 }
 
@@ -63,7 +63,7 @@ impl BitAnd for ReportData {
 #[repr(transparent)]
 pub struct FamilyId(sgx_isvfamily_id_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     FamilyId, sgx_isvfamily_id_t;
 }
 
@@ -72,7 +72,7 @@ new_type_accessors_impls! {
 #[repr(transparent)]
 pub struct ExtendedProductId(sgx_isvext_prod_id_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     ExtendedProductId, sgx_isvext_prod_id_t;
 }
 
@@ -81,7 +81,7 @@ new_type_accessors_impls! {
 #[repr(transparent)]
 pub struct IsvProductId(sgx_prod_id_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     IsvProductId, sgx_prod_id_t;
 }
 
@@ -152,7 +152,7 @@ impl ReportBody {
     }
 }
 
-new_type_accessors_impls! {
+impl_newtype! {
     ReportBody, sgx_report_body_t;
 }
 
@@ -242,7 +242,7 @@ impl Report {
     }
 }
 
-new_type_accessors_impls! {
+impl_newtype! {
     Report, sgx_report_t;
 }
 

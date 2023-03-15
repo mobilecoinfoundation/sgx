@@ -2,14 +2,14 @@
 
 //! SGX Attributes types
 
-use crate::new_type_accessors_impls;
+use crate::impl_newtype;
 use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
 
 /// Attributes of the enclave
 #[repr(transparent)]
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Copy)]
 pub struct Attributes(sgx_attributes_t);
-new_type_accessors_impls! {
+impl_newtype! {
     Attributes, sgx_attributes_t;
 }
 
@@ -40,7 +40,7 @@ impl Attributes {
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct MiscellaneousSelect(sgx_misc_select_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     MiscellaneousSelect, sgx_misc_select_t;
 }
 
@@ -49,7 +49,7 @@ new_type_accessors_impls! {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct MiscellaneousAttribute(sgx_misc_attribute_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     MiscellaneousAttribute, sgx_misc_attribute_t;
 }
 

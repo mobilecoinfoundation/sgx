@@ -2,7 +2,7 @@
 //! SGX key request rust types
 
 use crate::{
-    impl_newtype_for_bytestruct, new_type_accessors_impls, Attributes, ConfigSvn, CpuSvn, IsvSvn,
+    impl_newtype, impl_newtype_for_bytestruct, Attributes, ConfigSvn, CpuSvn, IsvSvn,
     MiscellaneousSelect,
 };
 use bitflags::bitflags;
@@ -73,7 +73,7 @@ bitflags! {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct KeyRequest(sgx_key_request_t);
-new_type_accessors_impls! {
+impl_newtype! {
     KeyRequest, sgx_key_request_t;
 }
 
@@ -189,7 +189,7 @@ impl KeyRequestBuilder {
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Key128bit(sgx_key_128bit_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     Key128bit, sgx_key_128bit_t;
 }
 

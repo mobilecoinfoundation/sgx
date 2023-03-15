@@ -1,7 +1,7 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Config ID
 
-use crate::new_type_accessors_impls;
+use crate::impl_newtype;
 use mc_sgx_core_sys_types::{sgx_config_id_t, SGX_CONFIGID_SIZE};
 
 /// Config ID
@@ -9,7 +9,7 @@ use mc_sgx_core_sys_types::{sgx_config_id_t, SGX_CONFIGID_SIZE};
 #[repr(transparent)]
 pub struct ConfigId(sgx_config_id_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     ConfigId, sgx_config_id_t;
 }
 
