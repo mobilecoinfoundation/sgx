@@ -50,9 +50,9 @@ macro_rules! impl_newtype {
             $wrapper, $inner;
         }
 
-        impl core::fmt::Display for$wrapper {
-            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-                core::fmt::Debug::fmt(&self.0, f)
+        impl ::core::fmt::Display for $wrapper {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                ::core::fmt::Debug::fmt(&self.0, f)
             }
         }
 
@@ -91,7 +91,7 @@ macro_rules! impl_newtype_for_bytestruct {
         impl<'bytes> TryFrom<&'bytes [u8]> for $wrapper {
             type Error = $crate::FfiError;
 
-            fn try_from(src: &[u8]) -> core::result::Result<Self, Self::Error> {
+            fn try_from(src: &[u8]) -> ::core::result::Result<Self, Self::Error> {
                 if src.len() < $size {
                     return Err($crate::FfiError::InvalidInputLength);
                 }
@@ -106,7 +106,7 @@ macro_rules! impl_newtype_for_bytestruct {
         impl TryFrom<$crate::macros::Vec<u8>> for $wrapper {
             type Error = $crate::FfiError;
 
-            fn try_from(src: $crate::macros::Vec<u8>) -> core::result::Result<Self, Self::Error> {
+            fn try_from(src: $crate::macros::Vec<u8>) -> ::core::result::Result<Self, Self::Error> {
                 Self::try_from(src.as_slice())
             }
         }
@@ -117,14 +117,25 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
-        impl core::fmt::Display for $wrapper {
-            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-                write!(f, "0x")?;
+        impl ::core::fmt::UpperHex for $wrapper {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 let inner: &[u8] = self.as_ref();
-                for byte in inner {
-                    write!(f, "{:02X}", byte)?;
+                let prefix = if f.alternate() { "0x" } else { "" };
+                let separators = ::core::iter::once(prefix).chain(::core::iter::repeat("_"));
+                let segments = separators.zip(inner.chunks(2));
+                for (separator, chunk) in segments {
+                    write!(f, "{separator}")?;
+                    for byte in chunk {
+                        write!(f, "{:02X}", byte)?;
+                    }
                 }
                 Ok(())
+            }
+        }
+
+        impl ::core::fmt::Display for $wrapper {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                write!(f, "{:#X}", self)
             }
         }
 
@@ -142,12 +153,12 @@ mod test {
 
     const FIELD_SIZE: usize = 24;
 
-    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     struct Inner {
         field: [u8; FIELD_SIZE],
     }
 
-    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Default, Debug, Clone, PartialEq)]
     #[repr(transparent)]
     struct Outer(Inner);
 
@@ -219,23 +230,21 @@ mod test {
         ]);
         assert_eq!(
             outer.to_string(),
-            "0xAB00CD12FE0102030405060708090A0B0C0D0E0F10111213"
+            "0xAB00_CD12_FE01_0203_0405_0607_0809_0A0B_0C0D_0E0F_1011_1213"
         );
     }
 
-    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Debug, Clone, Copy, PartialEq)]
     struct StructInner {
         field: u32,
     }
 
-    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
     #[repr(transparent)]
     struct StructOuter(StructInner);
     impl_newtype! {
         StructOuter, StructInner;
     }
 
-    #[derive(Default, Debug, Clone, Copy, Eq, PartialEq)]
     #[repr(transparent)]
     struct PrimitiveOuter(u32);
     impl_newtype! {
