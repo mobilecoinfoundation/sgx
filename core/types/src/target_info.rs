@@ -2,8 +2,7 @@
 //! SGX TargetInfo
 
 use crate::{
-    config_id::ConfigId, new_type_accessors_impls, Attributes, ConfigSvn, MiscellaneousSelect,
-    MrEnclave,
+    config_id::ConfigId, impl_newtype, Attributes, ConfigSvn, MiscellaneousSelect, MrEnclave,
 };
 use mc_sgx_core_sys_types::sgx_target_info_t;
 
@@ -39,7 +38,7 @@ impl TargetInfo {
     }
 }
 
-new_type_accessors_impls! {
+impl_newtype! {
     TargetInfo, sgx_target_info_t;
 }
 

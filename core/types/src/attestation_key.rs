@@ -2,7 +2,7 @@
 //! Attestation Key types
 
 use crate::{
-    new_type_accessors_impls,
+    impl_newtype,
     report::{ExtendedProductId, FamilyId},
     ConfigId, FfiError,
 };
@@ -49,7 +49,7 @@ impl TryFrom<u32> for Algorithm {
 #[repr(transparent)]
 pub struct Version(u16);
 
-new_type_accessors_impls! {
+impl_newtype! {
     Version, u16;
 }
 
@@ -57,7 +57,7 @@ new_type_accessors_impls! {
 #[repr(transparent)]
 pub struct Id(u16);
 
-new_type_accessors_impls! {
+impl_newtype! {
     Id, u16;
 }
 
@@ -145,7 +145,7 @@ impl AttestationKeyId {
     }
 }
 
-new_type_accessors_impls! {
+impl_newtype! {
     AttestationKeyId, sgx_ql_att_key_id_t;
 }
 
@@ -154,7 +154,7 @@ new_type_accessors_impls! {
 #[repr(transparent)]
 pub struct ServiceProviderId([u8; 16]);
 
-new_type_accessors_impls! {
+impl_newtype! {
     ServiceProviderId, [u8; 16];
 }
 
@@ -180,7 +180,7 @@ impl ExtendedAttestationKeyId {
     }
 }
 
-new_type_accessors_impls! {
+impl_newtype! {
     ExtendedAttestationKeyId, sgx_att_key_id_ext_t;
 }
 

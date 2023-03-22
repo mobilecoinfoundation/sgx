@@ -2,7 +2,7 @@
 
 //! Types specific to the quoting enclave
 
-use mc_sgx_core_types::{new_type_accessors_impls, QuoteNonce, Report, TargetInfo};
+use mc_sgx_core_types::{impl_newtype, QuoteNonce, Report, TargetInfo};
 use mc_sgx_dcap_sys_types::sgx_ql_qe_report_info_t;
 
 /// Report info for the Quoting Enclave
@@ -10,7 +10,7 @@ use mc_sgx_dcap_sys_types::sgx_ql_qe_report_info_t;
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ReportInfo(sgx_ql_qe_report_info_t);
 
-new_type_accessors_impls! {
+impl_newtype! {
     ReportInfo, sgx_ql_qe_report_info_t;
 }
 
