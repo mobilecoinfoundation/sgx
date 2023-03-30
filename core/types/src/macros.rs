@@ -49,13 +49,6 @@ macro_rules! impl_newtype {
         $crate::newtype_accessors_impls! {
             $wrapper, $inner;
         }
-
-        impl ::core::fmt::Display for $wrapper {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                ::core::fmt::Debug::fmt(&self.0, f)
-            }
-        }
-
     )*}
 }
 

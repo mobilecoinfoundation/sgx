@@ -2,8 +2,10 @@
 
 //! SGX Attributes types
 
+use core::fmt::{Display, Formatter};
+use bitflags::bitflags;
 use crate::impl_newtype;
-use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
+use mc_sgx_core_sys_types::{sgx_attributes_t, SGX_CONFIGID_SIZE, sgx_misc_attribute_t, sgx_misc_select_t};
 
 /// Attributes of the enclave
 #[repr(transparent)]
@@ -32,6 +34,36 @@ impl Attributes {
     pub fn set_extended_features_mask(mut self, features_mask: u64) -> Self {
         self.0.xfrm = features_mask;
         self
+    }
+}
+
+impl Display for Attributes {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self
+    }
+}
+
+bitflags! {
+    /// Revocation cause flags
+    #[derive(Deserialize, Serialize)]
+    pub struct AttributeFlags: u64 {
+        /// If set, then the enclave is initialized
+        const SGX_FLAGS_INITTED = 0x0000000000000001;
+        /// If set, then the enclave is debug
+        const SGX_FLAGS_DEBUG   = 0x0000000000000002;
+        /// If set, then the enclave is 64 bit
+        const SGX_FLAGS_MODE64BIT      = 0x0000000000000004;
+        /// set, then the enclave has access to provision key
+        const SGX_FLAGS_PROVISION_KEY  0x0000000000000010ULL;
+#define SGX_FLAGS_EINITTOKEN_KEY 0x0000000000000020ULL     /* If set, then the enclave has access to EINITTOKEN key */
+#define SGX_FLAGS_KSS            0x0000000000000080ULL     /* If set enclave uses KSS */
+#define SGX_FLAGS_NON_CHECK_BITS 0x00FF000000000000ULL     /* BIT[55-48] will not be checked */
+#define SGX_XFRM_LEGACY          0x0000000000000003ULL     /* Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02) */
+#define SGX_XFRM_AVX             0x0000000000000006ULL     /* AVX XFRM which includes AVX state(0x04) and SSE state(0x02) required by AVX */
+#define SGX_XFRM_AVX512          0x00000000000000E6ULL     /* AVX-512 XFRM */
+#define SGX_XFRM_MPX             0x0000000000000018ULL     /* MPX XFRM - not supported */
+#define SGX_XFRM_PKRU            0x0000000000000200ULL     /* PKRU state */
+#define SGX_XFRM_AMX             0x0000000000060000ULL     /* AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000) */
     }
 }
 
