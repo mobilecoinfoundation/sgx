@@ -254,9 +254,7 @@ const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 /// Will first attempt to look at the environment variable `SGX_SDK`, if that
 /// isn't present then the "headers" directory of this crate will be used.
 pub fn sgx_include_dir() -> PathBuf {
-    sgx_sdk_dir()
-        .map(|sdk_path| sdk_path.join("include"))
-        .unwrap_or_else(|| PathBuf::from(CARGO_MANIFEST_DIR).join("headers"))
+    PathBuf::from(CARGO_MANIFEST_DIR).join("headers")
 }
 
 /// Return the SGX include path as a string.
