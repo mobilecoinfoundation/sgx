@@ -35,66 +35,6 @@ impl Attributes {
         self.0.xfrm = features_mask;
         self
     }
-
-    fn is_initted(&self) -> bool {
-        self.is_flag_set(Flags::INITTED.bits())
-    }
-
-    fn is_debug(&self) -> bool {
-        self.is_flag_set(Flags::DEBUG.bits())
-    }
-
-    fn is_mode64(&self) -> bool {
-        self.is_flag_set(Flags::MODE64BIT.bits())
-    }
-
-    fn is_provision_key(&self) -> bool {
-        self.is_flag_set(Flags::PROVISION_KEY.bits())
-    }
-
-    fn is_einitotken_key(&self) -> bool {
-        self.is_flag_set(Flags::EINITTOKEN_KEY.bits())
-    }
-
-    fn is_kss(&self) -> bool {
-        self.is_flag_set(Flags::KSS.bits())
-    }
-
-    fn is_non_check_bits(&self) -> bool {
-        self.is_flag_set(Flags::NON_CHECK_BITS.bits())
-    }
-
-    fn is_xfrm_legacy(&self) -> bool {
-        self.is_flag_set(Xfrm::LEGACY.bits())
-    }
-
-    fn is_xfrm_avx(&self) -> bool {
-        self.is_flag_set(Xfrm::AVX.bits())
-    }
-
-    fn is_xfrm_avx512(&self) -> bool {
-        self.is_flag_set(Xfrm::AVX512.bits())
-    }
-
-    fn is_xfrm_mpx(&self) -> bool {
-        self.is_flag_set(Xfrm::MPX.bits())
-    }
-
-    fn is_xfrm_pkru(&self) -> bool {
-        self.is_flag_set(Xfrm::PKRU.bits())
-    }
-
-    fn is_xfrm_amx(&self) -> bool {
-        self.is_flag_set(Xfrm::AMX.bits())
-    }
-
-    fn is_xfrm_reserved(&self) -> bool {
-        self.is_flag_set(Xfrm::RESERVED.bits())
-    }
-
-    fn is_flag_set(&self, flag: u64) -> bool {
-        (self.0.flags & flag) != 0
-    }
 }
 
 impl Display for Attributes {
