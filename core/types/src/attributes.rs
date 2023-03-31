@@ -101,49 +101,48 @@ impl Attributes {
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        let mut display_string = "The following Attribute flags are set: ".to_string();
-        let mut flags = Vec::new();
+        write!(f, "{}", "The following Attribute flags are set: ")?;
         if self.is_initted() {
-            flags.push("SGX_FLAGS_INITTED");
+            write!(f, "{}", "SGX_FLAGS_INITTED")?;
         }
         if self.is_debug() {
-            flags.push("SGX_FLAGS_DEBUG");
+            write!(f, "{}", "SGX_FLAGS_DEBUG")?;
         }
         if self.is_mode64() {
-            flags.push("SGX_FLAGS_MODE64BIT");
+            write!(f, "{}", "SGX_FLAGS_MODE64BIT")?;
         }
         if self.is_provision_key() {
-            flags.push("SGX_FLAGS_PROVISION_KEY");
+            write!(f, "{}", "SGX_FLAGS_PROVISION_KEY")?;
         }
         if self.is_einitotken_key() {
-            flags.push("SGX_FLAGS_EINITTOKEN_KEY");
+            write!(f, "{}", "SGX_FLAGS_EINITTOKEN_KEY")?;
         }
         if self.is_kss() {
-            flags.push("SGX_FLAGS_KSS");
+            write!(f, "{}", "SGX_FLAGS_KSS")?;
         }
         if self.is_non_check_bits() {
-            flags.push("SGX_FLAGS_NON_CHECK_BITS");
+            write!(f, "{}", "SGX_FLAGS_NON_CHECK_BITS")?;
         }
         if self.is_xfrm_legacy() {
-            flags.push("SGX_XFRM_LEGACY");
+            write!(f, "{}", "SGX_XFRM_LEGACY")?;
         }
         if self.is_xfrm_avx() {
-            flags.push("SGX_XFRM_AVX");
+            write!(f, "{}", "SGX_XFRM_AVX")?;
         }
         if self.is_xfrm_avx512() {
-            flags.push("SGX_XFRM_AVX512");
+            write!(f, "{}", "SGX_XFRM_AVX512")?;
         }
         if self.is_xfrm_mpx() {
-            flags.push("SGX_XFRM_MPX");
+            write!(f, "{}", "SGX_XFRM_MPX")?;
         }
         if self.is_xfrm_pkru() {
-            flags.push("SGX_XFRM_PKRU");
+            write!(f, "{}", "SGX_XFRM_PKRU")?;
         }
         if self.is_xfrm_amx() {
-            flags.push("SGX_XFRM_AMX");
+            write!(f, "{}", "SGX_XFRM_AMX")?;
         }
         if self.is_xfrm_reserved() {
-            flags.push("SGX_XFRM_RESERVED");
+            write!(f, "{}", "SGX_XFRM_RESERVED")?;
         }
         let flags = flags.join(",");
         display_string.push_str(&flags);
@@ -153,7 +152,6 @@ impl Display for Attributes {
 }
 
 bitflags! {
-    #[derive(Deserialize, Serialize)]
     pub struct AttributeFlags: u64 {
         /// If set, then the enclave is initialized
         const SGX_FLAGS_INITTED = 0x0000000000000001;
