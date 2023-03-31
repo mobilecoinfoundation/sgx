@@ -45,46 +45,46 @@ impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let mut display_string = "The following Attribute flags are set: ".to_string();
         let mut flags = Vec::new();
-        if self.0.flags & AttributeFlags::SGX_FLAGS_INITTED {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_INITTED.bits() {
             flags.push("SGX_FLAGS_INITTED");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_DEBUG {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_DEBUG.bits() {
             flags.push("SGX_FLAGS_DEBUG");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_MODE64BIT {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_MODE64BIT.bits() {
             flags.push("SGX_FLAGS_MODE64BIT");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_PROVISION_KEY {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_PROVISION_KEY.bits() {
             flags.push("SGX_FLAGS_PROVISION_KEY");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_EINITTOKEN_KEY {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_EINITTOKEN_KEY.bits() {
             flags.push("SGX_FLAGS_EINITTOKEN_KEY");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_KSS {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_KSS.bits() {
             flags.push("SGX_FLAGS_KSS");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_NON_CHECK_BITS {
+        if self.0.flags & AttributeFlags::SGX_FLAGS_NON_CHECK_BITS.bits() {
             flags.push("SGX_FLAGS_NON_CHECK_BITS");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_LEGACY {
+        if self.0.flags & AttributeFlags::SGX_XFRM_LEGACY.bits() {
             flags.push("SGX_XFRM_LEGACY");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_AVX {
+        if self.0.flags & AttributeFlags::SGX_XFRM_AVX.bits() {
             flags.push("SGX_XFRM_AVX");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_AVX512 {
+        if self.0.flags & AttributeFlags::SGX_XFRM_AVX512.bits() {
             flags.push("SGX_XFRM_AVX512");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_MPX {
+        if self.0.flags & AttributeFlags::SGX_XFRM_MPX.bits() {
             flags.push("SGX_XFRM_MPX");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_PKRU {
+        if self.0.flags & AttributeFlags::SGX_XFRM_PKRU.bits() {
             flags.push("SGX_XFRM_PKRU");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_AMX {
+        if self.0.flags & AttributeFlags::SGX_XFRM_AMX.bits() {
             flags.push("SGX_XFRM_AMX");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_RESERVED {
+        if self.0.flags & AttributeFlags::SGX_XFRM_RESERVED.bits() {
             flags.push("SGX_XFRM_RESERVED");
         }
         let flags = flags.join(",");
