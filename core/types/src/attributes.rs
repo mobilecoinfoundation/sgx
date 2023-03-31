@@ -3,6 +3,8 @@
 //! SGX Attributes types
 
 use crate::impl_newtype;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{
@@ -39,21 +41,70 @@ impl Attributes {
     }
 }
 
+impl Display for Attributes {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let mut display_string = "The following flags are set: ".to_string();
+        let mut flags = Vec::new();
+        if self.0.flags & AttributeFlags::SGX_FLAGS_INITTED {
+            flags.push("SGX_FLAGS_INITTED");
+        }
+        if self.0.flags & AttributeFlags::SGX_FLAGS_DEBUG {
+            flags.push("SGX_FLAGS_DEBUG");
+        }
+        if self.0.flags & AttributeFlags::SGX_FLAGS_MODE64BIT {
+            flags.push("SGX_FLAGS_MODE64BIT");
+        }
+        if self.0.flags & AttributeFlags::SGX_FLAGS_PROVISION_KEY {
+            flags.push("SGX_FLAGS_PROVISION_KEY");
+        }
+        if self.0.flags & AttributeFlags::SGX_FLAGS_EINITTOKEN_KEY {
+            flags.push("SGX_FLAGS_EINITTOKEN_KEY");
+        }
+        if self.0.flags & AttributeFlags::SGX_FLAGS_KSS {
+            flags.push("SGX_FLAGS_KSS");
+        }
+        if self.0.flags & AttributeFlags::SGX_FLAGS_NON_CHECK_BITS {
+            flags.push("SGX_FLAGS_NON_CHECK_BITS");
+        }
+        if self.0.flags & AttributeFlags::SGX_XFRM_LEGACY {
+            flags.push("SGX_XFRM_LEGACY");
+        }
+        if self.0.flags & AttributeFlags::SGX_XFRM_AVX {
+            flags.push("SGX_XFRM_AVX");
+        }
+        if self.0.flags & AttributeFlags::SGX_XFRM_AVX512 {
+            flags.push("SGX_XFRM_AVX512");
+        }
+        if self.0.flags & AttributeFlags::SGX_XFRM_MPX {
+            flags.push("SGX_XFRM_MPX");
+        }
+        if self.0.flags & AttributeFlags::SGX_XFRM_PKRU {
+            flags.push("SGX_XFRM_PKRU");
+        }
+        if self.0.flags & AttributeFlags::SGX_XFRM_AMX {
+            flags.push("SGX_XFRM_AMX");
+        }
+        let flags = flags.join(",");
+        display_string.push_str(&flags);
+
+        write!(f, display_string)
+    }
+}
+
 bitflags! {
-    /// Revocation cause flags
     #[derive(Deserialize, Serialize)]
     pub struct AttributeFlags: u64 {
         /// If set, then the enclave is initialized
         const SGX_FLAGS_INITTED = 0x0000000000000001;
 
         /// If set, then the enclave is debug
-        const SGX_FLAGS_DEBUG   = 0x0000000000000002;
+        const SGX_FLAGS_DEBUG = 0x0000000000000002;
 
         /// If set, then the enclave is 64 bit
-        const SGX_FLAGS_MODE64BIT      = 0x0000000000000004;
+        const SGX_FLAGS_MODE64BIT = 0x0000000000000004;
 
         /// set, then the enclave has access to provision key
-        const SGX_FLAGS_PROVISION_KEY  0x0000000000000010;
+        const SGX_FLAGS_PROVISION_KEY = 0x0000000000000010;
 
         /// If set, then the enclave has access to EINITTOKEN key
         const SGX_FLAGS_EINITTOKEN_KEY = 0x0000000000000020;
@@ -78,7 +129,7 @@ bitflags! {
 
         /// PKRU state
         const SGX_XFRM_PKRU = 0x0000000000000200;
-        
+
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
         const SGX_XFRM_AMX = 0x0000000000060000;
     }
