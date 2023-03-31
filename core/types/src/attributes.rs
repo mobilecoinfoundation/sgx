@@ -144,10 +144,8 @@ impl Display for Attributes {
         if self.is_xfrm_reserved() {
             write!(f, "{}", "SGX_XFRM_RESERVED")?;
         }
-        let flags = flags.join(",");
-        display_string.push_str(&flags);
 
-        write!(f, "{}", display_string)
+        Ok(())
     }
 }
 
