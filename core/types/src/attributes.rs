@@ -3,10 +3,11 @@
 //! SGX Attributes types
 
 use crate::impl_newtype;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use alloc::vec::Vec;
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
+use serde::de::Unexpected::Bool;
 use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_CONFIGID_SIZE,
 };
@@ -39,58 +40,119 @@ impl Attributes {
         self.0.xfrm = features_mask;
         self
     }
+
+    fn is_initted(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_INITTED.bits())
+    }
+
+    fn is_debug(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_DEBUG.bits())
+    }
+
+    fn is_mode64(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_MODE64BIT.bits())
+    }
+
+    fn is_provision_key(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_PROVISION_KEY.bits())
+    }
+
+    fn is_einitotken_key(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_EINITTOKEN_KEY.bits())
+    }
+
+    fn is_kss(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_KSS.bits())
+    }
+
+    fn is_non_check_bits(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_FLAGS_NON_CHECK_BITS.bits())
+    }
+
+    fn is_xfrm_legacy(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_LEGACY.bits())
+    }
+
+    fn is_xfrm_avx(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_AVX.bits())
+    }
+
+    fn is_xfrm_avx512(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_AVX512.bits())
+    }
+
+    fn is_xfrm_mpx(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_MPX.bits())
+    }
+
+    fn is_xfrm_pkru(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_PKRU.bits())
+    }
+
+    fn is_xfrm_amx(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_AMX.bits())
+    }
+
+    fn is_xfrm_reserved(&self) -> bool {
+        self.is_flag_set(AttributeFlags::SGX_XFRM_RESERVED.bits())
+    }
+
+    fn is_flag_set(&self, flag: AttributeFlags::Bits) -> bool {
+        Bool::from(self.0.flags & flag)
+    }
+
 }
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let mut display_string = "The following Attribute flags are set: ".to_string();
         let mut flags = Vec::new();
-        if self.0.flags & AttributeFlags::SGX_FLAGS_INITTED.bits() {
+        if self.is_initted() {
             flags.push("SGX_FLAGS_INITTED");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_DEBUG.bits() {
+        if self.is_debug() {
             flags.push("SGX_FLAGS_DEBUG");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_MODE64BIT.bits() {
+        if self.is_mode64() {
             flags.push("SGX_FLAGS_MODE64BIT");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_PROVISION_KEY.bits() {
+        if self.is_provision_key() {
             flags.push("SGX_FLAGS_PROVISION_KEY");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_EINITTOKEN_KEY.bits() {
+        if self.is_einitotken_key() {
             flags.push("SGX_FLAGS_EINITTOKEN_KEY");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_KSS.bits() {
+        if self.is_kss() {
             flags.push("SGX_FLAGS_KSS");
         }
-        if self.0.flags & AttributeFlags::SGX_FLAGS_NON_CHECK_BITS.bits() {
+        if self.is_non_check_bits() {
             flags.push("SGX_FLAGS_NON_CHECK_BITS");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_LEGACY.bits() {
+        if self.is_xfrm_legacy() {
             flags.push("SGX_XFRM_LEGACY");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_AVX.bits() {
+        if self.is_xfrm_avx() {
             flags.push("SGX_XFRM_AVX");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_AVX512.bits() {
+        if self.is_xfrm_avx512() {
             flags.push("SGX_XFRM_AVX512");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_MPX.bits() {
+        if self.is_xfrm_mpx() {
             flags.push("SGX_XFRM_MPX");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_PKRU.bits() {
+        if self.is_xfrm_pkru() {
             flags.push("SGX_XFRM_PKRU");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_AMX.bits() {
+        if self.is_xfrm_amx() {
             flags.push("SGX_XFRM_AMX");
         }
-        if self.0.flags & AttributeFlags::SGX_XFRM_RESERVED.bits() {
+        if {
             flags.push("SGX_XFRM_RESERVED");
         }
         let flags = flags.join(",");
         display_string.push_str(&flags);
 
-        write!(f, display_string)
+        write!(f, "{}", display_string)
     }
 }
 
@@ -124,7 +186,7 @@ bitflags! {
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
         const SGX_XFRM_AMX = 0x0000000000060000;
         /// Reserved for future flags.
-        const SGX_XFRM_RESERVED = (~(Self::SGX_XFRM_LEGACY.bits() | Self::SGX_XFRM_AVX.bits() | Self::SGX_XFRM_AVX512.bits() | Self::SGX_XFRM_PKRU.bits() | Self::SGX_XFRM_AMX.bits()));
+        const SGX_XFRM_RESERVED = (!(Self::SGX_XFRM_LEGACY.bits() | Self::SGX_XFRM_AVX.bits() | Self::SGX_XFRM_AVX512.bits() | Self::SGX_XFRM_PKRU.bits() | Self::SGX_XFRM_AMX.bits()));
     }
 }
 
