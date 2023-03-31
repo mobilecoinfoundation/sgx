@@ -260,10 +260,12 @@ mod test {
             "SGX_FLAGS_INITTED",
             "SGX_FLAGS_DEBUG",
             "SGX_FLAGS_MODE64BIT",
+            // These flags are set by default when the above flags are set.
             "SGX_XFRM_LEGACY",
             "SGX_XFRM_AVX",
             "SGX_XFRM_AVX512",
         );
+
         assert_eq!(display_string, expected);
     }
 }
