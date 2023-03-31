@@ -84,6 +84,9 @@ impl Display for Attributes {
         if self.0.flags & AttributeFlags::SGX_XFRM_AMX {
             flags.push("SGX_XFRM_AMX");
         }
+        if self.0.flags & AttributeFlags::SGX_XFRM_RESERVED {
+            flags.push("SGX_XFRM_RESERVED");
+        }
         let flags = flags.join(",");
         display_string.push_str(&flags);
 
@@ -120,6 +123,8 @@ bitflags! {
         const SGX_XFRM_PKRU = 0x0000000000000200;
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
         const SGX_XFRM_AMX = 0x0000000000060000;
+        /// Reserved for future flags.
+        const SGX_XFRM_RESERVED = (~(Self::SGX_XFRM_LEGACY.bits() | Self::SGX_XFRM_AVX.bits() | Self::SGX_XFRM_AVX512.bits() | Self::SGX_XFRM_PKRU.bits() | Self::SGX_XFRM_AMX.bits()));
     }
 }
 
