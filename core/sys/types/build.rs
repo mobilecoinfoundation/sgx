@@ -93,7 +93,7 @@ const CORE_CONSTS: &[&str] = &[
     "SGX_XFRM_MPX",
     "SGX_XFRM_PKRU",
     "SGX_XFRM_AMX",
-    "SGX_XFRM_RESERVED"
+    "SGX_XFRM_RESERVED",
 ];
 
 fn main() {
