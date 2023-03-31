@@ -99,7 +99,6 @@ impl Attributes {
     fn is_flag_set(&self, flag: AttributeFlags::Bits) -> bool {
         (self.0.flags & flag) as bool
     }
-
 }
 
 impl Display for Attributes {
@@ -145,7 +144,7 @@ impl Display for Attributes {
         if self.is_xfrm_amx() {
             flags.push("SGX_XFRM_AMX");
         }
-        if {
+        if self.is_xfrm_reserved() {
             flags.push("SGX_XFRM_RESERVED");
         }
         let flags = flags.join(",");
