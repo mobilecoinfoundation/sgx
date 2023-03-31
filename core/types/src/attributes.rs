@@ -134,7 +134,6 @@ mod test {
     extern crate std;
 
     use super::*;
-    use mc_sgx_core_sys_types::SGX_XFRM_AMX;
     use std::format;
     use yare::parameterized;
 
