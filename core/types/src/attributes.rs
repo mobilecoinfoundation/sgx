@@ -3,8 +3,6 @@
 //! SGX Attributes types
 
 use crate::impl_newtype;
-use alloc::string::ToString;
-use alloc::vec::Vec;
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
@@ -94,8 +92,8 @@ impl Attributes {
         self.is_flag_set(AttributeFlags::SGX_XFRM_RESERVED.bits())
     }
 
-    fn is_flag_set(&self, flag: AttributeFlags::Bits) -> bool {
-        (self.0.flags & flag) as bool
+    fn is_flag_set(&self, flag: u64) -> bool {
+        (self.0.flags & flag) != 0
     }
 }
 
