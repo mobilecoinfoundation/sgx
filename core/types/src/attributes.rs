@@ -43,7 +43,7 @@ impl Attributes {
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        let mut display_string = "The following flags are set: ".to_string();
+        let mut display_string = "The following Attribute flags are set: ".to_string();
         let mut flags = Vec::new();
         if self.0.flags & AttributeFlags::SGX_FLAGS_INITTED {
             flags.push("SGX_FLAGS_INITTED");
@@ -96,40 +96,28 @@ bitflags! {
     pub struct AttributeFlags: u64 {
         /// If set, then the enclave is initialized
         const SGX_FLAGS_INITTED = 0x0000000000000001;
-
         /// If set, then the enclave is debug
         const SGX_FLAGS_DEBUG = 0x0000000000000002;
-
         /// If set, then the enclave is 64 bit
         const SGX_FLAGS_MODE64BIT = 0x0000000000000004;
-
         /// set, then the enclave has access to provision key
         const SGX_FLAGS_PROVISION_KEY = 0x0000000000000010;
-
         /// If set, then the enclave has access to EINITTOKEN key
         const SGX_FLAGS_EINITTOKEN_KEY = 0x0000000000000020;
-
         /// If set enclave uses KSS
         const SGX_FLAGS_KSS = 0x0000000000000080;
-
         /// BIT[55-48] will not be checked */
         const SGX_FLAGS_NON_CHECK_BITS = 0x00FF000000000000;
-
         /// Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
         const SGX_XFRM_LEGACY = 0x0000000000000003;
-
         /// AVX XFRM which includes AVX state(0x04) and SSE state(0x02) required by AVX
         const SGX_XFRM_AVX = 0x0000000000000006;
-
         /// AVX-512 XFRM
         const SGX_XFRM_AVX512 = 0x00000000000000E6;
-
         /// MPX XFRM - not supported
         const SGX_XFRM_MPX = 0x0000000000000018;
-
         /// PKRU state
         const SGX_XFRM_PKRU = 0x0000000000000200;
-
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
         const SGX_XFRM_AMX = 0x0000000000060000;
     }
