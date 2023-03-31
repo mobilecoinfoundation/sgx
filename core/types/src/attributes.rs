@@ -2,7 +2,7 @@
 
 //! SGX Attributes types
 
-use crate::impl_newtype;
+use crate::{impl_newtype, impl_newtype_no_display};
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
@@ -11,7 +11,7 @@ use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_sel
 #[repr(transparent)]
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Copy)]
 pub struct Attributes(sgx_attributes_t);
-impl_newtype! {
+impl_newtype_no_display! {
     Attributes, sgx_attributes_t;
 }
 
@@ -102,45 +102,59 @@ impl Display for Attributes {
         write!(f, "The following Attribute flags are set: ")?;
         if self.is_initted() {
             write!(f, "SGX_FLAGS_INITTED")?;
+            write!(f, ", ")?;
         }
         if self.is_debug() {
             write!(f, "SGX_FLAGS_DEBUG")?;
+            write!(f, ", ")?;
         }
         if self.is_mode64() {
             write!(f, "SGX_FLAGS_MODE64BIT")?;
+            write!(f, ", ")?;
         }
         if self.is_provision_key() {
             write!(f, "SGX_FLAGS_PROVISION_KEY")?;
+            write!(f, ", ")?;
         }
         if self.is_einitotken_key() {
             write!(f, "SGX_FLAGS_EINITTOKEN_KEY")?;
+            write!(f, ", ")?;
         }
         if self.is_kss() {
             write!(f, "SGX_FLAGS_KSS")?;
+            write!(f, ", ")?;
         }
         if self.is_non_check_bits() {
             write!(f, "SGX_FLAGS_NON_CHECK_BITS")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_legacy() {
             write!(f, "SGX_XFRM_LEGACY")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_avx() {
             write!(f, "SGX_XFRM_AVX")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_avx512() {
             write!(f, "SGX_XFRM_AVX512")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_mpx() {
             write!(f, "SGX_XFRM_MPX")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_pkru() {
             write!(f, "SGX_XFRM_PKRU")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_amx() {
             write!(f, "SGX_XFRM_AMX")?;
+            write!(f, ", ")?;
         }
         if self.is_xfrm_reserved() {
             write!(f, "SGX_XFRM_RESERVED")?;
+            write!(f, ", ")?;
         }
 
         Ok(())
@@ -148,6 +162,7 @@ impl Display for Attributes {
 }
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct AttributeFlags: u64 {
         /// If set, then the enclave is initialized
         const SGX_FLAGS_INITTED = 0x0000000000000001;
@@ -201,7 +216,9 @@ impl_newtype! {
 #[cfg(test)]
 mod test {
     extern crate std;
+
     use super::*;
+    use std::format;
     use yare::parameterized;
 
     #[test]
@@ -228,5 +245,25 @@ mod test {
             .set_extended_features_mask(transform);
         assert_eq!(attributes.0.flags, flags);
         assert_eq!(attributes.0.xfrm, transform);
+    }
+
+    #[test]
+    fn attributes_display() {
+        let flags = AttributeFlags::SGX_FLAGS_INITTED
+            | AttributeFlags::SGX_FLAGS_DEBUG
+            | AttributeFlags::SGX_FLAGS_MODE64BIT;
+        let attributes = Attributes::default().set_flags(flags.bits());
+
+        let display_string = format!("{}", attributes);
+        let expected = format!(
+            "The following Attribute flags are set: {}, {}, {}, {}, {}, {}, ",
+            "SGX_FLAGS_INITTED",
+            "SGX_FLAGS_DEBUG",
+            "SGX_FLAGS_MODE64BIT",
+            "SGX_XFRM_LEGACY",
+            "SGX_XFRM_AVX",
+            "SGX_XFRM_AVX512",
+        );
+        assert_eq!(display_string, expected);
     }
 }
