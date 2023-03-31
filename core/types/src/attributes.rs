@@ -99,48 +99,48 @@ impl Attributes {
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", "The following Attribute flags are set: ")?;
+        write!(f, "The following Attribute flags are set: ")?;
         if self.is_initted() {
-            write!(f, "{}", "SGX_FLAGS_INITTED")?;
+            write!(f, "SGX_FLAGS_INITTED")?;
         }
         if self.is_debug() {
-            write!(f, "{}", "SGX_FLAGS_DEBUG")?;
+            write!(f, "SGX_FLAGS_DEBUG")?;
         }
         if self.is_mode64() {
-            write!(f, "{}", "SGX_FLAGS_MODE64BIT")?;
+            write!(f, "SGX_FLAGS_MODE64BIT")?;
         }
         if self.is_provision_key() {
-            write!(f, "{}", "SGX_FLAGS_PROVISION_KEY")?;
+            write!(f, "SGX_FLAGS_PROVISION_KEY")?;
         }
         if self.is_einitotken_key() {
-            write!(f, "{}", "SGX_FLAGS_EINITTOKEN_KEY")?;
+            write!(f, "SGX_FLAGS_EINITTOKEN_KEY")?;
         }
         if self.is_kss() {
-            write!(f, "{}", "SGX_FLAGS_KSS")?;
+            write!(f, "SGX_FLAGS_KSS")?;
         }
         if self.is_non_check_bits() {
-            write!(f, "{}", "SGX_FLAGS_NON_CHECK_BITS")?;
+            write!(f, "SGX_FLAGS_NON_CHECK_BITS")?;
         }
         if self.is_xfrm_legacy() {
-            write!(f, "{}", "SGX_XFRM_LEGACY")?;
+            write!(f, "SGX_XFRM_LEGACY")?;
         }
         if self.is_xfrm_avx() {
-            write!(f, "{}", "SGX_XFRM_AVX")?;
+            write!(f, "SGX_XFRM_AVX")?;
         }
         if self.is_xfrm_avx512() {
-            write!(f, "{}", "SGX_XFRM_AVX512")?;
+            write!(f, "SGX_XFRM_AVX512")?;
         }
         if self.is_xfrm_mpx() {
-            write!(f, "{}", "SGX_XFRM_MPX")?;
+            write!(f, "SGX_XFRM_MPX")?;
         }
         if self.is_xfrm_pkru() {
-            write!(f, "{}", "SGX_XFRM_PKRU")?;
+            write!(f, "SGX_XFRM_PKRU")?;
         }
         if self.is_xfrm_amx() {
-            write!(f, "{}", "SGX_XFRM_AMX")?;
+            write!(f, "SGX_XFRM_AMX")?;
         }
         if self.is_xfrm_reserved() {
-            write!(f, "{}", "SGX_XFRM_RESERVED")?;
+            write!(f, "SGX_XFRM_RESERVED")?;
         }
 
         Ok(())
