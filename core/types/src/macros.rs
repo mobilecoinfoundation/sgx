@@ -42,12 +42,28 @@ macro_rules! newtype_accessors_impls {
     )*}
 }
 
+#[macro_export]
+/// Newtype wrapper without a display implementation.
+/// TODO: Remove once every type has a Display impl.
+macro_rules! impl_newtype_no_display {
+    ($($wrapper:ident, $inner:ty;)*) => {$(
+        $crate::newtype_accessors_impls! {
+            $wrapper, $inner;
+        }
+    )*}
+}
 /// Newtype wrapper for a primitive or struct type
 #[macro_export]
 macro_rules! impl_newtype {
     ($($wrapper:ident, $inner:ty;)*) => {$(
         $crate::newtype_accessors_impls! {
             $wrapper, $inner;
+        }
+
+        impl ::core::fmt::Display for $wrapper {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                ::core::fmt::Debug::fmt(&self.0, f)
+            }
         }
     )*}
 }
