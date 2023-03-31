@@ -37,59 +37,59 @@ impl Attributes {
     }
 
     fn is_initted(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_INITTED.bits())
+        self.is_flag_set(Flags::INITTED.bits())
     }
 
     fn is_debug(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_DEBUG.bits())
+        self.is_flag_set(Flags::DEBUG.bits())
     }
 
     fn is_mode64(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_MODE64BIT.bits())
+        self.is_flag_set(Flags::MODE64BIT.bits())
     }
 
     fn is_provision_key(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_PROVISION_KEY.bits())
+        self.is_flag_set(Flags::PROVISION_KEY.bits())
     }
 
     fn is_einitotken_key(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_EINITTOKEN_KEY.bits())
+        self.is_flag_set(Flags::EINITTOKEN_KEY.bits())
     }
 
     fn is_kss(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_KSS.bits())
+        self.is_flag_set(Flags::KSS.bits())
     }
 
     fn is_non_check_bits(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_FLAGS_NON_CHECK_BITS.bits())
+        self.is_flag_set(Flags::NON_CHECK_BITS.bits())
     }
 
     fn is_xfrm_legacy(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_LEGACY.bits())
+        self.is_flag_set(Flags::XFRM_LEGACY.bits())
     }
 
     fn is_xfrm_avx(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_AVX.bits())
+        self.is_flag_set(Flags::XFRM_AVX.bits())
     }
 
     fn is_xfrm_avx512(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_AVX512.bits())
+        self.is_flag_set(Flags::XFRM_AVX512.bits())
     }
 
     fn is_xfrm_mpx(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_MPX.bits())
+        self.is_flag_set(Flags::XFRM_MPX.bits())
     }
 
     fn is_xfrm_pkru(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_PKRU.bits())
+        self.is_flag_set(Flags::XFRM_PKRU.bits())
     }
 
     fn is_xfrm_amx(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_AMX.bits())
+        self.is_flag_set(Flags::XFRM_AMX.bits())
     }
 
     fn is_xfrm_reserved(&self) -> bool {
-        self.is_flag_set(AttributeFlags::SGX_XFRM_RESERVED.bits())
+        self.is_flag_set(Flags::XFRM_RESERVED.bits())
     }
 
     fn is_flag_set(&self, flag: u64) -> bool {
@@ -101,59 +101,59 @@ impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(f, "The following Attribute flags are set: ")?;
         if self.is_initted() {
-            write!(f, "SGX_FLAGS_INITTED")?;
+            write!(f, "INITTED")?;
             write!(f, ", ")?;
         }
         if self.is_debug() {
-            write!(f, "SGX_FLAGS_DEBUG")?;
+            write!(f, "DEBUG")?;
             write!(f, ", ")?;
         }
         if self.is_mode64() {
-            write!(f, "SGX_FLAGS_MODE64BIT")?;
+            write!(f, "MODE64BIT")?;
             write!(f, ", ")?;
         }
         if self.is_provision_key() {
-            write!(f, "SGX_FLAGS_PROVISION_KEY")?;
+            write!(f, "PROVISION_KEY")?;
             write!(f, ", ")?;
         }
         if self.is_einitotken_key() {
-            write!(f, "SGX_FLAGS_EINITTOKEN_KEY")?;
+            write!(f, "EINITTOKEN_KEY")?;
             write!(f, ", ")?;
         }
         if self.is_kss() {
-            write!(f, "SGX_FLAGS_KSS")?;
+            write!(f, "KSS")?;
             write!(f, ", ")?;
         }
         if self.is_non_check_bits() {
-            write!(f, "SGX_FLAGS_NON_CHECK_BITS")?;
+            write!(f, "NON_CHECK_BITS")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_legacy() {
-            write!(f, "SGX_XFRM_LEGACY")?;
+            write!(f, "XFRM_LEGACY")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_avx() {
-            write!(f, "SGX_XFRM_AVX")?;
+            write!(f, "XFRM_AVX")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_avx512() {
-            write!(f, "SGX_XFRM_AVX512")?;
+            write!(f, "XFRM_AVX512")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_mpx() {
-            write!(f, "SGX_XFRM_MPX")?;
+            write!(f, "XFRM_MPX")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_pkru() {
-            write!(f, "SGX_XFRM_PKRU")?;
+            write!(f, "XFRM_PKRU")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_amx() {
-            write!(f, "SGX_XFRM_AMX")?;
+            write!(f, "XFRM_AMX")?;
             write!(f, ", ")?;
         }
         if self.is_xfrm_reserved() {
-            write!(f, "SGX_XFRM_RESERVED")?;
+            write!(f, "XFRM_RESERVED")?;
             write!(f, ", ")?;
         }
 
@@ -163,35 +163,35 @@ impl Display for Attributes {
 
 bitflags! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct AttributeFlags: u64 {
+    pub struct Flags: u64 {
         /// If set, then the enclave is initialized
-        const SGX_FLAGS_INITTED = 0x0000000000000001;
+        const INITTED = 0x0000000000000001;
         /// If set, then the enclave is debug
-        const SGX_FLAGS_DEBUG = 0x0000000000000002;
+        const DEBUG = 0x0000000000000002;
         /// If set, then the enclave is 64 bit
-        const SGX_FLAGS_MODE64BIT = 0x0000000000000004;
+        const MODE64BIT = 0x0000000000000004;
         /// set, then the enclave has access to provision key
-        const SGX_FLAGS_PROVISION_KEY = 0x0000000000000010;
+        const PROVISION_KEY = 0x0000000000000010;
         /// If set, then the enclave has access to EINITTOKEN key
-        const SGX_FLAGS_EINITTOKEN_KEY = 0x0000000000000020;
+        const EINITTOKEN_KEY = 0x0000000000000020;
         /// If set enclave uses KSS
-        const SGX_FLAGS_KSS = 0x0000000000000080;
+        const KSS = 0x0000000000000080;
         /// BIT[55-48] will not be checked */
-        const SGX_FLAGS_NON_CHECK_BITS = 0x00FF000000000000;
+        const NON_CHECK_BITS = 0x00FF000000000000;
         /// Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
-        const SGX_XFRM_LEGACY = 0x0000000000000003;
+        const XFRM_LEGACY = 0x0000000000000003;
         /// AVX XFRM which includes AVX state(0x04) and SSE state(0x02) required by AVX
-        const SGX_XFRM_AVX = 0x0000000000000006;
+        const XFRM_AVX = 0x0000000000000006;
         /// AVX-512 XFRM
-        const SGX_XFRM_AVX512 = 0x00000000000000E6;
+        const XFRM_AVX512 = 0x00000000000000E6;
         /// MPX XFRM - not supported
-        const SGX_XFRM_MPX = 0x0000000000000018;
+        const XFRM_MPX = 0x0000000000000018;
         /// PKRU state
-        const SGX_XFRM_PKRU = 0x0000000000000200;
+        const XFRM_PKRU = 0x0000000000000200;
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
-        const SGX_XFRM_AMX = 0x0000000000060000;
+        const XFRM_AMX = 0x0000000000060000;
         /// Reserved for future flags.
-        const SGX_XFRM_RESERVED = (!(Self::SGX_XFRM_LEGACY.bits() | Self::SGX_XFRM_AVX.bits() | Self::SGX_XFRM_AVX512.bits() | Self::SGX_XFRM_PKRU.bits() | Self::SGX_XFRM_AMX.bits()));
+        const XFRM_RESERVED = (!(Self::XFRM_LEGACY.bits() | Self::XFRM_AVX.bits() | Self::XFRM_AVX512.bits() | Self::XFRM_PKRU.bits() | Self::XFRM_AMX.bits()));
     }
 }
 
@@ -249,21 +249,21 @@ mod test {
 
     #[test]
     fn attributes_display() {
-        let flags = AttributeFlags::SGX_FLAGS_INITTED
-            | AttributeFlags::SGX_FLAGS_DEBUG
-            | AttributeFlags::SGX_FLAGS_MODE64BIT;
+        let flags = Flags::INITTED
+            | Flags::DEBUG
+            | Flags::MODE64BIT;
         let attributes = Attributes::default().set_flags(flags.bits());
 
         let display_string = format!("{}", attributes);
         let expected = format!(
             "The following Attribute flags are set: {}, {}, {}, {}, {}, {}, ",
-            "SGX_FLAGS_INITTED",
-            "SGX_FLAGS_DEBUG",
-            "SGX_FLAGS_MODE64BIT",
+            "INITTED",
+            "DEBUG",
+            "MODE64BIT",
             // These flags are set by default when the above flags are set.
-            "SGX_XFRM_LEGACY",
-            "SGX_XFRM_AVX",
-            "SGX_XFRM_AVX512",
+            "XFRM_LEGACY",
+            "XFRM_AVX",
+            "XFRM_AVX512",
         );
 
         assert_eq!(display_string, expected);
