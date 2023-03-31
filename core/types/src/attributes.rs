@@ -7,7 +7,6 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
-use serde::de::Unexpected::Bool;
 use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_CONFIGID_SIZE,
 };
@@ -98,7 +97,7 @@ impl Attributes {
     }
 
     fn is_flag_set(&self, flag: AttributeFlags::Bits) -> bool {
-        Bool::from(self.0.flags & flag)
+        (self.0.flags & flag) as bool
     }
 
 }
