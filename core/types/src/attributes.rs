@@ -65,31 +65,31 @@ impl Attributes {
     }
 
     fn is_xfrm_legacy(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_LEGACY.bits())
+        self.is_flag_set(Xfrm::LEGACY.bits())
     }
 
     fn is_xfrm_avx(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_AVX.bits())
+        self.is_flag_set(Xfrm::AVX.bits())
     }
 
     fn is_xfrm_avx512(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_AVX512.bits())
+        self.is_flag_set(Xfrm::AVX512.bits())
     }
 
     fn is_xfrm_mpx(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_MPX.bits())
+        self.is_flag_set(Xfrm::MPX.bits())
     }
 
     fn is_xfrm_pkru(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_PKRU.bits())
+        self.is_flag_set(Xfrm::PKRU.bits())
     }
 
     fn is_xfrm_amx(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_AMX.bits())
+        self.is_flag_set(Xfrm::AMX.bits())
     }
 
     fn is_xfrm_reserved(&self) -> bool {
-        self.is_flag_set(Flags::XFRM_RESERVED.bits())
+        self.is_flag_set(Xfrm::RESERVED.bits())
     }
 
     fn is_flag_set(&self, flag: u64) -> bool {
@@ -99,62 +99,34 @@ impl Attributes {
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "The following Attribute flags are set: ")?;
-        if self.is_initted() {
-            write!(f, "INITTED")?;
-            write!(f, ", ")?;
+        write!(f, "Flags: {}", Flags::from_bits(self.0.flags).unwrap())?;
+        write!(f, " Xfrm: {}", Xfrm::from_bits(self.0.xfrm).unwrap())
+    }
+}
+
+impl Display for Flags {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
+        for (idx, (name, flag)) in self.iter_names().enumerate() {
+            if *self & flag == flag {
+                if idx >= 1 {
+                    write!(f, " | ")?;
+                }
+                write!(f, "{}", name)?;
+            }
         }
-        if self.is_debug() {
-            write!(f, "DEBUG")?;
-            write!(f, ", ")?;
-        }
-        if self.is_mode64() {
-            write!(f, "MODE64BIT")?;
-            write!(f, ", ")?;
-        }
-        if self.is_provision_key() {
-            write!(f, "PROVISION_KEY")?;
-            write!(f, ", ")?;
-        }
-        if self.is_einitotken_key() {
-            write!(f, "EINITTOKEN_KEY")?;
-            write!(f, ", ")?;
-        }
-        if self.is_kss() {
-            write!(f, "KSS")?;
-            write!(f, ", ")?;
-        }
-        if self.is_non_check_bits() {
-            write!(f, "NON_CHECK_BITS")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_legacy() {
-            write!(f, "XFRM_LEGACY")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_avx() {
-            write!(f, "XFRM_AVX")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_avx512() {
-            write!(f, "XFRM_AVX512")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_mpx() {
-            write!(f, "XFRM_MPX")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_pkru() {
-            write!(f, "XFRM_PKRU")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_amx() {
-            write!(f, "XFRM_AMX")?;
-            write!(f, ", ")?;
-        }
-        if self.is_xfrm_reserved() {
-            write!(f, "XFRM_RESERVED")?;
-            write!(f, ", ")?;
+        Ok(())
+    }
+}
+
+impl Display for Xfrm {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
+        for (idx, (name, flag)) in self.iter_names().enumerate() {
+            if *self & flag == flag {
+                if idx >= 1 {
+                    write!(f, " | ")?;
+                }
+                write!(f, "{}", name)?;
+            }
         }
 
         Ok(())
@@ -162,7 +134,7 @@ impl Display for Attributes {
 }
 
 bitflags! {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Flags: u64 {
         /// If set, then the enclave is initialized
         const INITTED = 0x0000000000000001;
@@ -178,20 +150,24 @@ bitflags! {
         const KSS = 0x0000000000000080;
         /// BIT[55-48] will not be checked */
         const NON_CHECK_BITS = 0x00FF000000000000;
+    }
+
+    #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct Xfrm: u64 {
         /// Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
-        const XFRM_LEGACY = 0x0000000000000003;
+        const LEGACY = 0x0000000000000003;
         /// AVX XFRM which includes AVX state(0x04) and SSE state(0x02) required by AVX
-        const XFRM_AVX = 0x0000000000000006;
+        const AVX = 0x0000000000000006;
         /// AVX-512 XFRM
-        const XFRM_AVX512 = 0x00000000000000E6;
+        const AVX512 = 0x00000000000000E6;
         /// MPX XFRM - not supported
-        const XFRM_MPX = 0x0000000000000018;
+        const MPX = 0x0000000000000018;
         /// PKRU state
-        const XFRM_PKRU = 0x0000000000000200;
+        const PKRU = 0x0000000000000200;
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
-        const XFRM_AMX = 0x0000000000060000;
+        const AMX = 0x0000000000060000;
         /// Reserved for future flags.
-        const XFRM_RESERVED = (!(Self::XFRM_LEGACY.bits() | Self::XFRM_AVX.bits() | Self::XFRM_AVX512.bits() | Self::XFRM_PKRU.bits() | Self::XFRM_AMX.bits()));
+        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX512.bits() | Self::PKRU.bits() | Self::AMX.bits()));
     }
 }
 
@@ -218,6 +194,7 @@ mod test {
     extern crate std;
 
     use super::*;
+    use mc_sgx_core_sys_types::SGX_XFRM_AMX;
     use std::format;
     use yare::parameterized;
 
@@ -248,22 +225,23 @@ mod test {
     }
 
     #[test]
-    fn attributes_display() {
-        let flags = Flags::INITTED
-            | Flags::DEBUG
-            | Flags::MODE64BIT;
-        let attributes = Attributes::default().set_flags(flags.bits());
+    fn attriutes_display() {
+        let flag1 = Flags::INITTED;
+        let flag2 = Flags::DEBUG;
+        let flag3 = Flags::MODE64BIT;
+        let flags = flag1 | flag2 | flag3;
+
+        let xfrm1 = Xfrm::LEGACY;
+        let xfrm2 = Xfrm::AVX;
+        let xfrm = xfrm1 | xfrm2;
+        let attributes = Attributes::default()
+            .set_flags(flags.bits())
+            .set_extended_features_mask(xfrm.bits());
 
         let display_string = format!("{}", attributes);
         let expected = format!(
-            "The following Attribute flags are set: {}, {}, {}, {}, {}, {}, ",
-            "INITTED",
-            "DEBUG",
-            "MODE64BIT",
-            // These flags are set by default when the above flags are set.
-            "XFRM_LEGACY",
-            "XFRM_AVX",
-            "XFRM_AVX512",
+            "Flags: {} | {} | {} Xfrm: {} | {}",
+            flag1, flag2, flag3, xfrm1, xfrm2
         );
 
         assert_eq!(display_string, expected);
