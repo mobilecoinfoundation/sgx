@@ -1,7 +1,8 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX core SVN (Security Version Numbers)
 
-use crate::{impl_newtype, impl_newtype_for_bytestruct};
+use crate::{impl_newtype, impl_newtype_for_bytestruct_no_display};
+use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{sgx_config_svn_t, sgx_cpu_svn_t, sgx_isv_svn_t, SGX_CPUSVN_SIZE};
 
 /// Config security version number (SVN)
@@ -27,6 +28,30 @@ impl_newtype! {
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CpuSvn(sgx_cpu_svn_t);
 
-impl_newtype_for_bytestruct! {
+impl Display for CpuSvn {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "CpuSvn: {:X}", self)
+    }
+}
+
+impl_newtype_for_bytestruct_no_display! {
     CpuSvn, sgx_cpu_svn_t, SGX_CPUSVN_SIZE, svn;
+}
+
+#[cfg(test)]
+mod test {
+    extern crate std;
+
+    use super::*;
+    use std::format;
+
+    #[test]
+    fn cpu_svn_display() {
+        let cpu_svn = CpuSvn::from([1u8; CpuSvn::SIZE]);
+
+        let display_string = format!("{}", cpu_svn);
+        let expected_string = "CpuSvn: 0101_0101_0101_0101_0101_0101_0101_0101";
+
+        assert_eq!(display_string, expected_string);
+    }
 }
