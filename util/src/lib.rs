@@ -4,6 +4,9 @@
 #![no_std]
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
+mod format;
+pub use format::fmt_hex;
+
 /// A trait to add to an error type which can be constructed from an underlying
 /// "status" type which contains both success and failure codes.
 ///

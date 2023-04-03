@@ -128,17 +128,7 @@ impl_newtype_no_display! {
 impl Display for MiscellaneousSelect {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(f, "MiscellaneousSelect: ")?;
-        let inner: [u8; 4] = self.0.to_be_bytes();
-        let prefix = if f.alternate() { "0x" } else { "" };
-        let separators = ::core::iter::once(prefix).chain(::core::iter::repeat("_"));
-        let segments = separators.zip(inner.chunks(2));
-        for (separator, chunk) in segments {
-            write!(f, "{separator}")?;
-            for byte in chunk {
-                write!(f, "{:02X}", byte)?;
-            }
-        }
-        Ok(())
+        mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
     }
 }
 
