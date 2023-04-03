@@ -121,8 +121,25 @@ bitflags! {
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct MiscellaneousSelect(sgx_misc_select_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     MiscellaneousSelect, sgx_misc_select_t;
+}
+
+impl Display for MiscellaneousSelect {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "MiscellaneousSelect: ")?;
+        let inner: [u8; 4] = self.0.to_be_bytes();
+        let prefix = if f.alternate() { "0x" } else { "" };
+        let separators = ::core::iter::once(prefix).chain(::core::iter::repeat("_"));
+        let segments = separators.zip(inner.chunks(2));
+        for (separator, chunk) in segments {
+            write!(f, "{separator}")?;
+            for byte in chunk {
+                write!(f, "{:02X}", byte)?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Miscellaneous attributes and select bits for target enclave.
@@ -210,5 +227,16 @@ mod test {
         );
 
         assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn miscellaneous_select_display() {
+        let sgx_misc_select_t = 18983928;
+        let miscellaneous_select = MiscellaneousSelect::from(sgx_misc_select_t);
+
+        let display_string = format!("{}", miscellaneous_select);
+        let expected_string = format!("MiscellaneousSelect: 0121_ABF8");
+
+        assert_eq!(display_string, expected_string);
     }
 }
