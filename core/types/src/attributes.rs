@@ -94,7 +94,7 @@ bitflags! {
         /// If set enclave uses KSS
         const KSS = SGX_FLAGS_KSS as u64;
         /// BIT[55-48] will not be checked */
-        const NON_CHECK_BITS = SGX_FLAGS_NON_CHECK_BITS as u64;
+        const NON_CHECK_BITS = SGX_FLAGS_NON_CHECK_BITS;
     }
 
     #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
@@ -112,7 +112,7 @@ bitflags! {
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
         const AMX = SGX_XFRM_LEGACY as u64;
         /// Reserved for future flags.
-        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX512.bits() | Self::PKRU.bits() | Self::AMX.bits())) as u64;
+        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX512.bits() | Self::PKRU.bits() | Self::AMX.bits()));
     }
 }
 
