@@ -5,7 +5,12 @@
 use crate::{impl_newtype, impl_newtype_no_display};
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
-use mc_sgx_core_sys_types::{sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t};
+use mc_sgx_core_sys_types::{
+    sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_FLAGS_DEBUG,
+    SGX_FLAGS_EINITTOKEN_KEY, SGX_FLAGS_INITTED, SGX_FLAGS_KSS, SGX_FLAGS_MODE64BIT,
+    SGX_FLAGS_NON_CHECK_BITS, SGX_FLAGS_PROVISION_KEY, SGX_XFRM_AVX, SGX_XFRM_AVX512,
+    SGX_XFRM_LEGACY, SGX_XFRM_MPX, SGX_XFRM_PKRU,
+};
 
 /// Attributes of the enclave
 #[repr(transparent)]
@@ -77,37 +82,37 @@ bitflags! {
     #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Flags: u64 {
         /// If set, then the enclave is initialized
-        const INITTED = 0x0000000000000001;
+        const INITTED = SGX_FLAGS_INITTED as u64;
         /// If set, then the enclave is debug
-        const DEBUG = 0x0000000000000002;
+        const DEBUG = SGX_FLAGS_DEBUG as u64;
         /// If set, then the enclave is 64 bit
-        const MODE64BIT = 0x0000000000000004;
+        const MODE64BIT = SGX_FLAGS_MODE64BIT as u64;
         /// set, then the enclave has access to provision key
-        const PROVISION_KEY = 0x0000000000000010;
+        const PROVISION_KEY = SGX_FLAGS_PROVISION_KEY as u64;
         /// If set, then the enclave has access to EINITTOKEN key
-        const EINITTOKEN_KEY = 0x0000000000000020;
+        const EINITTOKEN_KEY = SGX_FLAGS_EINITTOKEN_KEY as u64;
         /// If set enclave uses KSS
-        const KSS = 0x0000000000000080;
+        const KSS = SGX_FLAGS_KSS as u64;
         /// BIT[55-48] will not be checked */
-        const NON_CHECK_BITS = 0x00FF000000000000;
+        const NON_CHECK_BITS = SGX_FLAGS_NON_CHECK_BITS as u64;
     }
 
     #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Xfrm: u64 {
         /// Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
-        const LEGACY = 0x0000000000000003;
+        const LEGACY = SGX_XFRM_LEGACY as u64;
         /// AVX XFRM which includes AVX state(0x04) and SSE state(0x02) required by AVX
-        const AVX = 0x0000000000000006;
+        const AVX = SGX_XFRM_AVX as u64;
         /// AVX-512 XFRM
-        const AVX512 = 0x00000000000000E6;
+        const AVX512 = SGX_XFRM_AVX512 as u64;
         /// MPX XFRM - not supported
-        const MPX = 0x0000000000000018;
+        const MPX = SGX_XFRM_MPX as u64;
         /// PKRU state
-        const PKRU = 0x0000000000000200;
+        const PKRU = SGX_XFRM_PKRU as u64;
         /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
-        const AMX = 0x0000000000060000;
+        const AMX = SGX_XFRM_LEGACY as u64;
         /// Reserved for future flags.
-        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX512.bits() | Self::PKRU.bits() | Self::AMX.bits()));
+        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX512.bits() | Self::PKRU.bits() | Self::AMX.bits())) as u64;
     }
 }
 
