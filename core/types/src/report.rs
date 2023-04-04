@@ -1,10 +1,8 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Report
 
-use crate::{
-    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, key_request::KeyId, Attributes,
-    ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner,
-};
+use core::fmt::{Display, Formatter};
+use crate::{config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner, impl_newtype_no_display};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
@@ -72,8 +70,15 @@ impl_newtype! {
 #[repr(transparent)]
 pub struct ExtendedProductId(sgx_isvext_prod_id_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     ExtendedProductId, sgx_isvext_prod_id_t;
+}
+
+impl Display for ExtendedProductId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "ExtendedProductId: ")?;
+        mc_sgx_util::fmt_hex(&self.0, f)
+    }
 }
 
 /// ISV Product ID
@@ -250,6 +255,7 @@ impl_newtype! {
 mod test {
     extern crate std;
 
+    use std::format;
     use super::*;
     use crate::{key_request::KeyId, MrEnclave, MrSigner};
     use core::{mem, slice};
@@ -507,5 +513,16 @@ mod test {
             &ReportData::from(left) & &ReportData::from(right),
             ReportData::from(expected)
         );
+    }
+
+    #[test]
+    fn display_extended_product_id() {
+        let sgx_isvext_prod_id_t = [42u8; SGX_ISVEXT_PROD_ID_SIZE];
+        let extended_product_id = ExtendedProductId::from(sgx_isvext_prod_id_t);
+
+        let display_string = format!("{}", extended_product_id);
+        let expected = "ExtendedProductId: 2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A";
+
+        assert_eq!(display_string, expected);
     }
 }
