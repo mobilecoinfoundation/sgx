@@ -199,10 +199,9 @@ mod test {
         let flag4 = Flags::EINITTOKEN_KEY;
         let flag5 = Flags::KSS;
         let flag6 = Flags::NON_CHECK_BITS;
-        let flags = flag1 | flag2 | flag3 | flag4 | flag5| flag6;
+        let flags = flag1 | flag2 | flag3 | flag4 | flag5 | flag6;
 
-        let attributes = Attributes::default()
-            .set_flags(flags.bits());
+        let attributes = Attributes::default().set_flags(flags.bits());
 
         let display_string = format!("{}", attributes);
         let expected = format!(
