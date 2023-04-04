@@ -12,7 +12,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
-      - uses: FantasticFiasco/action-update-license-year@v2
+      - uses: FantasticFiasco/action-update-license-year@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # don't do `**/*.h` as we vendor in some headers
