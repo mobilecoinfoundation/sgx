@@ -65,8 +65,15 @@ impl BitAnd for ReportData {
 #[repr(transparent)]
 pub struct FamilyId(sgx_isvfamily_id_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     FamilyId, sgx_isvfamily_id_t;
+}
+
+impl Display for FamilyId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "FamilyId: ")?;
+        mc_sgx_util::fmt_hex(&self.0, f)
+    }
 }
 
 /// Extended Product ID
@@ -542,6 +549,17 @@ mod test {
 
         let display_string = format!("{}", isv_product_id);
         let expected = format!("0x{:X}", sgx_prod_id_t);
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn display_family_id() {
+        let sgx_isvfamily_id_t = [5u8; SGX_ISV_FAMILY_ID_SIZE];
+        let family_id = FamilyId::from(sgx_isvfamily_id_t);
+
+        let display_string = format!("{}", family_id);
+        let expected = "FamilyId: 0505_0505_0505_0505_0505_0505_0505_0505";
 
         assert_eq!(display_string, expected);
     }
