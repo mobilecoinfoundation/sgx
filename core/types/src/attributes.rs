@@ -79,7 +79,7 @@ impl Display for Xfrm {
 }
 
 bitflags! {
-    #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
     pub struct Flags: u64 {
         /// If set, then the enclave is initialized
         const INITTED = SGX_FLAGS_INITTED as u64;
@@ -97,7 +97,7 @@ bitflags! {
         const NON_CHECK_BITS = SGX_FLAGS_NON_CHECK_BITS;
     }
 
-    #[derive(Clone, PartialOrd, Copy, Debug, PartialEq, Eq, Hash)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
     pub struct Xfrm: u64 {
         /// Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
         const LEGACY = SGX_XFRM_LEGACY as u64;
@@ -169,7 +169,7 @@ mod test {
     }
 
     #[test]
-    fn attriutes_display() {
+    fn attributes_display() {
         let flag1 = Flags::INITTED;
         let flag2 = Flags::DEBUG;
         let flag3 = Flags::MODE64BIT;
