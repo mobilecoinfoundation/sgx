@@ -10,8 +10,15 @@ use mc_sgx_core_sys_types::{sgx_config_svn_t, sgx_cpu_svn_t, sgx_isv_svn_t, SGX_
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct ConfigSvn(sgx_config_svn_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     ConfigSvn, sgx_config_svn_t;
+}
+
+impl Display for ConfigSvn {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "ConfigSvn: ")?;
+        mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
+    }
 }
 
 /// Independent software vendor (ISV) security version number (SVN)
@@ -69,6 +76,17 @@ mod test {
 
         let display_string = format!("{}", isv_svn);
         let expected_string = "IsvSvn: 0D83";
+
+        assert_eq!(display_string, expected_string);
+    }
+
+    #[test]
+    fn config_svn_display() {
+        let sgx_config_svn_t = 3298;
+        let config_svn = ConfigSvn::from(sgx_config_svn_t);
+
+        let display_string = format!("{}", config_svn);
+        let expected_string = "ConfigSvn: 0CE2";
 
         assert_eq!(display_string, expected_string);
     }
