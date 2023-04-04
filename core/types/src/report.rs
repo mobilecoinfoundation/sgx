@@ -90,8 +90,15 @@ impl Display for ExtendedProductId {
 #[repr(transparent)]
 pub struct IsvProductId(sgx_prod_id_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     IsvProductId, sgx_prod_id_t;
+}
+
+impl Display for IsvProductId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "IsvProductId: ")?;
+        mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
+    }
 }
 
 /// The main body of a report from SGX
@@ -526,6 +533,17 @@ mod test {
 
         let display_string = format!("{}", extended_product_id);
         let expected = "ExtendedProductId: 2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A";
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn display_isv_product_id() {
+        let sgx_prod_id_t = 60000u16;
+        let isv_product_id = IsvProductId::from(sgx_prod_id_t);
+
+        let display_string = format!("{}", isv_product_id);
+        let expected = format!("IsvProductId: {:X}", sgx_prod_id_t);
 
         assert_eq!(display_string, expected);
     }
