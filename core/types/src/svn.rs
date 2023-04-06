@@ -14,13 +14,6 @@ impl_newtype_no_display! {
     ConfigSvn, sgx_config_svn_t;
 }
 
-impl Display for ConfigSvn {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "ConfigSvn: ")?;
-        mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
-    }
-}
-
 /// Independent software vendor (ISV) security version number (SVN)
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
@@ -79,7 +72,7 @@ mod test {
         let config_svn = ConfigSvn::from(sgx_config_svn_t);
 
         let display_string = format!("{}", config_svn);
-        let expected_string = "ConfigSvn: 0CE2";
+        let expected_string = "0x0CE2";
 
         assert_eq!(display_string, expected_string);
     }
