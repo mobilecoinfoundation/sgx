@@ -1,8 +1,12 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Report
 
+use crate::{
+    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, impl_newtype_no_display,
+    key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect,
+    MrEnclave, MrSigner,
+};
 use core::fmt::{Display, Formatter};
-use crate::{config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner, impl_newtype_no_display};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
@@ -255,11 +259,11 @@ impl_newtype! {
 mod test {
     extern crate std;
 
-    use std::format;
     use super::*;
     use crate::{key_request::KeyId, MrEnclave, MrSigner};
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
+    use std::format;
     use yare::parameterized;
 
     fn report_body_1() -> sgx_report_body_t {
