@@ -1,7 +1,11 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Report
 
-use crate::{config_id::ConfigId, impl_newtype, impl_newtype_no_display, key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner, impl_newtype_for_bytestruct_no_display};
+use crate::{
+    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct_no_display,
+    impl_newtype_no_display, key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn,
+    MiscellaneousSelect, MrEnclave, MrSigner,
+};
 use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
