@@ -15,6 +15,6 @@ rust-version = "1.62.1"
 doctest = false
 
 [build-dependencies]
-bindgen = "0.64.0"
+bindgen = "0.65.0"
 cargo-emit = "0.2.1"
 mc-sgx-core-build = { path = "../../build", version = "=0.5.1-beta.0" }

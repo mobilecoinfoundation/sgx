@@ -20,6 +20,6 @@ mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.5.1-beta.
 mc-sgx-tservice-sys-types = { path = "types", version = "=0.5.1-beta.0" }
 
 [build-dependencies]
-bindgen = "0.64.0"
+bindgen = "0.65.0"
 cargo-emit = "0.2.1"
 mc-sgx-core-build = { path = "../../core/build", version = "=0.5.1-beta.0" }
