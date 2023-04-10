@@ -175,7 +175,25 @@ impl ReportBody {
     }
 }
 
-impl_newtype! {
+impl Display for ReportBody {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "ReportBody: ")?;
+        write!(f, "{}", self.cpu_svn())?;
+        write!(f, "{}", self.miscellaneous_select())?;
+        write!(f, "{}", self.isv_extended_product_id())?;
+        write!(f, "{}", self.attributes())?;
+        write!(f, "{}", self.mr_enclave())?;
+        write!(f, "{}", self.mr_signer())?;
+        write!(f, "{}", self.config_id())?;
+        write!(f, "{}", self.isv_product_id())?;
+        write!(f, "{}", self.isv_svn())?;
+        write!(f, "{}", self.config_svn())?;
+        write!(f, "{}", self.isv_family_id())?;
+        write!(f, "{}", self.report_data())
+    }
+}
+
+impl_newtype_no_display! {
     ReportBody, sgx_report_body_t;
 }
 
