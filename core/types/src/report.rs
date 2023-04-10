@@ -1,11 +1,7 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Report
 
-use crate::{
-    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, impl_newtype_no_display,
-    key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect,
-    MrEnclave, MrSigner,
-};
+use crate::{config_id::ConfigId, impl_newtype, impl_newtype_no_display, key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner, impl_newtype_for_bytestruct_no_display};
 use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
@@ -32,8 +28,14 @@ impl_newtype! {
 #[repr(transparent)]
 pub struct ReportData(sgx_report_data_t);
 
-impl_newtype_for_bytestruct! {
+impl_newtype_for_bytestruct_no_display! {
     ReportData, sgx_report_data_t, SGX_REPORT_DATA_SIZE, d;
+}
+
+impl Display for ReportData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "ReportData: {:X}", self)
+    }
 }
 
 /// There are times when only part of [`ReportData`] is of interest. [`BitAnd`]
@@ -559,6 +561,17 @@ mod test {
 
         let display_string = format!("{}", family_id);
         let expected = "0x0505_0505_0505_0505_0505_0505_0505_0505";
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn display_report_data() {
+        let sgx_report_data_t = [2u8; SGX_REPORT_DATA_SIZE];
+        let report_data = ReportData::from(sgx_report_data_t);
+
+        let display_string = format!("{}", report_data);
+        let expected = "ReportData: 0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";
 
         assert_eq!(display_string, expected);
     }
