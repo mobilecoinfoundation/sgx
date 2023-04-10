@@ -44,8 +44,16 @@ impl Attributes {
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Flags: {}", Flags::from_bits(self.0.flags).unwrap())?;
-        write!(f, " Xfrm: {}", Xfrm::from_bits(self.0.xfrm).unwrap())
+        match Flags::from_bits(self.0.flags) {
+            Some(flags) =>   write!(f, "Flags: {}", flags)?,
+            None => write!(f, "Flags: ")?,
+        }
+        match Xfrm::from_bits(self.0.xfrm) {
+            Some(xfrm) =>  write!(f, "Xfrm: {}", xfrm)?,
+            None => write!(f, "Xfrm: ")?
+        }
+
+        Ok(())
     }
 }
 
