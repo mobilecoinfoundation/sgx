@@ -45,12 +45,12 @@ impl Attributes {
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match Flags::from_bits(self.0.flags) {
-            Some(flags) =>   write!(f, "Flags: {}", flags)?,
+            Some(flags) => write!(f, "Flags: {}", flags)?,
             None => write!(f, "Flags: ")?,
         }
         match Xfrm::from_bits(self.0.xfrm) {
-            Some(xfrm) =>  write!(f, "Xfrm: {}", xfrm)?,
-            None => write!(f, "Xfrm: ")?
+            Some(xfrm) => write!(f, "Xfrm: {}", xfrm)?,
+            None => write!(f, "Xfrm: ")?,
         }
 
         Ok(())
@@ -153,7 +153,7 @@ mod test {
     extern crate std;
 
     use super::*;
-    use std::format;
+    use std::{format, string::ToString};
     use yare::parameterized;
 
     #[test]
@@ -232,7 +232,7 @@ mod test {
         let miscellaneous_select = MiscellaneousSelect::from(inner);
 
         let display_string = format!("{}", miscellaneous_select);
-        let expected_string = format!("0x0121_ABF8");
+        let expected_string = "0x0121_ABF8".to_string();
 
         assert_eq!(display_string, expected_string);
     }
