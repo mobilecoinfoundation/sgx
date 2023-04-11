@@ -16,7 +16,6 @@ impl_newtype_no_display! {
 
 impl Display for ConfigId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "ConfigId: ")?;
         mc_sgx_util::fmt_hex(&self.0, f)
     }
 }
@@ -31,7 +30,8 @@ impl Default for ConfigId {
 #[cfg(test)]
 mod tests {
     extern crate std;
-    use crate::ConfigId;
+
+    use super::*;
     use std::format;
 
     #[test]
@@ -40,7 +40,7 @@ mod tests {
         let config_id = ConfigId::from(sgx_config_id_t);
 
         let display_string = format!("{}", config_id);
-        let expected = "ConfigId: 2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222";
+        let expected = "0x2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222";
 
         assert_eq!(display_string, expected);
     }
