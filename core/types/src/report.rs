@@ -80,7 +80,6 @@ impl_newtype_no_display! {
 
 impl Display for ExtendedProductId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "ExtendedProductId: ")?;
         mc_sgx_util::fmt_hex(&self.0, f)
     }
 }
@@ -525,7 +524,7 @@ mod test {
         let extended_product_id = ExtendedProductId::from(sgx_isvext_prod_id_t);
 
         let display_string = format!("{}", extended_product_id);
-        let expected = "ExtendedProductId: 2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A";
+        let expected = "0x2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A";
 
         assert_eq!(display_string, expected);
     }
