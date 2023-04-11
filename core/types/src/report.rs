@@ -536,7 +536,7 @@ mod test {
         let inner = [42u8; SGX_ISVEXT_PROD_ID_SIZE];
         let extended_product_id = ExtendedProductId::from(inner);
 
-        let display_string = format!("{}", extended_product_id);
+        let display_string = format!("{extended_product_id}");
         let expected = format!("{}", u128::from_be_bytes(inner));
 
         assert_eq!(display_string, expected);
@@ -547,8 +547,8 @@ mod test {
         let inner = 60000u16;
         let isv_product_id = IsvProductId::from(inner);
 
-        let display_string = format!("{}", isv_product_id);
-        let expected = format!("{}", inner);
+        let display_string = format!("{isv_product_id}");
+        let expected = format!("{inner}");
 
         assert_eq!(display_string, expected);
     }
@@ -558,7 +558,7 @@ mod test {
         let inner = [5u8; SGX_ISV_FAMILY_ID_SIZE];
         let family_id = FamilyId::from(inner);
 
-        let display_string = format!("{}", family_id);
+        let display_string = format!("{family_id}");
         let expected = "0x0505_0505_0505_0505_0505_0505_0505_0505";
 
         assert_eq!(display_string, expected);
@@ -569,7 +569,7 @@ mod test {
         let inner = [2u8; SGX_REPORT_DATA_SIZE];
         let report_data = ReportData::from(inner);
 
-        let display_string = format!("{}", report_data);
+        let display_string = format!("{report_data}");
         let expected = "0x0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";
 
         assert_eq!(display_string, expected);

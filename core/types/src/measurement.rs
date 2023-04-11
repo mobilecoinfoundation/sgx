@@ -68,7 +68,7 @@ mod test {
     fn display_mr_enclave() {
         let mr_enclave = MrEnclave::from([1u8; MrEnclave::SIZE]);
 
-        let display_string = format!("{}", mr_enclave);
+        let display_string = format!("{mr_enclave}");
         let expected_string =
             "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
 
@@ -79,7 +79,7 @@ mod test {
     fn display_mr_signer() {
         let mr_signer = MrSigner::from([1u8; MrSigner::SIZE]);
 
-        let display_string = format!("{}", mr_signer);
+        let display_string = format!("{mr_signer}");
         let expected_string =
             "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
 

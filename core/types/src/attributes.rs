@@ -49,8 +49,8 @@ impl Display for Attributes {
             None => write!(f, "Flags: ")?,
         }
         match Xfrm::from_bits(self.0.xfrm) {
-            Some(xfrm) => write!(f, "Xfrm: {}", xfrm)?,
-            None => write!(f, "Xfrm: ")?,
+            Some(xfrm) => write!(f, " Xfrm: {}", xfrm)?,
+            None => write!(f, " Xfrm: ")?,
         }
 
         Ok(())
@@ -153,7 +153,7 @@ mod test {
     extern crate std;
 
     use super::*;
-    use std::{format, string::ToString};
+    use std::format;
     use yare::parameterized;
 
     #[test]
@@ -198,8 +198,7 @@ mod test {
 
         let display_string = format!("{}", attributes);
         let expected = format!(
-            "Flags: {} | {} | {} Xfrm: {} | {}",
-            flag1, flag2, flag3, xfrm1, xfrm2
+            "Flags: {flag1} | {flag2} | {flag3} Xfrm: {xfrm1} | {xfrm2}",
         );
 
         assert_eq!(display_string, expected);
@@ -219,8 +218,7 @@ mod test {
 
         let display_string = format!("{}", attributes);
         let expected = format!(
-            "Flags: {} | {} | {} | {} | {} | {} Xfrm: ",
-            flag1, flag2, flag3, flag4, flag5, flag6,
+            "Flags: {flag1} | {flag2} | {flag3} | {flag4} | {flag5} | {flag6} Xfrm: ",
         );
 
         assert_eq!(display_string, expected);
@@ -231,8 +229,8 @@ mod test {
         let inner = 18983928;
         let miscellaneous_select = MiscellaneousSelect::from(inner);
 
-        let display_string = format!("{}", miscellaneous_select);
-        let expected_string = "0x0121_ABF8".to_string();
+        let display_string = format!("{miscellaneous_select}");
+        let expected_string = "0x0121_ABF8";
 
         assert_eq!(display_string, expected_string);
     }

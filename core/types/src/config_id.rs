@@ -39,7 +39,7 @@ mod tests {
         let inner = [34u8; 64];
         let config_id = ConfigId::from(inner);
 
-        let display_string = format!("{}", config_id);
+        let display_string = format!("{config_id}");
         let expected = "0x2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222";
 
         assert_eq!(display_string, expected);

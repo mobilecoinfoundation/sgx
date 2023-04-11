@@ -55,7 +55,7 @@ mod test {
     fn cpu_svn_display() {
         let cpu_svn = CpuSvn::from([1u8; CpuSvn::SIZE]);
 
-        let display_string = format!("{}", cpu_svn);
+        let display_string = format!("{cpu_svn}");
         let expected_string = "0x0101_0101_0101_0101_0101_0101_0101_0101";
 
         assert_eq!(display_string, expected_string);
@@ -66,8 +66,8 @@ mod test {
         let inner = 3459;
         let isv_svn = IsvSvn::from(inner);
 
-        let display_string = format!("{}", isv_svn);
-        let expected_string = format!("{}", inner);
+        let display_string = format!("{isv_svn}");
+        let expected_string = format!("{inner}");
 
         assert_eq!(display_string, expected_string);
     }
@@ -77,8 +77,8 @@ mod test {
         let inner = 3298;
         let config_svn = ConfigSvn::from(inner);
 
-        let display_string = format!("{}", config_svn);
-        let expected_string = format!("{}", inner);
+        let display_string = format!("{config_svn}");
+        let expected_string = format!("{inner}");
 
         assert_eq!(display_string, expected_string);
     }
