@@ -95,7 +95,6 @@ impl_newtype_no_display! {
 
 impl Display for IsvProductId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "IsvProductId: ")?;
         mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
     }
 }
@@ -542,7 +541,7 @@ mod test {
         let isv_product_id = IsvProductId::from(sgx_prod_id_t);
 
         let display_string = format!("{}", isv_product_id);
-        let expected = format!("IsvProductId: {:X}", sgx_prod_id_t);
+        let expected = format!("0x{:X}", sgx_prod_id_t);
 
         assert_eq!(display_string, expected);
     }
