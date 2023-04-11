@@ -34,6 +34,12 @@ impl Display for IsvSvn {
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CpuSvn(sgx_cpu_svn_t);
 
+impl Display for ConfigSvn {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
+    }
+}
+
 impl_newtype_for_bytestruct! {
     CpuSvn, sgx_cpu_svn_t, SGX_CPUSVN_SIZE, svn;
 }
