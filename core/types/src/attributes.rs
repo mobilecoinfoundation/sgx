@@ -197,9 +197,7 @@ mod test {
             .set_extended_features_mask(xfrm.bits());
 
         let display_string = format!("{}", attributes);
-        let expected = format!(
-            "Flags: {flag1} | {flag2} | {flag3} Xfrm: {xfrm1} | {xfrm2}",
-        );
+        let expected = format!("Flags: {flag1} | {flag2} | {flag3} Xfrm: {xfrm1} | {xfrm2}",);
 
         assert_eq!(display_string, expected);
     }
@@ -217,9 +215,8 @@ mod test {
         let attributes = Attributes::default().set_flags(flags.bits());
 
         let display_string = format!("{}", attributes);
-        let expected = format!(
-            "Flags: {flag1} | {flag2} | {flag3} | {flag4} | {flag5} | {flag6} Xfrm: ",
-        );
+        let expected =
+            format!("Flags: {flag1} | {flag2} | {flag3} | {flag4} | {flag5} | {flag6} Xfrm: ",);
 
         assert_eq!(display_string, expected);
     }
