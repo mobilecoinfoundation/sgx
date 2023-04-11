@@ -71,7 +71,6 @@ impl_newtype_no_display! {
 
 impl Display for FamilyId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "FamilyId: ")?;
         mc_sgx_util::fmt_hex(&self.0, f)
     }
 }
@@ -559,7 +558,7 @@ mod test {
         let family_id = FamilyId::from(sgx_isvfamily_id_t);
 
         let display_string = format!("{}", family_id);
-        let expected = "FamilyId: 0505_0505_0505_0505_0505_0505_0505_0505";
+        let expected = "0x0505_0505_0505_0505_0505_0505_0505_0505";
 
         assert_eq!(display_string, expected);
     }
