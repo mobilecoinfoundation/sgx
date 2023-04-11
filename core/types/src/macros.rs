@@ -101,7 +101,7 @@ macro_rules! impl_newtype_for_bytestruct {
             type Error = $crate::FfiError;
 
             fn try_from(src: &[u8]) -> ::core::result::Result<Self, Self::Error> {
-                if src.len() != $size {
+                if src.len() < $size {
                     return Err($crate::FfiError::InvalidInputLength);
                 }
 
