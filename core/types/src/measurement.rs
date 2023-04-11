@@ -4,8 +4,7 @@
 //!
 //! Different types are used for MrSigner and MrEnclave to prevent misuse.
 
-use crate::impl_newtype_for_bytestruct_no_display;
-use core::fmt::{Display, Formatter};
+use crate::impl_newtype_for_bytestruct;
 use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
 
 /// An opaque type for MRENCLAVE values
@@ -25,21 +24,9 @@ pub struct MrEnclave(sgx_measurement_t);
 #[repr(transparent)]
 pub struct MrSigner(sgx_measurement_t);
 
-impl_newtype_for_bytestruct_no_display! {
+impl_newtype_for_bytestruct! {
     MrEnclave, sgx_measurement_t, SGX_HASH_SIZE, m;
     MrSigner, sgx_measurement_t, SGX_HASH_SIZE, m;
-}
-
-impl Display for MrEnclave {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "MrEnclave: {:X}", self)
-    }
-}
-
-impl Display for MrSigner {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "MrSigner: {:X}", self)
-    }
 }
 
 #[cfg(test)]
@@ -82,7 +69,8 @@ mod test {
         let mr_enclave = MrEnclave::from([1u8; MrEnclave::SIZE]);
 
         let display_string = format!("{}", mr_enclave);
-        let expected_string = "MrEnclave: 0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+        let expected_string =
+            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
 
         assert_eq!(display_string, expected_string);
     }
@@ -92,7 +80,8 @@ mod test {
         let mr_signer = MrSigner::from([1u8; MrSigner::SIZE]);
 
         let display_string = format!("{}", mr_signer);
-        let expected_string = "MrSigner: 0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+        let expected_string =
+            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
 
         assert_eq!(display_string, expected_string);
     }
