@@ -6,7 +6,7 @@ use core::fmt::Formatter;
 
 /// A helper method that displays a u32 as Hex with a "_" delimiter.
 pub fn fmt_hex(src: &[u8], f: &mut Formatter) -> core::fmt::Result {
-    let prefix = if f.alternate() { "0x" } else { "" };
+    let prefix = "0x";
     let separators = ::core::iter::once(prefix).chain(::core::iter::repeat("_"));
     let segments = separators.zip(src.chunks(2));
     for (separator, chunk) in segments {
