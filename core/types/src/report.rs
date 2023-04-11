@@ -2,9 +2,9 @@
 //! SGX Report
 
 use crate::{
-    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct_no_display,
-    impl_newtype_no_display, key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn,
-    MiscellaneousSelect, MrEnclave, MrSigner,
+    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, impl_newtype_no_display,
+    key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect,
+    MrEnclave, MrSigner,
 };
 use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
@@ -32,14 +32,8 @@ impl_newtype! {
 #[repr(transparent)]
 pub struct ReportData(sgx_report_data_t);
 
-impl_newtype_for_bytestruct_no_display! {
+impl_newtype_for_bytestruct! {
     ReportData, sgx_report_data_t, SGX_REPORT_DATA_SIZE, d;
-}
-
-impl Display for ReportData {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "ReportData: {:X}", self)
-    }
 }
 
 /// There are times when only part of [`ReportData`] is of interest. [`BitAnd`]
@@ -575,7 +569,7 @@ mod test {
         let report_data = ReportData::from(sgx_report_data_t);
 
         let display_string = format!("{}", report_data);
-        let expected = "ReportData: 0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";
+        let expected = "0x0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";
 
         assert_eq!(display_string, expected);
     }
