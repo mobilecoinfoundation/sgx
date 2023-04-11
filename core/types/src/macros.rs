@@ -129,16 +129,7 @@ macro_rules! impl_newtype_for_bytestruct {
         impl ::core::fmt::UpperHex for $wrapper {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 let inner: &[u8] = self.as_ref();
-                let prefix = if f.alternate() { "0x" } else { "" };
-                let separators = ::core::iter::once(prefix).chain(::core::iter::repeat("_"));
-                let segments = separators.zip(inner.chunks(2));
-                for (separator, chunk) in segments {
-                    write!(f, "{separator}")?;
-                    for byte in chunk {
-                        write!(f, "{:02X}", byte)?;
-                    }
-                }
-                Ok(())
+                mc_sgx_util::fmt_hex(inner, f)
             }
         }
 
