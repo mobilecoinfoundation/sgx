@@ -220,8 +220,8 @@ mod test {
 
     #[test]
     fn miscellaneous_select_display() {
-        let sgx_misc_select_t = 18983928;
-        let miscellaneous_select = MiscellaneousSelect::from(sgx_misc_select_t);
+        let inner = 18983928;
+        let miscellaneous_select = MiscellaneousSelect::from(inner);
 
         let display_string = format!("{}", miscellaneous_select);
         let expected_string = format!("0x0121_ABF8");

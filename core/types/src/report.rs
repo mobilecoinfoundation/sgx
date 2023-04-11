@@ -86,7 +86,8 @@ impl_newtype_no_display! {
 
 impl Display for ExtendedProductId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        mc_sgx_util::fmt_hex(&self.0, f)
+        let inner = u128::from_be_bytes(self.0);
+        write!(f, "{}", inner)
     }
 }
 
@@ -101,7 +102,7 @@ impl_newtype_no_display! {
 
 impl Display for IsvProductId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        mc_sgx_util::fmt_hex(&self.0.to_be_bytes(), f)
+        write!(f, "{}", &self.0)
     }
 }
 
@@ -532,30 +533,30 @@ mod test {
 
     #[test]
     fn display_extended_product_id() {
-        let sgx_isvext_prod_id_t = [42u8; SGX_ISVEXT_PROD_ID_SIZE];
-        let extended_product_id = ExtendedProductId::from(sgx_isvext_prod_id_t);
+        let inner = [42u8; SGX_ISVEXT_PROD_ID_SIZE];
+        let extended_product_id = ExtendedProductId::from(inner);
 
         let display_string = format!("{}", extended_product_id);
-        let expected = "0x2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A_2A2A";
+        let expected = format!("{}", u128::from_be_bytes(inner));
 
         assert_eq!(display_string, expected);
     }
 
     #[test]
     fn display_isv_product_id() {
-        let sgx_prod_id_t = 60000u16;
-        let isv_product_id = IsvProductId::from(sgx_prod_id_t);
+        let inner = 60000u16;
+        let isv_product_id = IsvProductId::from(inner);
 
         let display_string = format!("{}", isv_product_id);
-        let expected = format!("0x{:X}", sgx_prod_id_t);
+        let expected = format!("{}", inner);
 
         assert_eq!(display_string, expected);
     }
 
     #[test]
     fn display_family_id() {
-        let sgx_isvfamily_id_t = [5u8; SGX_ISV_FAMILY_ID_SIZE];
-        let family_id = FamilyId::from(sgx_isvfamily_id_t);
+        let inner = [5u8; SGX_ISV_FAMILY_ID_SIZE];
+        let family_id = FamilyId::from(inner);
 
         let display_string = format!("{}", family_id);
         let expected = "0x0505_0505_0505_0505_0505_0505_0505_0505";
@@ -565,8 +566,8 @@ mod test {
 
     #[test]
     fn display_report_data() {
-        let sgx_report_data_t = [2u8; SGX_REPORT_DATA_SIZE];
-        let report_data = ReportData::from(sgx_report_data_t);
+        let inner = [2u8; SGX_REPORT_DATA_SIZE];
+        let report_data = ReportData::from(inner);
 
         let display_string = format!("{}", report_data);
         let expected = "0x0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";

@@ -36,8 +36,8 @@ mod tests {
 
     #[test]
     fn display_config_id() {
-        let sgx_config_id_t = [34u8; 64];
-        let config_id = ConfigId::from(sgx_config_id_t);
+        let inner = [34u8; 64];
+        let config_id = ConfigId::from(inner);
 
         let display_string = format!("{}", config_id);
         let expected = "0x2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222";
