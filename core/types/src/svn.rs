@@ -30,3 +30,21 @@ pub struct CpuSvn(sgx_cpu_svn_t);
 impl_newtype_for_bytestruct! {
     CpuSvn, sgx_cpu_svn_t, SGX_CPUSVN_SIZE, svn;
 }
+
+#[cfg(test)]
+mod test {
+    extern crate std;
+
+    use super::*;
+    use std::format;
+
+    #[test]
+    fn cpu_svn_display() {
+        let cpu_svn = CpuSvn::from([1u8; CpuSvn::SIZE]);
+
+        let display_string = format!("{}", cpu_svn);
+        let expected_string = "0x0101_0101_0101_0101_0101_0101_0101_0101";
+
+        assert_eq!(display_string, expected_string);
+    }
+}
