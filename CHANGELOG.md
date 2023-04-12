@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Implemented `Display` for `mc-sgx-core-types` structs.
- 
+
 ### Changed
 
 - Upgraded to `bitflags` to 2.0. This caused API changes in `KeyPolicy` methods and trait derivations. See bitflags 2.0 [changelog](https://github.com/bitflags/bitflags/blob/main/CHANGELOG.md) for more information.
