@@ -45,12 +45,24 @@ impl Attributes {
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match Flags::from_bits(self.0.flags) {
-            Some(flags) => write!(f, "Flags: {}", flags)?,
-            None => write!(f, "Flags: ")?,
+            Some(flags) => {
+                if flags.is_empty() {
+                    write!(f, "Flags: (none)")?
+                } else {
+                    write!(f, "Flags: {}", flags)?
+                }
+            }
+            None => write!(f, "Flags: (none)")?,
         }
         match Xfrm::from_bits(self.0.xfrm) {
-            Some(xfrm) => write!(f, " Xfrm: {}", xfrm)?,
-            None => write!(f, " Xfrm: ")?,
+            Some(xfrm) => {
+                if xfrm.is_empty() {
+                    write!(f, " Xfrm: (none)")?
+                } else {
+                    write!(f, " Xfrm: {}", xfrm)?
+                }
+            }
+            None => write!(f, " Xfrm: (none)")?,
         }
 
         Ok(())
@@ -215,8 +227,22 @@ mod test {
         let attributes = Attributes::default().set_flags(flags.bits());
 
         let display_string = format!("{}", attributes);
-        let expected =
-            format!("Flags: {flag1} | {flag2} | {flag3} | {flag4} | {flag5} | {flag6} Xfrm: ",);
+        let expected = format!(
+            "Flags: {flag1} | {flag2} | {flag3} | {flag4} | {flag5} | {flag6} Xfrm: (none)",
+        );
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn attributes_display_no_flags() {
+        let xfrm1 = Xfrm::LEGACY;
+        let xfrm2 = Xfrm::AVX;
+        let xfrm = xfrm1 | xfrm2;
+        let attributes = Attributes::default().set_extended_features_mask(xfrm.bits());
+
+        let display_string = format!("{}", attributes);
+        let expected = format!("Flags: (none) Xfrm: {xfrm1} | {xfrm2}",);
 
         assert_eq!(display_string, expected);
     }
