@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-dcap-quoteverify-types"
-version = "0.5.1-beta.0"
+version = "0.6.0"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for `dcap_quoteverify` types."
@@ -12,8 +12,8 @@ repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
 [dependencies]
-mc-sgx-core-types = { path = "../../../core/types", version = "=0.5.1-beta.0" }
-mc-sgx-dcap-quoteverify-sys-types = { path = "../sys/types", version = "=0.5.1-beta.0" }
+mc-sgx-core-types = { path = "../../../core/types", version = "=0.6.0" }
+mc-sgx-dcap-quoteverify-sys-types = { path = "../sys/types", version = "=0.6.0" }
 
 [dev-dependencies]
 yare = "1.0.2"

@@ -17,5 +17,5 @@ FFI linkage for the `sgx_tcrypto` library.
 [crate-link]: https://crates.io/crates/mc-sgx-tcrypto-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tcrypto-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tcrypto-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-tcrypto-sys/0.5.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tcrypto-sys/0.5.0
+[deps-image]: https://deps.rs/crate/mc-sgx-tcrypto-sys/0.6.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tcrypto-sys/0.6.0
