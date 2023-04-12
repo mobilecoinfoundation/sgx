@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ### Changed
 
--  Upgraded to `bitflags` to 2.0. This caused API changes in `KeyPolicy` methods and trait derivations. See bitflags 2.0 [changelog](https://github.com/bitflags/bitflags/blob/main/CHANGELOG.md) for more information.
+- Upgraded to `bitflags` to 2.0. This caused API changes in `KeyPolicy` methods and trait derivations. See bitflags 2.0 [changelog](https://github.com/bitflags/bitflags/blob/main/CHANGELOG.md) for more information.
 
 ## [0.5.0] - 2023-03-08
 
