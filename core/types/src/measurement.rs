@@ -31,7 +31,10 @@ impl_newtype_for_bytestruct! {
 
 #[cfg(test)]
 mod test {
+    extern crate std;
+
     use super::*;
+    use std::format;
 
     #[test]
     fn from_sgx_mr_enclave() {
@@ -59,5 +62,27 @@ mod test {
         let mr_signer = MrSigner::default();
         let sgx_mr_signer: sgx_measurement_t = mr_signer.into();
         assert_eq!(sgx_mr_signer.m, [0u8; 32]);
+    }
+
+    #[test]
+    fn display_mr_enclave() {
+        let mr_enclave = MrEnclave::from([1u8; MrEnclave::SIZE]);
+
+        let display_string = format!("{mr_enclave}");
+        let expected_string =
+            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+
+        assert_eq!(display_string, expected_string);
+    }
+
+    #[test]
+    fn display_mr_signer() {
+        let mr_signer = MrSigner::from([1u8; MrSigner::SIZE]);
+
+        let display_string = format!("{mr_signer}");
+        let expected_string =
+            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+
+        assert_eq!(display_string, expected_string);
     }
 }

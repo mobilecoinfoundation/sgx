@@ -2,9 +2,11 @@
 //! SGX Report
 
 use crate::{
-    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, key_request::KeyId, Attributes,
-    ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect, MrEnclave, MrSigner,
+    config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, impl_newtype_no_display,
+    key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect,
+    MrEnclave, MrSigner,
 };
+use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
     sgx_isvext_prod_id_t, sgx_isvfamily_id_t, sgx_mac_t, sgx_prod_id_t, sgx_report_body_t,
@@ -63,8 +65,14 @@ impl BitAnd for ReportData {
 #[repr(transparent)]
 pub struct FamilyId(sgx_isvfamily_id_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     FamilyId, sgx_isvfamily_id_t;
+}
+
+impl Display for FamilyId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        mc_sgx_util::fmt_hex(&self.0, f)
+    }
 }
 
 /// Extended Product ID
@@ -72,8 +80,15 @@ impl_newtype! {
 #[repr(transparent)]
 pub struct ExtendedProductId(sgx_isvext_prod_id_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     ExtendedProductId, sgx_isvext_prod_id_t;
+}
+
+impl Display for ExtendedProductId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let inner = u128::from_be_bytes(self.0);
+        write!(f, "{}", inner)
+    }
 }
 
 /// ISV Product ID
@@ -81,8 +96,14 @@ impl_newtype! {
 #[repr(transparent)]
 pub struct IsvProductId(sgx_prod_id_t);
 
-impl_newtype! {
+impl_newtype_no_display! {
     IsvProductId, sgx_prod_id_t;
+}
+
+impl Display for IsvProductId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", &self.0)
+    }
 }
 
 /// The main body of a report from SGX
@@ -254,6 +275,7 @@ mod test {
     use crate::{key_request::KeyId, MrEnclave, MrSigner};
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
+    use std::format;
     use yare::parameterized;
 
     fn report_body_1() -> sgx_report_body_t {
@@ -507,5 +529,49 @@ mod test {
             &ReportData::from(left) & &ReportData::from(right),
             ReportData::from(expected)
         );
+    }
+
+    #[test]
+    fn display_extended_product_id() {
+        let inner = [42u8; SGX_ISVEXT_PROD_ID_SIZE];
+        let extended_product_id = ExtendedProductId::from(inner);
+
+        let display_string = format!("{extended_product_id}");
+        let expected = format!("{}", u128::from_be_bytes(inner));
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn display_isv_product_id() {
+        let inner = 60000u16;
+        let isv_product_id = IsvProductId::from(inner);
+
+        let display_string = format!("{isv_product_id}");
+        let expected = format!("{inner}");
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn display_family_id() {
+        let inner = [5u8; SGX_ISV_FAMILY_ID_SIZE];
+        let family_id = FamilyId::from(inner);
+
+        let display_string = format!("{family_id}");
+        let expected = "0x0505_0505_0505_0505_0505_0505_0505_0505";
+
+        assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn display_report_data() {
+        let inner = [2u8; SGX_REPORT_DATA_SIZE];
+        let report_data = ReportData::from(inner);
+
+        let display_string = format!("{report_data}");
+        let expected = "0x0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";
+
+        assert_eq!(display_string, expected);
     }
 }
