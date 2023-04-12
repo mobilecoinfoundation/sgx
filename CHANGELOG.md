@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.6.0] - 2023-04-12
+
+### Added
+
+- Implemented `Display` for `mc-sgx-core-types` structs.
+
+### Changed
+
+- Upgraded to `bitflags` to 2.0. This caused API changes in `KeyPolicy` methods and trait derivations. See bitflags 2.0 [changelog](https://github.com/bitflags/bitflags/blob/main/CHANGELOG.md) for more information.
+
 ## [0.5.0] - 2023-03-08
 
 ### Added
@@ -124,7 +134,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/{{tag_name}}...HEAD
+[0.6.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.0...v0.4.1
