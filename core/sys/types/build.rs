@@ -113,6 +113,9 @@ fn main() {
             "sgx_measurement_t",
             "sgx_report_data_t",
             "sgx_attributes_t",
+            "sgx_key_request_t",
+            "sgx_platform_info_t",
+            "sgx_basename_t",
         ])
         .dynamically_sized_types(["sgx_quote_t"])
         .derive_default([
@@ -122,6 +125,33 @@ fn main() {
             "sgx_quote_nonce_t",
             "sgx_update_info_bit_t",
             "sgx_qe_report_info_t",
+        ])
+        .derive_constant_time([
+            "sgx_att_key_id_ext_t",
+            "sgx_ql_att_key_id_t",
+            "sgx_measurement_t",
+            "sgx_attributes_t",
+            "sgx_key_id_t",
+            "sgx_config_id_t",
+            "sgx_key_request_t",
+            "sgx_qe_report_info_t",
+            "sgx_platform_info_t",
+            "sgx_update_info_bit_t",
+            "sgx_epid_group_id_t",
+            "sgx_basename_t",
+            "sgx_quote_nonce_t",
+            "sgx_report_t",
+            "sgx_target_info_t",
+            "sgx_cpu_svn_t",
+            "sgx_mac_t",
+            "sgx_report_data_t",
+            "sgx_isvfamily_id_t",
+            "sgx_isvext_prod_id_t",
+            "sgx_prod_id_t",
+            "sgx_config_svn_t",
+            "sgx_isv_svn_t",
+            "sgx_cpu_svn_t",
+            "sgx_report_body_t",
         ]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")

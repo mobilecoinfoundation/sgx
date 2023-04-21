@@ -4,9 +4,11 @@
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+use constant_time_derive::ConstantTimeEq;
 use core::{mem, result::Result as CoreResult};
 use mc_sgx_core_types::FfiError;
 use mc_sgx_tservice_sys_types::{sgx_aes_gcm_data_t, sgx_sealed_data_t};
+use subtle::{Choice, ConstantTimeEq};
 
 pub type Result<T> = CoreResult<T, FfiError>;
 
@@ -14,7 +16,7 @@ pub type Result<T> = CoreResult<T, FfiError>;
 ///
 /// Wraps up a `&[u8]` since [`mc-sgx-tservice-sys-types::sgx_aes_gcm_data_t`]
 /// is a dynamically sized type
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 struct AesGcmData<'a> {
     bytes: &'a [u8],
 }
@@ -59,6 +61,12 @@ impl<'a> AesGcmData<'a> {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Sealed<T> {
     bytes: T,
+}
+
+impl ConstantTimeEq for Sealed<&[u8]> {
+    fn ct_eq(&self, other: &Self) -> Choice {
+        self.as_ref().ct_eq(other.as_ref())
+    }
 }
 
 // Unable to do
@@ -266,5 +274,76 @@ mod test {
             Sealed::try_from(&bytes[..size]),
             Err(FfiError::InvalidInputLength)
         );
+    }
+
+    #[test]
+    fn ct_eq_aes_gcm_data() {
+        let bytes = aes_gcm_data_to_bytes(sgx_aes_gcm_data_t::default(), b"1234");
+        let size = mem::size_of::<sgx_aes_gcm_data_t>() + b"1234".len();
+        let first_quote = AesGcmData::try_from(&bytes[..size]);
+        let second_quote = AesGcmData::try_from(&bytes[..size]);
+
+        assert!(bool::from(
+            first_quote.unwrap().ct_eq(&second_quote.unwrap())
+        ));
+    }
+
+    #[test]
+    fn ct_eq_sealed() {
+        let bytes = test_utils::sealed_data_to_bytes(sgx_sealed_data_t::default(), b"", None);
+        let size = mem::size_of::<sgx_sealed_data_t>();
+        let first = Sealed::try_from(&bytes[..size]);
+        let second = Sealed::try_from(&bytes[..size]);
+
+        assert!(bool::from(first.unwrap().ct_eq(&second.unwrap())));
+    }
+
+    #[test]
+    fn ct_not_eq_aes_gcm_data() {
+        let gcm_data = sgx_aes_gcm_data_t {
+            payload_size: 0,
+            reserved: [7u8; 12],
+            payload_tag: [5u8; 16],
+            payload: Default::default(),
+        };
+
+        let other_gcm_data = sgx_aes_gcm_data_t {
+            payload_size: 0,
+            reserved: [3u8; 12],
+            payload_tag: [2u8; 16],
+            payload: Default::default(),
+        };
+        let bytes = aes_gcm_data_to_bytes(gcm_data, b"1234");
+        let other_bytes = aes_gcm_data_to_bytes(other_gcm_data, b"1234");
+        let size = mem::size_of::<sgx_aes_gcm_data_t>() + b"1234".len();
+        let first_quote = AesGcmData::try_from(&bytes[..size]);
+        let second_quote = AesGcmData::try_from(&other_bytes[..size]);
+
+        assert!(bool::from(
+            !first_quote.unwrap().ct_eq(&second_quote.unwrap())
+        ));
+    }
+
+    #[test]
+    fn ct_not_eq_sealed() {
+        let sealed_data = sgx_sealed_data_t {
+            key_request: Default::default(),
+            plain_text_offset: 4,
+            reserved: [4u8; 12],
+            aes_data: Default::default(),
+        };
+        let other_sealed_data = sgx_sealed_data_t {
+            key_request: Default::default(),
+            plain_text_offset: 0,
+            reserved: [44u8; 12],
+            aes_data: Default::default(),
+        };
+        let bytes = test_utils::sealed_data_to_bytes(sealed_data, b"", None);
+        let other_bytes = test_utils::sealed_data_to_bytes(other_sealed_data, b"", None);
+        let size = mem::size_of::<sgx_sealed_data_t>();
+        let first = Sealed::try_from(&bytes[..size]);
+        let second = Sealed::try_from(&other_bytes[..size]);
+
+        assert!(bool::from(!first.unwrap().ct_eq(&second.unwrap())));
     }
 }

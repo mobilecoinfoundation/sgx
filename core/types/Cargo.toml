@@ -18,12 +18,14 @@ alloc = []
 
 [dependencies]
 bitflags = "2.0.0"
+constant_time_derive = { path = "../../constant_time_derive", version = "0.1.0" }
 displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.6.0" }
 mc-sgx-util = { path = "../../util", version = "=0.6.0" }
 nom = { version = "7.1.2", default-features = false }
 rand_core = { version = "0.6.4", default-features = false }
 serde = { version = "1.0.152", default-features = false, features = ["derive"], optional = true }
+subtle = { version = "2.4.0", default-features = false, features = ["i128"] }
 
 # `getrandom` is pulled in by `rand_core` we only need to access it directly when registering a custom spng,
 # `register_custom_getrandom`, which only happens for target_os = none

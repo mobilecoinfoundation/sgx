@@ -6,6 +6,7 @@ use crate::certification_data::{CertificationData, MIN_CERT_DATA_SIZE};
 use crate::Quote3Error;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+use constant_time_derive::ConstantTimeEq;
 use core::cmp::Ordering;
 use core::hash::{Hash, Hasher};
 use core::mem;
@@ -269,7 +270,7 @@ impl<'a> SignatureData<'a> {
 ///
 /// Table 8 of
 /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 struct AuthenticationData<'a> {
     // The `data` field as described in the QuoteLibReference.
     // The length of this *will* equal the `size` field as described in the
@@ -893,5 +894,21 @@ mod test {
         );
         assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
         assert_eq!(signature_data.certification_data().raw_data(), [23u8; 4]);
+    }
+
+    #[test]
+    fn ct_eq_authentication_data() {
+        let first = AuthenticationData { data: &[23u8, 32] };
+        let second = AuthenticationData { data: &[23u8, 32] };
+
+        assert!(bool::from(first.ct_eq(&second)))
+    }
+
+    #[test]
+    fn ct_not_eq_authentication_data() {
+        let first = AuthenticationData { data: &[59u8, 32] };
+        let second = AuthenticationData { data: &[109u8, 32] };
+
+        assert!(bool::from(!first.ct_eq(&second)))
     }
 }

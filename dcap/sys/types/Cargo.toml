@@ -15,7 +15,9 @@ rust-version = "1.62.1"
 doctest = false
 
 [dependencies]
+constant_time_derive = { path = "../../../constant_time_derive", version = "0.1.0" }
 mc-sgx-core-sys-types = { path = "../../../core/sys/types", version = "=0.6.0" }
+subtle = { version = "2.4.0", default-features = false }
 
 [build-dependencies]
 bindgen = "0.65.1"

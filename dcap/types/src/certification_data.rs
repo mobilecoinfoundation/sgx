@@ -4,6 +4,7 @@
 
 use crate::quote3::{le_u16, le_u32};
 use crate::Quote3Error;
+use constant_time_derive::ConstantTimeEq;
 
 /// The minimum size of a byte array to contain a [`CertificationData`]
 /// The 2(type) + 4(size) for QE certification data
@@ -118,7 +119,7 @@ trait CertificationDataKind {
     const KIND: u16;
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// Contains the following data:
 /// - Platform provisioning ID (PPID)
 /// - CPU security version number (CPUSVN)
@@ -130,7 +131,7 @@ impl<'a> CertificationDataKind for Ppid<'a> {
     const KIND: u16 = 1;
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// Contains the following data encrypted with RSA 2048:
 /// - Platform provisioning ID (PPID)
 /// - CPU security version number (CPUSVN)
@@ -142,7 +143,7 @@ impl<'a> CertificationDataKind for PpidEncryptedRsa2048<'a> {
     const KIND: u16 = 2;
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// Contains the following data encrypted with RSA 3072:
 /// - Platform provisioning ID (PPID)
 /// - CPU security version number (CPUSVN)
@@ -154,7 +155,7 @@ impl<'a> CertificationDataKind for PpidEncryptedRsa3072<'a> {
     const KIND: u16 = 3;
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// Contains the provisioning certification key (PCK) leaf certificate
 pub struct Pck<'a>(&'a [u8]);
 
@@ -162,7 +163,7 @@ impl<'a> CertificationDataKind for Pck<'a> {
     const KIND: u16 = 4;
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// Contains the certificate chain for the provisioning certification key
 /// (PCK).
 pub struct PckCertificateChain<'a> {
@@ -184,7 +185,7 @@ impl<'a> IntoIterator for &'a PckCertificateChain<'a> {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// ECDSA signature auxiliary data of an Intel SGX quote
 /// See `sgx_ql_cert_key_type_t::ECDSA_SIG_AUX_DATA`
 pub struct EcdsaSignatureAuxData<'a>(&'a [u8]);
@@ -193,7 +194,7 @@ impl<'a> CertificationDataKind for EcdsaSignatureAuxData<'a> {
     const KIND: u16 = 6;
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 /// Platform manifest
 pub struct PlatformManifest<'a>(&'a [u8]);
 
@@ -204,7 +205,7 @@ impl<'a> CertificationDataKind for PlatformManifest<'a> {
 const BEGIN_PEM: &[u8] = b"-----BEGIN ";
 const END_PEM: &[u8] = b"-----END ";
 
-#[derive(Debug)]
+#[derive(Debug, ConstantTimeEq)]
 pub struct PemIterator<'a> {
     pem_data: &'a [u8],
 }
@@ -258,6 +259,7 @@ mod test {
 
     extern crate alloc;
     use alloc::vec::Vec;
+    use subtle::ConstantTimeEq;
     use yare::parameterized;
 
     #[test]
@@ -652,5 +654,117 @@ mod test {
         let cert_iter = cert_chain.into_iter();
         let certs = cert_iter.collect::<Vec<_>>();
         assert_eq!(certs, pem_bytes);
+    }
+
+    #[test]
+    fn ct_eq_ppid() {
+        let first = Ppid(&[4u8; 7]);
+        let second = Ppid(&[4u8; 7]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_ppid_encryption_rsa_2048() {
+        let first = PpidEncryptedRsa2048(&[4u8; 7]);
+        let second = PpidEncryptedRsa2048(&[4u8; 7]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_ppid_encryption_rsa_3072() {
+        let first = PpidEncryptedRsa3072(&[4u8; 7]);
+        let second = PpidEncryptedRsa3072(&[4u8; 7]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_pck() {
+        let first = Pck(&[4u8; 7]);
+        let second = Pck(&[4u8; 7]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_pck_certificate_chain() {
+        let first = PckCertificateChain { data: &[4u8; 7] };
+        let second = PckCertificateChain { data: &[4u8; 7] };
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_ecdsa_signature_aux_data() {
+        let first = EcdsaSignatureAuxData(&[4u8; 7]);
+        let second = EcdsaSignatureAuxData(&[4u8; 7]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_platform_manifest() {
+        let first = PlatformManifest(&[4u8; 7]);
+        let second = PlatformManifest(&[4u8; 7]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_ppid() {
+        let first = Ppid(&[34u8; 89]);
+        let second = Ppid(&[2u8; 6]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_ppid_encryption_rsa_2048() {
+        let first = PpidEncryptedRsa2048(&[24u8; 7]);
+        let second = PpidEncryptedRsa2048(&[68u8; 7]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_ppid_encryption_rsa_3072() {
+        let first = PpidEncryptedRsa3072(&[34u8; 7]);
+        let second = PpidEncryptedRsa3072(&[84u8; 7]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_pck() {
+        let first = Pck(&[22u8; 7]);
+        let second = Pck(&[99u8; 7]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_pck_certificate_chain() {
+        let first = PckCertificateChain { data: &[55u8; 7] };
+        let second = PckCertificateChain { data: &[38u8; 7] };
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_ecdsa_signature_aux_data() {
+        let first = EcdsaSignatureAuxData(&[87u8; 22]);
+        let second = EcdsaSignatureAuxData(&[87u8; 5]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_platform_manifest() {
+        let first = PlatformManifest(&[48u8; 32]);
+        let second = PlatformManifest(&[72u8; 76]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
     }
 }

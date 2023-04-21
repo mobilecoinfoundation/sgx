@@ -5,13 +5,14 @@ use crate::{
     attestation_key::QuoteSignatureKind, impl_newtype, impl_newtype_for_bytestruct, report::Report,
     FfiError, IsvSvn, ReportBody, TargetInfo,
 };
+use constant_time_derive::ConstantTimeEq;
 use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,
     sgx_quote_nonce_t, sgx_quote_sign_type_t, sgx_update_info_bit_t, SGX_PLATFORM_INFO_SIZE,
 };
 
 /// Quoting Enclave Report Info
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct QuotingEnclaveReportInfo(sgx_qe_report_info_t);
 
@@ -37,7 +38,7 @@ impl_newtype! {
 }
 
 /// Platform Info
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct PlatformInfo(sgx_platform_info_t);
 
@@ -46,7 +47,7 @@ impl_newtype_for_bytestruct! {
 }
 
 /// Update Info Bit
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct UpdateInfoBit(sgx_update_info_bit_t);
 
@@ -72,7 +73,7 @@ impl UpdateInfoBit {
 }
 
 /// EPID Group ID
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct EpidGroupId(sgx_epid_group_id_t);
 
@@ -83,7 +84,7 @@ impl_newtype! {
 const BASENAME_SIZE: usize = 32;
 
 /// Basename
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct Basename(sgx_basename_t);
 
@@ -94,7 +95,7 @@ impl_newtype_for_bytestruct! {
 const NONCE_SIZE: usize = 16;
 
 /// Quote Nonce
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct QuoteNonce(sgx_quote_nonce_t);
 
@@ -105,7 +106,7 @@ impl_newtype_for_bytestruct! {
 /// The raw bytes representing a quote.
 ///
 /// Should not be used directly instead use [`Quote`].
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 pub struct RawQuote<'a> {
     bytes: &'a [u8],
 }
@@ -192,7 +193,7 @@ impl<'a> From<&'a [u8]> for RawQuote<'a> {
 }
 
 /// Quote
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 pub struct Quote<'a>(RawQuote<'a>);
 
 impl BaseQuote for Quote<'_> {
@@ -219,6 +220,7 @@ mod test {
     use crate::{report::Report, TargetInfo};
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{sgx_quote_t, sgx_report_body_t, sgx_report_t, sgx_target_info_t};
+    use subtle::ConstantTimeEq;
 
     #[allow(unsafe_code)]
     fn quote_to_bytes(report: sgx_quote_t) -> [u8; mem::size_of::<sgx_quote_t>()] {
@@ -393,5 +395,209 @@ mod test {
         let mut report = sgx_report_t::default();
         report.body.misc_select = 3;
         assert_eq!(info.report(), Report::from(report));
+    }
+
+    #[test]
+    fn ct_eq_quoting_enclave_report_info() {
+        let nonce = sgx_quote_nonce_t { rand: [1u8; 16] };
+        let app_enclave_target_info = sgx_target_info_t {
+            mr_enclave: Default::default(),
+            attributes: Default::default(),
+            reserved1: [1u8; 2],
+            config_svn: 0,
+            misc_select: 0,
+            reserved2: [2u8; 8],
+            config_id: [1u8; 64],
+            reserved3: [3u8; 384],
+        };
+        let qe_report = sgx_report_t {
+            body: Default::default(),
+            key_id: Default::default(),
+            mac: [2u8; 16],
+        };
+        let first_report_info = sgx_qe_report_info_t {
+            nonce,
+            app_enclave_target_info,
+            qe_report,
+        };
+        let second_report_info = sgx_qe_report_info_t {
+            nonce,
+            app_enclave_target_info,
+            qe_report,
+        };
+
+        let first_report_info: QuotingEnclaveReportInfo = first_report_info.into();
+        let second_report_info: QuotingEnclaveReportInfo = second_report_info.into();
+
+        assert!(bool::from(first_report_info.ct_eq(&second_report_info)));
+    }
+
+    #[test]
+    fn ct_eq_platform_info() {
+        let info = sgx_platform_info_t {
+            platform_info: [1u8; 101],
+        };
+        let other_info = sgx_platform_info_t {
+            platform_info: [1u8; 101],
+        };
+        let first_info: PlatformInfo = info.into();
+        let second_info: PlatformInfo = other_info.into();
+
+        assert!(bool::from(first_info.ct_eq(&second_info)));
+    }
+
+    #[test]
+    fn ct_eq_update_info() {
+        let first_info: UpdateInfoBit = UpdateInfoBit::default();
+        let second_info: UpdateInfoBit = UpdateInfoBit::default();
+
+        assert!(bool::from(first_info.ct_eq(&second_info)));
+    }
+
+    #[test]
+    fn ct_eq_epid_groud_id() {
+        let first = EpidGroupId::from([16u8, 0u8, 0u8, 0u8]);
+        let second = EpidGroupId::from([16u8, 0u8, 0u8, 0u8]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_base_name() {
+        let first = Basename::from([17u8; 32]);
+        let second = Basename::from([17u8; 32]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_quote_nonce() {
+        let first = QuoteNonce::from([1u8; 16]);
+        let second = QuoteNonce::from([1u8; 16]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_quote() {
+        let first_quote: Quote = [4u8; 6].as_slice().into();
+        let second_quote: Quote = [4u8; 6].as_slice().into();
+
+        assert!(bool::from(first_quote.ct_eq(&second_quote)));
+    }
+
+    #[test]
+    fn ct_not_eq_quoting_enclave_report_info() {
+        let nonce = sgx_quote_nonce_t { rand: [3u8; 16] };
+        let app_enclave_target_info = sgx_target_info_t {
+            mr_enclave: Default::default(),
+            attributes: Default::default(),
+            reserved1: [5u8; 2],
+            config_svn: 2,
+            misc_select: 5,
+            reserved2: [5u8; 8],
+            config_id: [6u8; 64],
+            reserved3: [4u8; 384],
+        };
+        let other_app_enclave_target_info = sgx_target_info_t {
+            mr_enclave: Default::default(),
+            attributes: Default::default(),
+            reserved1: [2u8; 2],
+            config_svn: 4,
+            misc_select: 6,
+            reserved2: [2u8; 8],
+            config_id: [7u8; 64],
+            reserved3: [8u8; 384],
+        };
+        let qe_report = sgx_report_t {
+            body: Default::default(),
+            key_id: Default::default(),
+            mac: [2u8; 16],
+        };
+        let other_qe_report = sgx_report_t {
+            body: Default::default(),
+            key_id: Default::default(),
+            mac: [5u8; 16],
+        };
+        let first_report_info = sgx_qe_report_info_t {
+            nonce,
+            app_enclave_target_info,
+            qe_report,
+        };
+        let second_report_info = sgx_qe_report_info_t {
+            nonce,
+            app_enclave_target_info: other_app_enclave_target_info,
+            qe_report: other_qe_report,
+        };
+
+        let first_report_info: QuotingEnclaveReportInfo = first_report_info.into();
+        let second_report_info: QuotingEnclaveReportInfo = second_report_info.into();
+
+        assert!(bool::from(!first_report_info.ct_eq(&second_report_info)));
+    }
+
+    #[test]
+    fn ct_not_eq_platform_info() {
+        let info = sgx_platform_info_t {
+            platform_info: [3u8; 101],
+        };
+        let other_info = sgx_platform_info_t {
+            platform_info: [5u8; 101],
+        };
+        let first_info: PlatformInfo = info.into();
+        let second_info: PlatformInfo = other_info.into();
+
+        assert!(bool::from(!first_info.ct_eq(&second_info)));
+    }
+
+    #[test]
+    fn ct_not_eq_update_info() {
+        let sgx_info = sgx_update_info_bit_t {
+            ucodeUpdate: 5,
+            csmeFwUpdate: 5,
+            pswUpdate: 1,
+        };
+        let other_sgx_info = sgx_update_info_bit_t {
+            ucodeUpdate: 3,
+            csmeFwUpdate: 2,
+            pswUpdate: 1,
+        };
+
+        let first_info = UpdateInfoBit::from(sgx_info);
+        let second_info: UpdateInfoBit = UpdateInfoBit::from(other_sgx_info);
+
+        assert!(bool::from(!first_info.ct_eq(&second_info)));
+    }
+
+    #[test]
+    fn ct_not_eq_epid_groud_id() {
+        let first = EpidGroupId::from([3u8, 4u8, 2u8, 5u8]);
+        let second = EpidGroupId::from([16u8, 0u8, 0u8, 0u8]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_base_name() {
+        let first = Basename::from([13u8; 32]);
+        let second = Basename::from([15u8; 32]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_quote_nonce() {
+        let first = QuoteNonce::from([2u8; 16]);
+        let second = QuoteNonce::from([5u8; 16]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_quote() {
+        let first_quote: Quote = [3u8; 6].as_slice().into();
+        let second_quote: Quote = [46u8; 6].as_slice().into();
+
+        assert!(bool::from(!first_quote.ct_eq(&second_quote)));
     }
 }

@@ -12,8 +12,10 @@ repository = "https://github.com/mobilecoinfoundation/sgx"
 rust-version = "1.62.1"
 
 [dependencies]
+constant_time_derive = { path = "../../../constant_time_derive", version = "0.1.0" }
 mc-sgx-core-types = { path = "../../../core/types", version = "=0.6.0" }
 mc-sgx-dcap-quoteverify-sys-types = { path = "../sys/types", version = "=0.6.0" }
+subtle = { version = "2.4.0", default-features = false }
 
 [dev-dependencies]
 yare = "1.0.2"

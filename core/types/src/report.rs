@@ -6,6 +6,7 @@ use crate::{
     key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect,
     MrEnclave, MrSigner,
 };
+use constant_time_derive::ConstantTimeEq;
 use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
@@ -19,7 +20,7 @@ use nom::bytes::complete::take;
 use nom::number::complete::{le_u16, le_u32, le_u64};
 
 /// MAC
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct Mac(sgx_mac_t);
 
@@ -28,7 +29,7 @@ impl_newtype! {
 }
 
 /// Report Data
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct ReportData(sgx_report_data_t);
 
@@ -61,7 +62,7 @@ impl BitAnd for ReportData {
 }
 
 /// ISV Family ID
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct FamilyId(sgx_isvfamily_id_t);
 
@@ -76,7 +77,7 @@ impl Display for FamilyId {
 }
 
 /// Extended Product ID
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct ExtendedProductId(sgx_isvext_prod_id_t);
 
@@ -92,7 +93,7 @@ impl Display for ExtendedProductId {
 }
 
 /// ISV Product ID
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct IsvProductId(sgx_prod_id_t);
 
@@ -108,7 +109,7 @@ impl Display for IsvProductId {
 
 /// The main body of a report from SGX
 #[repr(transparent)]
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default, ConstantTimeEq)]
 pub struct ReportBody(sgx_report_body_t);
 
 impl ReportBody {
@@ -243,7 +244,7 @@ impl TryFrom<&[u8]> for ReportBody {
 
 /// An enclave Report
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 pub struct Report(sgx_report_t);
 
 impl Report {
@@ -276,6 +277,7 @@ mod test {
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
     use std::format;
+    use subtle::ConstantTimeEq;
     use yare::parameterized;
 
     fn report_body_1() -> sgx_report_body_t {
@@ -573,5 +575,162 @@ mod test {
         let expected = "0x0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202_0202";
 
         assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn ct_eq_quote() {
+        let first = Mac([5u8; 16]);
+        let second = Mac([5u8; 16]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_platform_info() {
+        let report_data = sgx_report_data_t { d: [1u8; 64] };
+        let other_report_data = sgx_report_data_t { d: [1u8; 64] };
+        let first: ReportData = report_data.into();
+        let second: ReportData = other_report_data.into();
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_family_id() {
+        let first = FamilyId::from([8u8; 16]);
+        let second = FamilyId::from([8u8; 16]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_extended_product_id() {
+        let first = ExtendedProductId::from([6u8; 16]);
+        let second = ExtendedProductId::from([6u8; 16]);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_isv_product_id() {
+        let first = IsvProductId(12);
+        let second = IsvProductId(12);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_report_body() {
+        let bytes = report_body_to_bytes(report_body_2());
+        let other_bytes = report_body_to_bytes(report_body_2());
+
+        let first = ReportBody::try_from(bytes.as_slice()).unwrap();
+        let second = ReportBody::try_from(other_bytes.as_slice()).unwrap();
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_report() {
+        let first = Report::default();
+        let second = Report::default();
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_quote() {
+        let first = Mac([2u8; 16]);
+        let second = Mac([4u8; 16]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_platform_info() {
+        let report_data = sgx_report_data_t { d: [2u8; 64] };
+        let other_report_data = sgx_report_data_t { d: [4u8; 64] };
+        let first: ReportData = report_data.into();
+        let second: ReportData = other_report_data.into();
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_family_id() {
+        let first = FamilyId::from([8u8; 16]);
+        let second = FamilyId::from([3u8; 16]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_extended_product_id() {
+        let first = ExtendedProductId::from([2u8; 16]);
+        let second = ExtendedProductId::from([7u8; 16]);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_isv_product_id() {
+        let first = IsvProductId(6);
+        let second = IsvProductId(1);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_report_body() {
+        let other_report_body = sgx_report_body_t {
+            cpu_svn: CpuSvn::from([4u8; CpuSvn::SIZE]).into(),
+            misc_select: 5,
+            reserved1: [2u8; SGX_REPORT_BODY_RESERVED1_BYTES],
+            isv_ext_prod_id: [65u8; SGX_ISVEXT_PROD_ID_SIZE],
+            attributes: Attributes::default()
+                .set_flags(2)
+                .set_extended_features_mask(2)
+                .into(),
+            mr_enclave: MrEnclave::from([56u8; MrEnclave::SIZE]).into(),
+            reserved2: [45u8; SGX_REPORT_BODY_RESERVED2_BYTES],
+            mr_signer: MrSigner::from([87u8; MrSigner::SIZE]).into(),
+            reserved3: [87u8; SGX_REPORT_BODY_RESERVED3_BYTES],
+            config_id: [102u8; SGX_CONFIGID_SIZE],
+            isv_prod_id: 108,
+            isv_svn: 136,
+            config_svn: 12,
+            reserved4: [65u8; SGX_REPORT_BODY_RESERVED4_BYTES],
+            isv_family_id: [62u8; SGX_ISV_FAMILY_ID_SIZE],
+            report_data: sgx_report_data_t {
+                d: [54u8; SGX_REPORT_DATA_SIZE],
+            },
+        };
+        let bytes = report_body_to_bytes(report_body_2());
+        let other_bytes = report_body_to_bytes(other_report_body);
+
+        let first = ReportBody::try_from(bytes.as_slice()).unwrap();
+        let second = ReportBody::try_from(other_bytes.as_slice()).unwrap();
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_report() {
+        let mut body = ReportBody::default();
+        body.0.isv_prod_id = 3;
+        let sgx_report = sgx_report_t {
+            body: body.clone().into(),
+            key_id: KeyId::from([4u8; SGX_KEYID_SIZE]).into(),
+            mac: [5u8; SGX_MAC_SIZE],
+        };
+        let other_sgx_report = sgx_report_t {
+            body: body.clone().into(),
+            key_id: KeyId::from([7u8; SGX_KEYID_SIZE]).into(),
+            mac: [78u8; SGX_MAC_SIZE],
+        };
+        let first = Report(sgx_report);
+        let second = Report(other_sgx_report);
+
+        assert!(bool::from(!first.ct_eq(&second)));
     }
 }

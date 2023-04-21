@@ -71,7 +71,8 @@ fn main() {
             "sgx_ql_att_key_id_param_t",
             "sgx_ql_att_id_list_t",
         ])
-        .derive_default(["sgx_ql_qe_report_info_t"]);
+        .derive_default(["sgx_ql_qe_report_info_t"])
+        .derive_constant_time(["sgx_ql_qe_report_info_t"]);
     let mut builder = mc_sgx_core_build::sgx_builder()
         .header("wrapper.h")
         .parse_callbacks(Box::new(callback))

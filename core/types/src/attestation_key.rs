@@ -6,6 +6,7 @@ use crate::{
     report::{ExtendedProductId, FamilyId},
     ConfigId, FfiError,
 };
+use constant_time_derive::ConstantTimeEq;
 use mc_sgx_core_sys_types::{sgx_att_key_id_ext_t, sgx_ql_att_key_id_t, sgx_quote_sign_type_t};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -14,7 +15,7 @@ pub enum MrSignerKeyHash {
     Sha384([u8; 48]),
 }
 
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum Algorithm {
@@ -45,7 +46,7 @@ impl TryFrom<u32> for Algorithm {
     }
 }
 
-#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct Version(u16);
 
@@ -53,7 +54,7 @@ impl_newtype! {
     Version, u16;
 }
 
-#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct Id(u16);
 
@@ -62,7 +63,7 @@ impl_newtype! {
 }
 
 /// The type of quote.  Only valid for EPID quotes.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum QuoteSignatureKind {
@@ -88,7 +89,7 @@ impl TryFrom<sgx_quote_sign_type_t> for QuoteSignatureKind {
 
 /// Attestation key from th quoting library.  contains the quoting enclaves ID
 /// and the attestation algorithm
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct AttestationKeyId(sgx_ql_att_key_id_t);
 
@@ -150,7 +151,7 @@ impl_newtype! {
 }
 
 /// Service Provider ID
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct ServiceProviderId([u8; 16]);
 
@@ -159,7 +160,7 @@ impl_newtype! {
 }
 
 /// Extended Attestation Key ID
-#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct ExtendedAttestationKeyId(sgx_att_key_id_ext_t);
 
@@ -187,6 +188,7 @@ impl_newtype! {
 #[cfg(test)]
 mod test {
     use super::*;
+    use subtle::ConstantTimeEq;
     use yare::parameterized;
 
     #[test]
@@ -249,6 +251,161 @@ mod test {
         assert_eq!(key.config_id(), ConfigId::from([7u8; 64]));
         assert_eq!(key.family_id(), FamilyId::from([8u8; 16]));
         assert_eq!(key.algorithm_id().unwrap(), Algorithm::Reserved);
+    }
+
+    #[test]
+    fn ct_eq_extended_attestation_key_id() {
+        let first = ExtendedAttestationKeyId::default();
+        let second = ExtendedAttestationKeyId::default();
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_version() {
+        let first = Version(2);
+        let second = Version(2);
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_service_provider_id() {
+        let first = ServiceProviderId([0u8; 16]);
+        let second = ServiceProviderId([0u8; 16]);
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_id() {
+        let first = Id(4);
+        let second = Id(4);
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_sgx_key() {
+        let sgx_key = sgx_ql_att_key_id_t {
+            id: 1,
+            version: 2,
+            mrsigner_length: 48,
+            mrsigner: [4u8; 48],
+            prod_id: 5,
+            extended_prod_id: [6u8; 16],
+            config_id: [7u8; 64],
+            family_id: [8u8; 16],
+            algorithm_id: Algorithm::Reserved as u32,
+        };
+        let other_sgx_key = sgx_ql_att_key_id_t {
+            id: 1,
+            version: 2,
+            mrsigner_length: 48,
+            mrsigner: [4u8; 48],
+            prod_id: 5,
+            extended_prod_id: [6u8; 16],
+            config_id: [7u8; 64],
+            family_id: [8u8; 16],
+            algorithm_id: Algorithm::Reserved as u32,
+        };
+        let first_key: AttestationKeyId = sgx_key.into();
+        let second_key: AttestationKeyId = other_sgx_key.into();
+        assert!(bool::from(first_key.ct_eq(&second_key)));
+    }
+
+    #[test]
+    fn ct_eq_algorithm() {
+        let first = Algorithm::Reserved;
+        let second = Algorithm::Reserved;
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_quote_signature_kind() {
+        let first = QuoteSignatureKind::Linkable;
+        let second = QuoteSignatureKind::Linkable;
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_extended_attestation_key_id() {
+        let sgx_key = sgx_att_key_id_ext_t {
+            base: AttestationKeyId::default().clone().into(),
+            spid: [10u8; 16],
+            att_key_type: 5,
+            reserved: [3u8; 80],
+        };
+
+        let other_sgx_key = sgx_att_key_id_ext_t {
+            base: AttestationKeyId::default().clone().into(),
+            spid: [14u8; 16],
+            att_key_type: 7,
+            reserved: [4u8; 80],
+        };
+        let first: ExtendedAttestationKeyId = sgx_key.into();
+        let second = other_sgx_key.into();
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_version() {
+        let first = Version(2);
+        let second = Version(3);
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_service_provider_id() {
+        let first = ServiceProviderId([3u8; 16]);
+        let second = ServiceProviderId([67u8; 16]);
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_id() {
+        let first = Id(6);
+        let second = Id(9);
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_sgx_key() {
+        let sgx_key = sgx_ql_att_key_id_t {
+            id: 2,
+            version: 3,
+            mrsigner_length: 58,
+            mrsigner: [5u8; 48],
+            prod_id: 3,
+            extended_prod_id: [7u8; 16],
+            config_id: [8u8; 64],
+            family_id: [2u8; 16],
+            algorithm_id: Algorithm::Reserved as u32,
+        };
+        let other_sgx_key = sgx_ql_att_key_id_t {
+            id: 56,
+            version: 3,
+            mrsigner_length: 58,
+            mrsigner: [9u8; 48],
+            prod_id: 3,
+            extended_prod_id: [6u8; 16],
+            config_id: [7u8; 64],
+            family_id: [8u8; 16],
+            algorithm_id: Algorithm::Reserved as u32,
+        };
+        let first_key: AttestationKeyId = sgx_key.into();
+        let second_key: AttestationKeyId = other_sgx_key.into();
+        assert!(bool::from(!first_key.ct_eq(&second_key)));
+    }
+
+    #[test]
+    fn ct_not_eq_algorithm() {
+        let first = Algorithm::Reserved;
+        let second = Algorithm::Epid;
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_quote_signature_kind() {
+        let first = QuoteSignatureKind::Linkable;
+        let second = QuoteSignatureKind::UnLinkable;
+        assert!(bool::from(!first.ct_eq(&second)));
     }
 
     #[parameterized(

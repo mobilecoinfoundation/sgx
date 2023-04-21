@@ -4,11 +4,12 @@
 use crate::{
     config_id::ConfigId, impl_newtype, Attributes, ConfigSvn, MiscellaneousSelect, MrEnclave,
 };
+use constant_time_derive::ConstantTimeEq;
 use mc_sgx_core_sys_types::sgx_target_info_t;
 
 /// The target info
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 pub struct TargetInfo(sgx_target_info_t);
 
 impl TargetInfo {
@@ -49,6 +50,7 @@ mod test {
         SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_TARGET_INFO_RESERVED1_BYTES,
         SGX_TARGET_INFO_RESERVED2_BYTES, SGX_TARGET_INFO_RESERVED3_BYTES,
     };
+    use subtle::ConstantTimeEq;
 
     #[test]
     fn default_target_info() {
@@ -88,5 +90,75 @@ mod test {
         assert_eq!(info.config_svn(), ConfigSvn::from(5));
         assert_eq!(info.miscellaneous_select(), MiscellaneousSelect::from(6));
         assert_eq!(info.config_id(), ConfigId::from([8; SGX_CONFIGID_SIZE]));
+    }
+
+    #[test]
+    fn ct_eq_target_info_t() {
+        let first_info = sgx_target_info_t {
+            mr_enclave: MrEnclave::from([2u8; MrEnclave::SIZE]).into(),
+            attributes: Attributes::default()
+                .set_flags(2)
+                .set_extended_features_mask(3)
+                .into(),
+            reserved1: [4u8; SGX_TARGET_INFO_RESERVED1_BYTES],
+            config_svn: 5,
+            misc_select: 6,
+            reserved2: [7u8; SGX_TARGET_INFO_RESERVED2_BYTES],
+            config_id: [8u8; SGX_CONFIGID_SIZE],
+            reserved3: [9u8; SGX_TARGET_INFO_RESERVED3_BYTES],
+        };
+        let second_info = sgx_target_info_t {
+            mr_enclave: MrEnclave::from([2u8; MrEnclave::SIZE]).into(),
+            attributes: Attributes::default()
+                .set_flags(2)
+                .set_extended_features_mask(3)
+                .into(),
+            reserved1: [4u8; SGX_TARGET_INFO_RESERVED1_BYTES],
+            config_svn: 5,
+            misc_select: 6,
+            reserved2: [7u8; SGX_TARGET_INFO_RESERVED2_BYTES],
+            config_id: [8u8; SGX_CONFIGID_SIZE],
+            reserved3: [9u8; SGX_TARGET_INFO_RESERVED3_BYTES],
+        };
+
+        let first: TargetInfo = first_info.into();
+        let second: TargetInfo = second_info.into();
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_target_info_t() {
+        let first_info = sgx_target_info_t {
+            mr_enclave: MrEnclave::from([4u8; MrEnclave::SIZE]).into(),
+            attributes: Attributes::default()
+                .set_flags(3)
+                .set_extended_features_mask(8)
+                .into(),
+            reserved1: [65u8; SGX_TARGET_INFO_RESERVED1_BYTES],
+            config_svn: 2,
+            misc_select: 5,
+            reserved2: [45u8; SGX_TARGET_INFO_RESERVED2_BYTES],
+            config_id: [89u8; SGX_CONFIGID_SIZE],
+            reserved3: [23u8; SGX_TARGET_INFO_RESERVED3_BYTES],
+        };
+        let second_info = sgx_target_info_t {
+            mr_enclave: MrEnclave::from([6u8; MrEnclave::SIZE]).into(),
+            attributes: Attributes::default()
+                .set_flags(3)
+                .set_extended_features_mask(4)
+                .into(),
+            reserved1: [67u8; SGX_TARGET_INFO_RESERVED1_BYTES],
+            config_svn: 2,
+            misc_select: 3,
+            reserved2: [78u8; SGX_TARGET_INFO_RESERVED2_BYTES],
+            config_id: [32u8; SGX_CONFIGID_SIZE],
+            reserved3: [45u8; SGX_TARGET_INFO_RESERVED3_BYTES],
+        };
+
+        let first: TargetInfo = first_info.into();
+        let second: TargetInfo = second_info.into();
+
+        assert!(bool::from(!first.ct_eq(&second)));
     }
 }

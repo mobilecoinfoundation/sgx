@@ -4,12 +4,13 @@
 #![no_std]
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 
+use constant_time_derive::ConstantTimeEq;
 use mc_sgx_core_types::FfiError;
 use mc_sgx_dcap_ql_sys_types::sgx_ql_path_type_t;
 
 /// Paths (location and filename) to be override the default entries.
 #[non_exhaustive]
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, ConstantTimeEq)]
 pub enum PathKind {
     /// Quoting Enclave (QE3)
     QuotingEnclave,
@@ -51,6 +52,7 @@ mod test {
     use yare::parameterized;
     extern crate std;
     use super::*;
+    use subtle::ConstantTimeEq;
 
     #[parameterized(
     qe3 = { sgx_ql_path_type_t::SGX_QL_QE3_PATH, PathKind::QuotingEnclave },
@@ -77,5 +79,16 @@ mod test {
     fn sgx_path_out_of_bounds_panics() {
         let result = PathKind::try_from(sgx_ql_path_type_t(4));
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn ct_eq_path_kind() {
+        let first = PathKind::try_from(sgx_ql_path_type_t(1));
+        let second = PathKind::try_from(sgx_ql_path_type_t(1));
+
+        let choice_result = first.unwrap().ct_eq(&second.unwrap());
+        let result: bool = From::from(choice_result);
+
+        assert!(result);
     }
 }

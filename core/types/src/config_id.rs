@@ -2,11 +2,13 @@
 //! SGX Config ID
 
 use crate::impl_newtype_no_display;
+use constant_time_derive::ConstantTimeEq;
 use core::fmt::{Display, Formatter};
+
 use mc_sgx_core_sys_types::{sgx_config_id_t, SGX_CONFIGID_SIZE};
 
 /// Config ID
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct ConfigId(sgx_config_id_t);
 
@@ -33,6 +35,7 @@ mod tests {
 
     use super::*;
     use std::format;
+    use subtle::ConstantTimeEq;
 
     #[test]
     fn display_config_id() {
@@ -43,5 +46,21 @@ mod tests {
         let expected = "0x2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222_2222";
 
         assert_eq!(display_string, expected);
+    }
+
+    #[test]
+    fn ct_eq_config_id() {
+        let first_config_id = ConfigId::from([11u8; 64]);
+        let second_config_id = ConfigId::from([11u8; 64]);
+
+        assert!(bool::from(first_config_id.ct_eq(&second_config_id)));
+    }
+
+    #[test]
+    fn ct_not_eq_config_id() {
+        let first_config_id = ConfigId::from([4u8; 64]);
+        let second_config_id = ConfigId::from([8u8; 64]);
+
+        assert!(bool::from(!first_config_id.ct_eq(&second_config_id)));
     }
 }

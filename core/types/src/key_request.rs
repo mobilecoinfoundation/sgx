@@ -6,6 +6,7 @@ use crate::{
     MiscellaneousSelect,
 };
 use bitflags::bitflags;
+use constant_time_derive::ConstantTimeEq;
 use mc_sgx_core_sys_types::{
     sgx_key_128bit_t, sgx_key_id_t, sgx_key_request_t, SGX_KEYID_SIZE, SGX_KEYPOLICY_CONFIGID,
     SGX_KEYPOLICY_ISVEXTPRODID, SGX_KEYPOLICY_ISVFAMILYID, SGX_KEYPOLICY_MRENCLAVE,
@@ -16,7 +17,7 @@ use mc_sgx_core_sys_types::{
 use rand_core::{CryptoRng, RngCore};
 
 /// Key ID
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct KeyId(sgx_key_id_t);
 
@@ -25,7 +26,7 @@ impl_newtype_for_bytestruct! {
 }
 
 /// Key Name
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum KeyName {
@@ -70,7 +71,7 @@ bitflags! {
 }
 
 /// Key request
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct KeyRequest(sgx_key_request_t);
 impl_newtype! {
@@ -78,7 +79,7 @@ impl_newtype! {
 }
 
 /// A builder for creating a [`KeyRequest`]
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct KeyRequestBuilder(sgx_key_request_t);
 
@@ -186,7 +187,7 @@ impl KeyRequestBuilder {
     }
 }
 
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, ConstantTimeEq)]
 pub struct Key128bit(sgx_key_128bit_t);
 
 impl_newtype! {
@@ -200,6 +201,7 @@ mod test {
     use super::*;
     use mc_sgx_core_sys_types::SGX_CPUSVN_SIZE;
     use rand::{rngs::StdRng, SeedableRng};
+    use subtle::ConstantTimeEq;
 
     #[test]
     fn new_key_request_all_zero_except_key_id() {
@@ -256,5 +258,41 @@ mod test {
         let key = Key128bit::default();
         let sgx_key: sgx_key_128bit_t = key.into();
         assert_eq!(sgx_key, [0u8; 16]);
+    }
+
+    #[test]
+    fn ct_eq_key_id() {
+        let first_sgx_key = sgx_key_id_t { id: [1u8; 32] };
+        let second_sgx_key = sgx_key_id_t { id: [1u8; 32] };
+        let first: KeyId = first_sgx_key.into();
+        let second: KeyId = second_sgx_key.into();
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_key_name() {
+        let first = KeyName::EnclaveInitializationToken;
+        let second = KeyName::EnclaveInitializationToken;
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_key_id() {
+        let first_sgx_key = sgx_key_id_t { id: [8u8; 32] };
+        let second_sgx_key = sgx_key_id_t { id: [4u8; 32] };
+        let first: KeyId = first_sgx_key.into();
+        let second: KeyId = second_sgx_key.into();
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_key_name() {
+        let first = KeyName::EnclaveInitializationToken;
+        let second = KeyName::Provision;
+
+        assert!(bool::from(!first.ct_eq(&second)));
     }
 }

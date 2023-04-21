@@ -5,6 +5,7 @@
 //! Different types are used for MrSigner and MrEnclave to prevent misuse.
 
 use crate::impl_newtype_for_bytestruct;
+use constant_time_derive::ConstantTimeEq;
 use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
 
 /// An opaque type for MRENCLAVE values
@@ -12,7 +13,8 @@ use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
 /// A MRENCLAVE value is a chained cryptographic hash of the signed
 /// enclave binary (.so), and the results of the page initialization
 /// steps which created the enclave's pages.
-#[derive(Default, Debug, Clone, Eq, PartialEq)]
+
+#[derive(Default, Debug, Clone, Eq, PartialEq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct MrEnclave(sgx_measurement_t);
 
@@ -20,7 +22,7 @@ pub struct MrEnclave(sgx_measurement_t);
 ///
 /// A MRSIGNER value is a cryptographic hash of the public key an enclave
 /// was signed with.
-#[derive(Default, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, ConstantTimeEq)]
 #[repr(transparent)]
 pub struct MrSigner(sgx_measurement_t);
 
@@ -35,6 +37,49 @@ mod test {
 
     use super::*;
     use std::format;
+    use subtle::ConstantTimeEq;
+
+    #[test]
+    fn ct_eq_sgx_mr_enclave() {
+        let sgx_mr_enclave = sgx_measurement_t { m: [5u8; 32] };
+        let other_mr_enclave = sgx_measurement_t { m: [5u8; 32] };
+        let first_mr_enclave: MrEnclave = sgx_mr_enclave.into();
+        let second_mr_enclave: MrEnclave = other_mr_enclave.into();
+
+        assert!(bool::from(first_mr_enclave.ct_eq(&second_mr_enclave)));
+    }
+
+    #[test]
+    fn ct_eq_check_sgx_mr_sign() {
+        let sgx_mr_signer = sgx_measurement_t { m: [9u8; 32] };
+        let other_mr_signer = sgx_measurement_t { m: [9u8; 32] };
+
+        let first_mr_signer: MrSigner = sgx_mr_signer.into();
+        let second_mr_sign: MrSigner = other_mr_signer.into();
+
+        assert!(bool::from(first_mr_signer.ct_eq(&second_mr_sign)));
+    }
+
+    #[test]
+    fn ct_not_eq_sgx_mr_enclave() {
+        let sgx_mr_enclave = sgx_measurement_t { m: [3u8; 32] };
+        let other_mr_enclave = sgx_measurement_t { m: [6u8; 32] };
+        let first_mr_enclave: MrEnclave = sgx_mr_enclave.into();
+        let second_mr_enclave: MrEnclave = other_mr_enclave.into();
+
+        assert!(bool::from(!first_mr_enclave.ct_eq(&second_mr_enclave)));
+    }
+
+    #[test]
+    fn ct_not_eq_check_sgx_mr_sign() {
+        let sgx_mr_signer = sgx_measurement_t { m: [8u8; 32] };
+        let other_mr_signer = sgx_measurement_t { m: [2u8; 32] };
+
+        let first_mr_signer: MrSigner = sgx_mr_signer.into();
+        let second_mr_sign: MrSigner = other_mr_signer.into();
+
+        assert!(bool::from(!first_mr_signer.ct_eq(&second_mr_sign)));
+    }
 
     #[test]
     fn from_sgx_mr_enclave() {

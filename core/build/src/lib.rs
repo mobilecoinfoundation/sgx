@@ -117,6 +117,8 @@ pub struct SgxParseCallbacks {
 
     // Dynamically Sized types
     dynamically_sized_types: Vec<String>,
+
+    constant_time_types: Vec<String>,
 }
 
 impl SgxParseCallbacks {
@@ -176,6 +178,20 @@ impl SgxParseCallbacks {
         self
     }
 
+    /// Types to derive constant time for
+    ///
+    /// # Arguments
+    /// * `constant_time_types` - Types to derive ConstantTimeEq for.
+    pub fn derive_constant_time<'a, E, I>(mut self, constant_time_types: I) -> Self
+    where
+        I: IntoIterator<Item = &'a E>,
+        E: ToString + 'a + ?Sized,
+    {
+        self.constant_time_types
+            .extend(constant_time_types.into_iter().map(ToString::to_string));
+        self
+    }
+
     /// Dynamically Sized Types
     ///
     /// # Arguments
@@ -203,6 +219,10 @@ impl ParseCallbacks for SgxParseCallbacks {
 
         if self.default_types.iter().any(|n| *n == name) {
             attributes.push("Default");
+        }
+
+        if self.constant_time_types.iter().any(|n| *n == name) {
+            attributes.push("constant_time_derive::ConstantTimeEq");
         }
 
         // The [enum_types] method adds enums to the [copyable_types]

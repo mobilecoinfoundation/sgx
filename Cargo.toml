@@ -4,6 +4,7 @@ members = [
     "capable/sys",
     "capable/sys/types",
     "capable/types",
+    "constant_time_derive",
     "core/build",
     "core/sys/types",
     "core/types",

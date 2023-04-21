@@ -14,6 +14,10 @@ rust-version = "1.62.1"
 [lib]
 doctest = false
 
+[dependencies]
+constant_time_derive = { path = "../../../constant_time_derive", version = "0.1.0" }
+subtle = { version = "2.4.0", default-features = false }
+
 [build-dependencies]
 bindgen = "0.65.1"
 cargo-emit = "0.2.1"

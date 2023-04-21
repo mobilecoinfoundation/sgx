@@ -4,6 +4,7 @@
 
 use crate::{impl_newtype, impl_newtype_no_display};
 use bitflags::bitflags;
+use constant_time_derive::ConstantTimeEq;
 use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_FLAGS_DEBUG,
@@ -14,7 +15,7 @@ use mc_sgx_core_sys_types::{
 
 /// Attributes of the enclave
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Copy)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Copy, ConstantTimeEq)]
 pub struct Attributes(sgx_attributes_t);
 impl_newtype_no_display! {
     Attributes, sgx_attributes_t;
@@ -138,7 +139,7 @@ bitflags! {
 
 /// Miscellaneous select bits for target enclave. Reserved for future extension.
 #[repr(transparent)]
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default, ConstantTimeEq)]
 pub struct MiscellaneousSelect(sgx_misc_select_t);
 
 impl_newtype_no_display! {
@@ -166,7 +167,44 @@ mod test {
 
     use super::*;
     use std::format;
+    use subtle::ConstantTimeEq;
     use yare::parameterized;
+
+    #[test]
+    fn ct_eq_attributes() {
+        let first_sgx_attributes = sgx_attributes_t { flags: 1, xfrm: 2 };
+        let first: Attributes = first_sgx_attributes.into();
+        let second_sgx_attributes = sgx_attributes_t { flags: 1, xfrm: 2 };
+        let second: Attributes = second_sgx_attributes.into();
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_eq_miscellaneous_select() {
+        let first: MiscellaneousSelect = MiscellaneousSelect::from(2);
+        let second: MiscellaneousSelect = MiscellaneousSelect::from(2);
+
+        assert!(bool::from(first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_attributes() {
+        let first_sgx_attributes = sgx_attributes_t { flags: 3, xfrm: 4 };
+        let first: Attributes = first_sgx_attributes.into();
+        let second_sgx_attributes = sgx_attributes_t { flags: 1, xfrm: 2 };
+        let second: Attributes = second_sgx_attributes.into();
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
+
+    #[test]
+    fn ct_not_eq_miscellaneous_select() {
+        let first: MiscellaneousSelect = MiscellaneousSelect::from(2);
+        let second: MiscellaneousSelect = MiscellaneousSelect::from(3);
+
+        assert!(bool::from(!first.ct_eq(&second)));
+    }
 
     #[test]
     fn sgx_attributes_to_attributes() {
