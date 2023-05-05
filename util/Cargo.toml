@@ -1,12 +1,14 @@
 [package]
 name = "mc-sgx-util"
 version = "0.6.0"
-authors = ["MobileCoin"]
+authors = { workspace = true }
+# See https://crates.io/category_slugs for valid categories
 categories = ["no-std"]
 description = "Utilities shared by SGX libraries"
-edition = "2021"
+edition = { workspace = true }
+# See https://crates.io/keywords for the common keywords
 keywords = ["ffi", "no-std", "sgx"]
-license = "Apache-2.0"
+license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+repository = { workspace = true }
+rust-version = { workspace = true }

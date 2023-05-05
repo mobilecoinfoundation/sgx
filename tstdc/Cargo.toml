@@ -1,15 +1,17 @@
 [package]
 name = "mc-sgx-tstdc"
 version = "0.6.0"
-edition = "2021"
-authors = ["MobileCoin"]
-rust-version = "1.62.1"
-license = "Apache-2.0"
-readme = "README.md"
-repository = "https://github.com/mobilecoinfoundation/sgx"
-description = "Rust wrappers around SGX synchronization primitives"
+authors = { workspace = true }
+# See https://crates.io/category_slugs for valid categories
 categories = ["api-bindings", "hardware-support"]
+description = "Rust wrappers around SGX synchronization primitives"
+edition = { workspace = true }
+# See https://crates.io/keywords for the common keywords
 keywords = ["sgx"]
+license = { workspace = true }
+readme = "README.md"
+repository = { workspace = true }
+rust-version = { workspace = true }
 
 [lib]
 # test false due to needing an enclave to fully link

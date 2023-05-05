@@ -1,13 +1,9 @@
-/capable/       @jcape @nick-mobilecoin
-/.github/       @jcape @nick-mobilecoin
-/core/          @nick-mobilecoin @jcape
-/core/build/    @jcape @nick-mobilecoin
-/dcap/          @nick-mobilecoin @jcape
-/sdk-tools/     @nick-mobilecoin @varsha888
-/tcrypto/       @nick-mobilecoin @jcape
-/trts/          @nick-mobilecoin @jcape
-/tservice/      @nick-mobilecoin @jcape
-/tstdc/         @nick-mobilecoin @jcape
-/urts/          @awygle @nick-mobilecoin
-/util/          @jcape @awygle
-/LICENSE        @jcape @nick-mobilecoin
+# In order to utilize the [settings app](https://github.com/apps/settings) in a
+# secure manner, we must ensure that both the `CODEOWNERS` and `settings.yml`
+# file have code owners and that `settings.yml` has
+# `require_code_owner_reviews: true`.
+# We do not mark code owners for other directories as the code owners will be
+# auto-assigned first by github, preventing the use of team auto-assignment.
+# <https://docs.github.com/en/organizations/organizing-members-into-teams/managing-code-review-settings-for-your-team#about-auto-assignment>
+/.github/CODEOWNERS        @nick-mobilecoin @jcape
+/.github/settings.yml      @nick-mobilecoin @jcape

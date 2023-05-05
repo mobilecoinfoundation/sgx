@@ -33,7 +33,7 @@ cargo release --no-publish --no-push --no-tag --no-confirm --workspace --dev-ver
 This will create 2 commits similar to
 
 ```shell
-commit 0bba4ae48d726080ac0e34e65bab6efa3583519d 
+commit 0bba4ae48d726080ac0e34e65bab6efa3583519d
 Author: Joe Schmoe <joe@schmoe.com>
 Date:   Tue Oct 4 13:30:21 2018 -0700
 
@@ -53,11 +53,11 @@ and add back the development suffix.
 [sgx]: https://www.intel.com/content/www/us/en/developer/tools/software-guard-extensions/linux-overview.html
 [dcap]: https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/
 [chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
-[chat-link]: https://mobilecoin.chat
-[license-image]: https://img.shields.io/crates/l/mc-sgx-tservice-sys-types?style=flat-square
+[chat-link]: https://discord.gg/mobilecoin
+[license-image]: https://img.shields.io/crates/l/mc-sgx-core-build?style=flat-square
 [deps-image]: https://deps.rs/repo/github/mobilecoinfoundation/sgx/status.svg?style=flat-square
 [deps-link]: https://deps.rs/repo/github/mobilecoinfoundation/sgx
-[codecov-image]: https://img.shields.io/codecov/c/github/mobilecoinfoundation/sgx/develop?style=flat-square
+[codecov-image]: https://img.shields.io/codecov/c/github/mobilecoinfoundation/sgx/main?style=flat-square
 [codecov-link]: https://codecov.io/gh/mobilecoinfoundation/sgx
 [gha-image]: https://img.shields.io/github/actions/workflow/status/mobilecoinfoundation/sgx/ci.yaml?branch=main&style=flat-square
 [gha-link]: https://github.com/mobilecoinfoundation/sgx/actions/workflows/ci.yaml?query=branch%3Amain

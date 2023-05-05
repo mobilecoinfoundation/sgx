@@ -1,6 +1,7 @@
+---
 name: ci
 
-on:
+"on":
   push:
     branches:
       - 'main'
@@ -9,13 +10,15 @@ on:
 env:
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-Dwarnings"
-  CARGO_UNSTABLE_SPARSE_REGISTRY: true
 
 jobs:
+  # TODO: Fix automatically
   lint:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -25,40 +28,59 @@ jobs:
       - uses: DavidAnson/markdownlint-cli2-action@v10
         with:
           globs: "**/*.md"
+      # FIXME: Add yamllint problem matcher
+      - run: yamllint -s .
 
   crev:
     runs-on: ubuntu-22.04
-    # Override errors here, eventually we'd like to start failing PRs based on this
+    needs:
+      - lint
+    # TODO: once we have enough reviews, make this a required check
     continue-on-error: true
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
         with:
-          cache-on-failure: "true"
-      - run: cargo check
-      - name: Initialize Cargo Crev
-        run: |-
-          cargo install cargo-crev || true
-          cargo crev trust --level high --no-commit https://github.com/mobilecoinfoundation/crev-proofs
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            Cargo.lock
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - uses: taiki-e/install-action@v2
+        with:
+          # Pinning to 0.23 due to
+          # https://github.com/crev-dev/cargo-crev/issues/598
+          tool: cargo-crev@0.23
+      - name: Configure Crev
+        run: |
+          cargo crev trust \
+            --level high \
+            --no-commit https://github.com/mobilecoinfoundation/crev-proofs
       - name: Run Cargo Crev
         id: cargo-crev
         run: |
           set +e
-
           export MARKER=$RANDOM
           echo "UNREVIEWED_DEPENDENCIES<<EOF${MARKER}" >> $GITHUB_OUTPUT
-
           # GH does not like colors in crev output
           export TERM=xterm-mono
-
-          # - Get a TSV-formatted table of dependencies without recorded reviews
+          # - Get a TSV-formatted table of dependencies without reviews
           # - Skip any "local" dependencies
           # - Convert the table to GHF markdown
-          # - Sort descending by the "LoC" value (first column preceeds first pipe)
-          
+          # - Sort descending by the "LoC" value (first column preceeds first
+          #   pipe)
+
+          cargo generate-lockfile --offline
           cargo crev crate verify \
               --for-id vMr-9g5KzKQLsCpkp1tc8o7AR6a0OptjOICjf7NMyHE \
               --show-all \
@@ -70,69 +92,80 @@ jobs:
               --understanding medium \
               --redundancy 2 | \
             grep -v '^local ' | \
-            awk '{printf("| %s | %s | %s | %s | %s | %s | %s |\n", $14, $15, $2, $10, $11, $12, $13)}' | \
+            awk '{
+              printf("| %s | %s | %s | %s | %s | %s | %s |\n",
+                     $14, $15, $2, $10, $11, $12, $13)
+            }' | \
             sort -t\| -n -k5 | \
             tee /dev/stderr >> $GITHUB_OUTPUT
           STATUS=$?
-
           echo "EOF${MARKER}" >> $GITHUB_OUTPUT
-          
+
           set -e
-          
-          # TODO: Once we're ready to start failing PRs for lack of dependency reviews
-          # exit $STATUS 
+
+          # TODO: When we're ready to make this required
+          # exit $STATUS
           exit 0
         shell: bash
       - uses: mshick/add-pr-comment@v2
         with:
+          # yamllint disable rule:line-length
           message: |
             #### :x: Unreviewed dependencies found
-            
+
             | Crate | Version | Reviews (N/2) | LoC | Left-Pad Index | Geiger | Flags |
             | ----- | ------- | ------------- | --- | -------------- | ------ | ----- |
             ${{ steps.cargo-crev.outputs.UNREVIEWED_DEPENDENCIES }}
+          # yamllint enable rule:line-length
 
   deny:
-    strategy:
-      matrix:
-        check:
-          - advisories
-          - bans licenses sources
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
         with:
-          cache-on-failure: "true"
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
-          command: check ${{ matrix.check }}
+          command: check ${{ matrix.checks }}
 
   sort:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install cargo-sort
-      - run: cargo sort --workspace --check >/dev/null
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-sort
+      - run: cargo sort --workspace --grouped --check >/dev/null
+      # TODO: Fix automatically
 
   clippy:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     strategy:
       matrix:
         rust:
           - stable
           - beta
-    # Prevent beta warnings from causing CI failure
-    continue-on-error: ${{ matrix.rust == 'beta' }}
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.15.100.3-jammy1
@@ -141,20 +174,24 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
+      - run: |
+          cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
+      # TODO: Fix automatically, or post GH-suggestions comments
 
   build:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     strategy:
       matrix:
         rust:
           - stable
           - beta
-          - nightly-2022-12-13
+          - nightly-2023-01-22
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.18.100.3
@@ -170,15 +207,17 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     strategy:
       matrix:
         rust:
           - stable
           - beta
-          - nightly-2022-12-13
+          - nightly-2023-01-22
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.18.100.3
@@ -191,23 +230,28 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - name: Run tests
         # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
-        # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
-        # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
-        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --features "sim alloc"
+        # Not seeing it documented here,
+        # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+        # We can't just set to 0 or "" as the SGX code looks for it being set,
+        # not what the value is :(
+        run: unset SGX_AESM_ADDR &&
+          cargo +${{ matrix.rust }} test --release --features "sim alloc"
 
   doc:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     strategy:
       matrix:
         rust:
           - stable
           - beta
-    # Prevent beta warnings from causing CI failure
+    # Prevent beta docs warnings from causing CI failure
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -217,9 +261,11 @@ jobs:
   coverage:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.18.100.3
@@ -229,23 +275,32 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Run tests with coverage
-        # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
-        # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
-        # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
-        # The FFI bindings crates always report 100% because they have no code
-        run: unset SGX_AESM_ADDR && cargo llvm-cov --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+      # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
+      # Not seeing it documented here,
+      # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
+      # We can't just set to 0 or "" as the SGX code looks for it being set, not
+      # what the value is :(
+      # The FFI bindings crates always report 100% because they have no code
+      - run: unset SGX_AESM_ADDR &&
+          cargo llvm-cov
+            --features sim
+            --ignore-filename-regex '\/sys/src/lib\.rs'
+            --workspace
+            --lcov
+            --output-path lcov.info
       - uses: codecov/codecov-action@v3
         with:
           files: lcov.info
 
-  # This job ensures that the specified crates are able to build without alloc.  By proxy this also ensures that the
-  # build with no_std
+  # This job ensures that the specified crates are able to build without alloc.
+  # By proxy this also ensures that the build with no_std
   build-no-alloc:
     runs-on: ubuntu-22.04
     needs:
-      - "lint"
+      - lint
     strategy:
       matrix:
         target:
@@ -256,48 +311,59 @@ jobs:
           - aarch64-apple-ios
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-12-13
+          toolchain: nightly-2023-01-22
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
       - name: Build types with no alloc crate on various platfroms
         # Some notes on this build command:
         # - The vendored headers are used to get the necessary DCAP headers
-        # - The vendored `tlibc` is used to get a compilable `time.h` for the target.
-        # - In the unlikely event that the target was installed with rustup, this would error out with
-        #   duplicate core symbols due to `-Z build-std=core`.
+        # - The vendored `tlibc` is used to get a compilable `time.h` for the
+        #   target.
+        # - In the unlikely event that the target was installed with rustup,
+        #   this would error out with duplicate core symbols due to
+        #   `-Z build-std=core`.
+        # yamllint disable rule:line-length
         run: |
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +nightly-2022-12-13 build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
+            xargs -n1 sh -c \
+              'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +nightly-2023-01-22 build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
+        # yamllint enable rule:line-length
 
   notify:
     runs-on: ubuntu-latest
-    if: failure() && ${{ github.event_name }} == 'push'
+    if: github.event_name == 'push' && failure()
     needs:
-      - "lint"
-      - "deny"
-      - "sort"
-      - "crev"
-      - "clippy"
-      - "build"
-      - "build-no-alloc"
-      - "test"
-      - "doc"
-      - "coverage"
+      - lint
+      - deny
+      - sort
+      - clippy
+      - build
+      - test
+      - doc
+      - coverage
     steps:
       - name: Notify Discord on failure
         uses: sarisia/actions-status-discord@v1
         with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
           username: "Github Actions"
           status: Failure
+          color: 0xff0000
           nodetail: true
-          title: "Workflow: ${{ github.workflow }}"
-          url: ${{ github.repository_url }}/actions/runs/${{ github.run_id }}
-          description: |
-            [@${{ github.pusher }}](${{ github.url }}/${{ github.pusher }}] was the last one to touch ${{ github.repository }}, is all I'm saying...
+          # yamllint disable rule:line-length
+          title: "${{ github.repository }} ${{ github.workflow }} has failed on ${{ github.event_name }} to ${{ github.ref_name }}"
+          url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          description: >
+            [`@${{ github.actor }}`](${{ github.server_url }}/${{ github.actor }})
+            was the last one to touch
+            [that repository](${{ github.server_url }}/${{ github.repository }}),
+            is all I'm saying.
           avatar_url: "https://media0.giphy.com/media/oe33xf3B50fsc/200.gif"
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          # yamllint enable rule:line-length

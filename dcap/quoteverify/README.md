@@ -2,7 +2,7 @@
 
 [![Project Chat][chat-image]][chat-link]<!--
 -->![License][license-image]<!--
--->![Target][target-image]<!--
+-->![Architecture: any][arch-image]<!--
 -->[![Crates.io][crate-image]][crate-link]<!--
 -->[![Docs Status][docs-image]][docs-link]<!--
 -->[![Dependency Status][deps-image]][deps-link]
@@ -32,9 +32,9 @@ Minimum supported Rust version can be changed in the future, but it will be done
 - MSRV is considered exempt from SemVer as noted above
 
 [chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
-[chat-link]: https://mobilecoin.chat
+[chat-link]: https://discord.gg/mobilecoin
 [license-image]: https://img.shields.io/crates/l/mc-sgx-dcap-quoteverify?style=flat-square
-[target-image]: https://img.shields.io/badge/target-x86__64-blue?style=flat-square
+[arch-image]: https://img.shields.io/badge/arch-x86__64-blue?style=flat-square
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-dcap-quoteverify.svg?style=flat-square
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-quoteverify
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-quoteverify?style=flat-square

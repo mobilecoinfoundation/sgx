@@ -1,0 +1,119 @@
+---
+repository:
+  name: "sgx"
+  description: "MobileCoin SGX"
+  homepage: https://mobilecoin.foundation/
+  topics: "development-tools"
+  private: false
+  has_issues: true
+  has_projects: false
+  has_wiki: true
+  has_downloads: false
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: true
+  allow_rebase_merge: false
+  allow_auto_merge: true
+  delete_branch_on_merge: true
+  use_squash_pr_title_as_default: true
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+labels:
+  - name: dependencies
+    color: '#0366d6'
+    description: Pull requests that update a dependency file
+
+  - name: github_actions
+    color: '#000000'
+    description: Pull requests that update github actions
+  - name: go
+    color: '#29beb0'
+    description: Pull requests that update golang code
+  - name: javascript
+    color: '#f0db4f'
+    description: Pull requests that update javascript code
+  - name: python
+    color: '#4584b6'
+    description: Pull requests that update python code
+  - name: rust
+    color: '#f74c00'
+    description: Pull requests that update rust code
+
+  - name: size/XS
+    color: '#00ed01'
+    description: Extra-Small PRs
+  - name: size/S
+    color: '#3af901'
+    description: Small PRs
+  - name: size/M
+    color: '#cefb02'
+    description: Medium-sized PRs
+  - name: size/L
+    color: '#ffde40'
+    description: Large PRs
+  - name: size/XL
+    color: '#ff9100'
+    description: Extra-Large PRs
+  - name: size/XXL
+    color: '#f24d11'
+    description: Double-wide PRs
+  - name: size/OHLAWDHECOMIN
+    color: '#ed1717'
+    description: PRs that should get broken down
+
+collaborators:
+  - username: meowblecoinbot
+    permission: triage
+  - username: nick-mobilecoin
+    permission: admin
+  - username: jcape
+    permission: admin
+
+teams:
+  - name: coredev
+    permission: push
+
+branches:
+  - name: main
+    # https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28
+    protection:
+      required_pull_request_reviews:
+        require_code_owner_reviews: true
+        required_approving_review_count: 2
+      required_conversation_resolution: true
+      required_status_checks:
+        strict: false
+        # These names need to match the matrix job name.
+        # For example if one had a job like:
+        #
+        #   build:
+        #     runs-on: ubuntu-22.04
+        #     needs:
+        #       - lint
+        #     strategy:
+        #       matrix:
+        #         rust:
+        #           - stable
+        #           - beta
+        #           - nightly-2023-01-22
+        #
+        # Then the matrix names would be:
+        #   - "build (stable)"
+        #   - "build (beta)"
+        #   - "build (nightly-2023-01-22)"
+        contexts:
+          - lint
+          - "deny (bans licenses sources)"
+          - sort
+          - "clippy (stable)"
+          - "build (stable)"
+          - "build-no-alloc (thumbv6m-none-eabi)"
+          - "build-no-alloc (thumbv7m-none-eabi)"
+          - "build-no-alloc (thumbv8m.main-none-eabi)"
+          - "build-no-alloc (aarch64-linux-android)"
+          - "build-no-alloc (aarch64-apple-ios)"
+          - "test (stable)"
+          - coverage
+      enforce_admins: true
+      restrictions: null

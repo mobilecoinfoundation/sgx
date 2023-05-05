@@ -1,16 +1,18 @@
 [package]
 name = "mc-sgx-urts-sys"
 version = "0.6.0"
-authors = ["MobileCoin"]
+authors = { workspace = true }
+# See https://crates.io/category_slugs for valid categories
 categories = ["external-ffi-bindings", "hardware-support"]
 description = "FFI bindings for `sgx_urts`."
-edition = "2021"
+edition = { workspace = true }
+# See https://crates.io/keywords for the common keywords
 keywords = ["ffi", "sgx"]
-license = "Apache-2.0"
+license = { workspace = true }
 links = "sgx_urts"
 readme = "README.md"
-repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+repository = { workspace = true }
+rust-version = { workspace = true }
 
 [lib]
 doctest = false

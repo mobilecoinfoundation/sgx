@@ -1,16 +1,18 @@
 [package]
 name = "mc-sgx-dcap-tvl-sys"
 version = "0.6.0"
-authors = ["MobileCoin"]
+authors = { workspace = true }
+# See https://crates.io/category_slugs for valid categories
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]
 description = "FFI bindings for `sgx_dcap_tvl`."
-edition = "2021"
+edition = { workspace = true }
+# See https://crates.io/keywords for the common keywords
 keywords = ["crypto", "ffi", "sgx", "no-std"]
-license = "Apache-2.0"
+license = { workspace = true }
 links = "sgx_dcap_tvl"
 readme = "README.md"
-repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+repository = { workspace = true }
+rust-version = { workspace = true }
 
 [lib]
 # test false due to needing an enclave to fully link

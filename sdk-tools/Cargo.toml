@@ -1,15 +1,17 @@
 [package]
 name = "mc-sgx-sdk-tools"
 version = "0.6.0"
-edition = "2021"
-authors = ["MobileCoin"]
-rust-version = "1.65"
-license = "Apache-2.0"
-readme = "README.md"
-repository = "https://github.com/mobilecoinfoundation/sgx"
-description = "Tools for building SGX enclaves"
+authors = { workspace = true }
+# See https://crates.io/category_slugs for valid categories
 categories = ["development-tools::build-utils"]
+description = "Tools for building SGX enclaves"
+edition = { workspace = true }
+# See https://crates.io/keywords for the common keywords
 keywords = ["build", "sgx"]
+license = { workspace = true }
+readme = "README.md"
+repository = { workspace = true }
+rust-version = { workspace = true }
 
 [dependencies]
 displaydoc = "0.2.3"

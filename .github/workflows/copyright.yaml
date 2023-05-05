@@ -1,26 +1,30 @@
+---
 name: copyright
 
-on:
+"on":
   schedule:
-    - cron: '0 3 1 1 *' # 03:00 AM on January 1
+    - cron: '0 3 1 1 *'  # 03:00 AM on January 1
 
 jobs:
   update-license-year:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - uses: FantasticFiasco/action-update-license-year@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # don't do `**/*.h` as we vendor in some headers
+          token: ${{ secrets.MEOWBLECOIN_PAT }}
           path: |
             **/*.rs
             **/*.proto
             **/*.c
             **/*.edl
+          # yamllint disable rule:line-length
           assignees: '@mobilecoinfoundation/coredev'
+          # yamllint enable rule:line-length
           labels: "copyright"
           transform: (?<=^\/\/ Copyright \(c\) )(?<from>\d{4})?-?(\d{4})?

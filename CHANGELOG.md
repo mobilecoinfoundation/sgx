@@ -6,7 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-
 ## [Unreleased] - ReleaseDate
 
 ## [0.6.0] - 2023-04-12
@@ -90,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mc-sgx-dcap-quoteverify::load_policy` have been replaced
   with `mc-sgx-dcap-quoteverify::PathInitializer` and
   `mc-sgx-dcap-quoteverify::LoadPolicyInitializer`
-  
+
 ## [0.2.1] - 2022-10-14
 
 ### Added

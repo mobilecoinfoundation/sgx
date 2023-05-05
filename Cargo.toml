@@ -37,15 +37,18 @@ members = [
 ]
 
 # We need to explicitly specify resolver 2.
-# We shouldn't have to per https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html, however if you
-# remove this, `getrandom` will fail trying to find `std` when building `mc-sgx-core-types`.  This is because
-# `mc-sgx-core-types` uses `rand` in it's `dev-dependencies`.  `rand` will use the `std` feature of `getrandom`, however
-# being in `dev-dependencies` it shouldn't normally get pulled in during a build.
-# Even specifying `edition = "2021"` here will not fix this
+# We shouldn't have to per https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html, but that does not appear to be the case
 resolver = "2"
 
+[workspace.package]
+authors = ["MobileCoin"]
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/mobilecoinfoundation/sgx"
+rust-version = "1.68"
+
 [profile.release]
-lto = true
+lto = "thin"
 
 [workspace.metadata.release]
 shared-version = true
@@ -53,14 +56,7 @@ dev-version-ext = "beta.0"
 consolidate-commits = true
 consolidate-pushes = true
 tag-name = "v{{version}}"
-
-# The file names in this key are relative to the each crate that gets released.
-# So we only need one `README.md` entry if all the README's follow a
-# common format and are always next to the Cargo.toml for their respective
-# package.
-# The downside to this running relative is that updating anything *only* in the
-# root will fail to work around this we delegate to `core/build/Cargo.toml` for
-# anything that is root specific.
 pre-release-replacements = [
-    {file="README.md", search="mc-sgx-[a-z-]+/[0-9.]+", replace="{{crate_name}}/{{version}}"},
+    # Files listed here must exist in all crates in this workspace
+    { file = "README.md", search = "mc-sgx-[a-z-]+/[0-9.]+", replace = "{{crate_name}}/{{version}}" },
 ]

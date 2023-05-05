@@ -2,7 +2,7 @@
 
 [![Project Chat][chat-image]][chat-link]<!--
 -->![License][license-image]<!--
--->![Target][target-image]<!--
+-->![Architecture: any][arch-image]<!--
 -->[![Crates.io][crate-image]][crate-link]<!--
 -->[![Docs Status][docs-image]][docs-link]<!--
 -->[![Dependency Status][deps-image]][deps-link]
@@ -31,9 +31,9 @@ synchronization primitives, the application is now capable of stopping enclave
 thread(s) consistently at the synchronization points.
 
 [chat-image]: https://img.shields.io/discord/844353360348971068?style=flat-square
-[chat-link]: https://mobilecoin.chat
+[chat-link]: https://discord.gg/mobilecoin
 [license-image]: https://img.shields.io/crates/l/mc-sgx-tstdc?style=flat-square
-[target-image]: https://img.shields.io/badge/target-sgx-red?style=flat-square
+[arch-image]: https://img.shields.io/badge/arch-sgx-red?style=flat-square
 [crate-image]: https://img.shields.io/crates/v/mc-sgx-tstdc.svg?style=flat-square
 [crate-link]: https://crates.io/crates/mc-sgx-tstdc
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tstdc?style=flat-square

@@ -1,0 +1,37 @@
+{
+  "template": "https://github.com/mobilecoinfoundation/cookiecutters",
+  "commit": "514446cae76f1874e1303a8812bccee24fcc3d99",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "_copy_without_render": [
+        ".github/workflows/ci.yaml",
+        ".github/workflows/issues.yaml",
+        ".github/workflows/pr-assign.yaml",
+        ".github/workflows/pr.yaml"
+      ],
+      "repo_name": "sgx",
+      "repo_homepage": "https://mobilecoin.foundation/",
+      "github_org": "mobilecoinfoundation",
+      "github_teams": "coredev",
+      "github_username": "@nick-mobilecoin",
+      "default_branch": "main",
+      "owners": "@nick-mobilecoin @jcape",
+      "type": "workspace",
+      "license": "Apache-2.0",
+      "arch": "any",
+      "workspace_description": "MobileCoin SGX",
+      "workspace_readme_title": "MobileCoin SGX",
+      "crate_name": "mc-sgx-core-build",
+      "crate_namespace_prefix": "mc-sgx-",
+      "crate_description": "Build helpers for SGX FFI crates",
+      "crate_readme_title": "MobileCoin SGX: Build Utilities",
+      "crate_sub_dir": "core/build",
+      "version": "0.1.0",
+      "crate_keywords": "build ffi sgx",
+      "crate_categories": "development-tools",
+      "_template": "https://github.com/mobilecoinfoundation/cookiecutters"
+    }
+  },
+  "directory": "rust/repo"
+}
