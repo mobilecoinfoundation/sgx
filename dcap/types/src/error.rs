@@ -22,6 +22,8 @@ pub enum Quote3Error {
     Ecdsa,
     /// Invalid certification data type: {0}, should be 1 - 7
     CertificationDataType(u16),
+    /// Error verifying the signature
+    SignatureVerification,
 }
 
 impl Quote3Error {
