@@ -102,14 +102,11 @@ impl TryFrom<&Certificate> for PckTcbInfo {
 /// * `Error::DerDecoding` if the contained DER is invalid.
 fn sgx_extensions(cert: &Certificate) -> Result<SgxExtensions, Error> {
     let extensions = &cert.tbs_certificate.extensions;
-    let extension = match extensions
+    let extension = extensions
         .iter()
         .flatten()
         .find(|extension| extension.extn_id == SGX_OID)
-    {
-        Some(extension) => extension,
-        None => return Err(Error::MissingSgxExtension(SGX_OID.to_string())),
-    };
+        .ok_or_else(|| Error::MissingSgxExtension(SGX_OID.to_string()))?;
 
     let der_bytes = extension.extn_value.as_bytes();
     Ok(SgxExtensions::from_der(der_bytes)?)
@@ -140,10 +137,11 @@ fn fmspc(sgx_extensions: &SgxExtensions) -> Result<[u8; FMSPC_SIZE], Error> {
 /// # Errors
 /// `Error::MissingSgxExtension` if the `oid` is not present in `extensions`.
 fn oid_value(oid: &ObjectIdentifier, extensions: &SgxExtensions) -> Result<AttributeValue, Error> {
-    match extensions.iter().find(|extension| &extension.oid == oid) {
-        Some(extension) => Ok(extension.value.clone()),
-        None => Err(Error::MissingSgxExtension(oid.to_string())),
-    }
+    let extension = extensions
+        .iter()
+        .find(|extension| &extension.oid == oid)
+        .ok_or_else(|| Error::MissingSgxExtension(oid.to_string()))?;
+    Ok(extension.value.clone())
 }
 
 /// Get the SVN values from the nested `TCB_OID`
