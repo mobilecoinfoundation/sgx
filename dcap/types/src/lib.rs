@@ -7,6 +7,9 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "tcb")]
+mod tcb;
+
 mod certification_data;
 mod error;
 mod quote3;
