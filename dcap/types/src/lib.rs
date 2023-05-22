@@ -26,6 +26,8 @@ pub use crate::{
     quoting_enclave::ReportInfo,
     request_policy::RequestPolicy,
 };
+#[cfg(feature = "tcb")]
+pub use crate::{tcb::Error as TcbError, tcb::TcbInfo, tcb::COMPONENT_SVN_COUNT, tcb::FMSPC_SIZE};
 
 // TODO:
 //

@@ -21,15 +21,18 @@ use x509_cert::der::asn1::OctetStringRef;
 use x509_cert::der::Decode;
 use x509_cert::Certificate;
 
-// Per <https://api.portal.trustedservices.intel.com/documentation#pcs-tcb-info-model-v3>
-// fmspc is limited to 12 hex characters, or 6 bytes.
-const FMSPC_SIZE: usize = 6;
+/// Per <https://api.portal.trustedservices.intel.com/documentation#pcs-tcb-info-model-v3>
+/// fmspc is limited to 12 hex characters, or 6 bytes.
+pub const FMSPC_SIZE: usize = 6;
+
+/// The number of component SVN values in the TCB info.
+pub const COMPONENT_SVN_COUNT: usize = 16;
 
 // Values copied from
 // <https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/4cb5c8b81f126f9aa3ee921d7980a909a9bd676d/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.h#L57>.
 const SGX_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1");
 const TCB_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.2");
-const TCB_COMPONENT_OIDS: [ObjectIdentifier; 16] = [
+const TCB_COMPONENT_OIDS: [ObjectIdentifier; COMPONENT_SVN_COUNT] = [
     ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.2.1"),
     ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.2.2"),
     ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.2.3"),
@@ -50,10 +53,14 @@ const TCB_COMPONENT_OIDS: [ObjectIdentifier; 16] = [
 const PCE_SVN_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.2.17");
 const FMSPC_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.4");
 
-#[derive(Debug, PartialEq)]
+/// Error parsing TCB info from PCK leaf certificate
+#[derive(Debug, PartialEq, displaydoc::Display)]
 pub enum Error {
+    /// Missing the SGX OID extension: {0}
     MissingSgxExtension(String),
+    /// Failed to parse TCB info: {0}
     Der(x509_cert::der::Error),
+    /// Expected an FMSPC size of 6 bytes, got {0}
     FmspcSize(usize),
 }
 
@@ -71,13 +78,41 @@ type SgxExtensions = Vec<AttributeTypeAndValue>;
 /// The TCB info provided by the PCK(Provisioning Certification Key) leaf
 /// certificate
 #[derive(Debug, PartialEq)]
-pub struct PckTcbInfo {
-    svns: [u32; 16],
+pub struct TcbInfo {
+    svns: [u32; COMPONENT_SVN_COUNT],
     pce_svn: u32,
     fmspc: [u8; FMSPC_SIZE],
 }
 
-impl TryFrom<&Certificate> for PckTcbInfo {
+impl TcbInfo {
+    /// Get the component SVN values
+    pub fn svns(&self) -> &[u32; COMPONENT_SVN_COUNT] {
+        &self.svns
+    }
+
+    /// Get the PCE SVN value
+    pub fn pce_svn(&self) -> &u32 {
+        &self.pce_svn
+    }
+
+    /// Get the FMSPC value
+    pub fn fmspc(&self) -> &[u8; FMSPC_SIZE] {
+        &self.fmspc
+    }
+
+    /// Get the hex representation of the FMSPC value.
+    ///
+    /// Useful for querying the TCB advisories from
+    /// <https://api.trustedservices.intel.com/sgx/certification/v4/tcb?fmspc={}>
+    pub fn fmspc_to_hex(&self) -> String {
+        // Using the lowercase hex encoding to match the hex encoding of the
+        // `signature` field in the TCB data from
+        // <https://api.trustedservices.intel.com/sgx/certification/v4/tcb?fmspc={}>
+        hex::encode(self.fmspc)
+    }
+}
+
+impl TryFrom<&Certificate> for TcbInfo {
     type Error = Error;
 
     fn try_from(cert: &Certificate) -> Result<Self, Self::Error> {
@@ -87,7 +122,7 @@ impl TryFrom<&Certificate> for PckTcbInfo {
 
         let (pce_svn, svns) = tcb_svns(&sgx_extensions)?;
 
-        Ok(PckTcbInfo {
+        Ok(TcbInfo {
             svns,
             pce_svn,
             fmspc,
@@ -149,14 +184,14 @@ fn oid_value(oid: &ObjectIdentifier, extensions: &SgxExtensions) -> Result<Attri
 /// # Errors
 /// * `Error::MissingSgxExtension` if any of the 1-16 component SVNs or PCE SVN is missing.
 /// * `Error::DerDecoding` if the SVN values fail to decode to u32s.
-fn tcb_svns(sgx_extensions: &SgxExtensions) -> Result<(u32, [u32; 16]), Error> {
+fn tcb_svns(sgx_extensions: &SgxExtensions) -> Result<(u32, [u32; COMPONENT_SVN_COUNT]), Error> {
     let tcb = oid_value(&TCB_OID, sgx_extensions)?;
     let components = tcb.decode_as::<SgxExtensions>()?;
 
     let pce_svn_value = oid_value(&PCE_SVN_OID, &components)?;
     let pce_svn = pce_svn_value.decode_as::<u32>()?;
 
-    let mut svns = [0; 16];
+    let mut svns = [0; COMPONENT_SVN_COUNT];
     for (i, oid) in TCB_COMPONENT_OIDS.iter().enumerate() {
         let value = oid_value(oid, &components)?;
         let svn = value.decode_as::<u32>()?;
@@ -195,11 +230,11 @@ mod test {
     #[test]
     fn valid_pck_tcb_info() {
         let certificate = Certificate::from_der(&LEAF_CERT).expect("failed to parse DER");
-        let tcb_info = PckTcbInfo::try_from(&certificate).expect("failed to parse TCB info");
+        let tcb_info = TcbInfo::try_from(&certificate).expect("failed to parse TCB info");
 
         // These were taken by looking at `leaf_cert.der` on an ASN1 decoder, like
         // <https://lapo.it/asn1js/#MIIEjzCCBDSgAwIBAgIVAPtJxlxRlleZOb_spRh9U8K7AT_3MAoGCCqGSM49BAMCMHExIzAhBgNVBAMMGkludGVsIFNHWCBQQ0sgUHJvY2Vzc29yIENBMRowGAYDVQQKDBFJbnRlbCBDb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNBMQswCQYDVQQGEwJVUzAeFw0yMjA2MTMyMTQ2MzRaFw0yOTA2MTMyMTQ2MzRaMHAxIjAgBgNVBAMMGUludGVsIFNHWCBQQ0sgQ2VydGlmaWNhdGUxGjAYBgNVBAoMEUludGVsIENvcnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJBgNVBAYTAlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEj_Ee1lkGJofDX745Ks5qxqu7Mk7Mqcwkx58TCSTsabRCSvobSl_Ts8b0dltKUW3jqRd-SxnPEWJ-jUw-SpzwWaOCAqgwggKkMB8GA1UdIwQYMBaAFNDoqtp11_kuSReYPHsUZdDV8llNMGwGA1UdHwRlMGMwYaBfoF2GW2h0dHBzOi8vYXBpLnRydXN0ZWRzZXJ2aWNlcy5pbnRlbC5jb20vc2d4L2NlcnRpZmljYXRpb24vdjMvcGNrY3JsP2NhPXByb2Nlc3NvciZlbmNvZGluZz1kZXIwHQYDVR0OBBYEFKy9gk624HzNnDyCw7QWnhmVfE31MA4GA1UdDwEB_wQEAwIGwDAMBgNVHRMBAf8EAjAAMIIB1AYJKoZIhvhNAQ0BBIIBxTCCAcEwHgYKKoZIhvhNAQ0BAQQQ36FQl3ntUr3KUwbEFvmRGzCCAWQGCiqGSIb4TQENAQIwggFUMBAGCyqGSIb4TQENAQIBAgERMBAGCyqGSIb4TQENAQICAgERMBAGCyqGSIb4TQENAQIDAgECMBAGCyqGSIb4TQENAQIEAgEEMBAGCyqGSIb4TQENAQIFAgEBMBEGCyqGSIb4TQENAQIGAgIAgDAQBgsqhkiG-E0BDQECBwIBBjAQBgsqhkiG-E0BDQECCAIBADAQBgsqhkiG-E0BDQECCQIBADAQBgsqhkiG-E0BDQECCgIBADAQBgsqhkiG-E0BDQECCwIBADAQBgsqhkiG-E0BDQECDAIBADAQBgsqhkiG-E0BDQECDQIBADAQBgsqhkiG-E0BDQECDgIBADAQBgsqhkiG-E0BDQECDwIBADAQBgsqhkiG-E0BDQECEAIBADAQBgsqhkiG-E0BDQECEQIBCzAfBgsqhkiG-E0BDQECEgQQERECBAGABgAAAAAAAAAAADAQBgoqhkiG-E0BDQEDBAIAADAUBgoqhkiG-E0BDQEEBAYAkG7VAAAwDwYKKoZIhvhNAQ0BBQoBADAKBggqhkjOPQQDAgNJADBGAiEA1XJi0ht4hw8YtC6E4rYscp9bF-7UOhVGeKePA5TW2FQCIQCIUAaewOuWOIvstZN4V8Zu8NFCC4vFg-cZqO6QfezEaA>
-        let expected_tcb_info = PckTcbInfo {
+        let expected_tcb_info = TcbInfo {
             svns: [17, 17, 2, 4, 1, 128, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             pce_svn: 11,
             fmspc: [0, 144, 110, 213, 0, 0],
@@ -227,7 +262,7 @@ mod test {
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert_eq!(
-            PckTcbInfo::try_from(&certificate),
+            TcbInfo::try_from(&certificate),
             Err(Error::MissingSgxExtension(oid.to_string()))
         );
     }
@@ -243,7 +278,7 @@ mod test {
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
-            PckTcbInfo::try_from(&certificate),
+            TcbInfo::try_from(&certificate),
             Err(Error::Der(_))
         ));
     }
@@ -259,7 +294,7 @@ mod test {
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
-            PckTcbInfo::try_from(&certificate),
+            TcbInfo::try_from(&certificate),
             Err(Error::Der(_))
         ));
     }
@@ -275,7 +310,7 @@ mod test {
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
-            PckTcbInfo::try_from(&certificate),
+            TcbInfo::try_from(&certificate),
             Err(Error::Der(_))
         ));
     }
@@ -291,7 +326,7 @@ mod test {
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
-            PckTcbInfo::try_from(&certificate),
+            TcbInfo::try_from(&certificate),
             Err(Error::Der(_))
         ));
     }
@@ -311,7 +346,7 @@ mod test {
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
-            PckTcbInfo::try_from(&certificate),
+            TcbInfo::try_from(&certificate),
             Err(Error::Der(_))
         ));
     }
@@ -356,5 +391,23 @@ mod test {
         }];
 
         assert_eq!(fmspc(&extensions), Err(Error::FmspcSize(7)));
+    }
+
+    #[parameterized(
+        zero_to_five = { [0u8, 1, 2, 3, 4, 5], "000102030405" },
+        // These values (e3, e5, client) were taken from
+        // <https://api.trustedservices.intel.com/sgx/certification/v4/fmspcs>
+        e3 = { [0, 144, 110, 213, 0, 0], "00906ed50000" },
+        e5 = { [144, 192, 111, 0, 0, 0], "90c06f000000" },
+        client = { [0, 128, 110, 166, 0, 0], "00806ea60000" },
+    )]
+    fn valid_fmspc_to_hex(fmspc: [u8; FMSPC_SIZE], expected: &str) {
+        let tcb_info = TcbInfo {
+            svns: [0u32; COMPONENT_SVN_COUNT],
+            pce_svn: 0,
+            fmspc,
+        };
+
+        assert_eq!(tcb_info.fmspc_to_hex(), expected);
     }
 }
