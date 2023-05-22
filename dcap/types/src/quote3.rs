@@ -11,6 +11,7 @@ use core::hash::{Hash, Hasher};
 use core::mem;
 use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
+use p256::ecdsa::signature::Verifier;
 use p256::ecdsa::{Signature, VerifyingKey};
 use p256::EncodedPoint;
 use sha2::{Digest, Sha256};
@@ -30,6 +31,12 @@ const SIGNATURE_SIZE: usize = 64;
 
 // The offset to the report body for the app. From the start of the quote.
 const REPORT_BODY_OFFSET: usize = mem::size_of::<sgx_quote_header_t>();
+
+// The offset to the attestation key, from the start of the quote.
+const ATTESTATION_KEY_OFFSET: usize = mem::size_of::<sgx_quote3_t>() + SIGNATURE_SIZE;
+
+// The offset to the QE report body, from the start of the quote.
+const QE_REPORT_BODY_OFFSET: usize = ATTESTATION_KEY_OFFSET + KEY_SIZE;
 
 /// The minimum size of a byte array to contain a [`AuthenticationData`]
 /// the 2 bytes for QE authentication data size
@@ -79,6 +86,72 @@ impl<T: AsRef<[u8]>> Hash for Quote3<T> {
 }
 
 impl<T: AsRef<[u8]>> Quote3<T> {
+    /// Verify the signatures of the quote
+    ///
+    /// The verifying key is expected to be the public key of the PCK leaf
+    /// certificate available from the
+    /// [`Quote3::signature_data()`] -> [`SignatureData::certification_data()`]
+    pub fn verify(&self, key: &VerifyingKey) -> Result<()> {
+        let signature_data = self.signature_data();
+        self.verify_qe_report(key, &signature_data)?;
+        self.verify_attestation_key(&signature_data)?;
+        self.verify_isv_report(&signature_data)?;
+        Ok(())
+    }
+
+    /// Verify the signature of the QE report
+    ///
+    /// The public key can be retrieved from the PCK leaf certificate.
+    fn verify_qe_report(&self, key: &VerifyingKey, signature_data: &SignatureData) -> Result<()> {
+        let qe_report_end = QE_REPORT_BODY_OFFSET + mem::size_of::<ReportBody>();
+        let qe_report_bytes = &self.raw_bytes.as_ref()[QE_REPORT_BODY_OFFSET..qe_report_end];
+        key.verify(qe_report_bytes, &signature_data.qe_report_signature)
+            .map_err(|_| Quote3Error::SignatureVerification)?;
+        Ok(())
+    }
+
+    /// Verify the attestation key is valid
+    ///
+    /// The
+    /// [ECDSA attestation key](https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf#%5B%7B%22num%22%3A75%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C69%2C687%2C0%5D)
+    /// is not directly part of a signed data member. In order to verify
+    /// the integrity of the key we must look at the report data of the QE
+    /// report. The QE report is signed and its report data contains a hash
+    /// which uses the expected attestation key as one of the inputs.
+    fn verify_attestation_key(&self, signature_data: &SignatureData) -> Result<()> {
+        let mut hasher = Sha256::new();
+        let attestation_key =
+            &self.raw_bytes.as_ref()[ATTESTATION_KEY_OFFSET..ATTESTATION_KEY_OFFSET + KEY_SIZE];
+        hasher.update(attestation_key);
+        hasher.update(&signature_data.authentication_data);
+        let hash = hasher.finalize();
+
+        let mut data = [0u8; ReportData::SIZE];
+        data[..hash.len()].copy_from_slice(hash.as_slice());
+
+        match data
+            .ct_eq(signature_data.qe_report_body.report_data().as_ref())
+            .into()
+        {
+            true => Ok(()),
+            false => Err(Quote3Error::SignatureVerification),
+        }
+    }
+
+    /// Verify the ISV report
+    ///
+    /// The ISV(Independent Software Vendor) report is often referred to as the
+    /// application enclave.
+    fn verify_isv_report(&self, signature_data: &SignatureData) -> Result<()> {
+        let isv_report_bytes = &self.raw_bytes.as_ref()
+            [..mem::size_of::<sgx_quote_header_t>() + mem::size_of::<ReportBody>()];
+        signature_data
+            .attestation_key
+            .verify(isv_report_bytes, &signature_data.isv_enclave_signature)
+            .map_err(|_| Quote3Error::SignatureVerification)?;
+        Ok(())
+    }
+
     /// Verify the provided `nonce` matches the one in `report_data`
     ///
     /// When a nonce is passed to the quote generation, a QE report will be
@@ -110,6 +183,8 @@ impl<T: AsRef<[u8]>> Quote3<T> {
     }
 
     /// Report body of the application enclave
+    ///
+    /// This is also referred to as the ISV report body.
     pub fn app_report_body(&self) -> &ReportBody {
         &self.report_body
     }
@@ -215,7 +290,7 @@ impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
 
         let (bytes, point_bytes) = take(KEY_SIZE)(bytes);
         let point = EncodedPoint::from_untagged_bytes(point_bytes.into());
-        let attestation_key = VerifyingKey::from_encoded_point(&point).unwrap();
+        let attestation_key = VerifyingKey::from_encoded_point(&point)?;
 
         let qe_report_body = ReportBody::try_from(bytes)
             .expect("Previous check should guarantee enough size to decode ReportBody");
@@ -306,6 +381,12 @@ impl<'a> AuthenticationData<'a> {
     }
 }
 
+impl<'a> AsRef<[u8]> for AuthenticationData<'a> {
+    fn as_ref(&self) -> &[u8] {
+        self.data
+    }
+}
+
 /// Read a u32 from the provided `input` stream.
 ///
 /// It is assumed that `input` has enough bytes to contain the value
@@ -365,6 +446,7 @@ mod test {
     use yare::parameterized;
     extern crate alloc;
     use alloc::vec::Vec;
+    use x509_cert::{der::DecodePem, Certificate};
 
     /// A P-256 public key uncompressed in raw bytes. This was taken from a HW
     /// quote.
@@ -460,6 +542,29 @@ mod test {
 
         bytes[..mem::size_of::<sgx_ql_ecdsa_sig_data_t>()].copy_from_slice(alias_bytes);
         bytes
+    }
+
+    // Get the signing key from the PCK leaf certificate in the
+    // [`CertifciationData`] of the `quote`.
+    fn pck_leaf_signing_key<T: AsRef<[u8]>>(quote: &Quote3<T>) -> VerifyingKey {
+        let signature_data = quote.signature_data();
+        let cert_chain = match signature_data.certification_data() {
+            CertificationData::PckCertificateChain(cert_chain) => cert_chain,
+            _ => panic!("expected a PckCertChain"),
+        };
+        let leaf_pem = cert_chain.into_iter().collect::<Vec<_>>()[0];
+
+        let certificate = Certificate::from_pem(leaf_pem).expect("failed to parse PEM");
+        let key = VerifyingKey::from_sec1_bytes(
+            certificate
+                .tbs_certificate
+                .subject_public_key_info
+                .subject_public_key
+                .as_bytes()
+                .expect("Failed to parse public key"),
+        )
+        .expect("Failed to decode public key");
+        key
     }
 
     #[test]
@@ -563,6 +668,13 @@ mod test {
                 required: MIN_QUOTE_SIZE + 1,
             })
         );
+    }
+
+    #[test]
+    fn quote_fails_to_decode_attestation_key() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+        hw_quote[mem::size_of::<sgx_quote3_t>() + SIGNATURE_SIZE] += 1;
+        assert_eq!(Quote3::try_from(hw_quote), Err(Quote3Error::Ecdsa));
     }
 
     #[cfg(feature = "alloc")]
@@ -893,5 +1005,57 @@ mod test {
         );
         assert_eq!(signature_data.authentication_data.data, [14u8; 5]);
         assert_eq!(signature_data.certification_data().raw_data(), [23u8; 4]);
+    }
+
+    #[test]
+    fn verify_quote_signature() {
+        let hw_quote = include_bytes!("../data/tests/hw_quote.dat");
+        let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
+        let key = pck_leaf_signing_key(&quote);
+
+        assert_eq!(quote.verify(&key), Ok(()));
+    }
+
+    #[test]
+    fn quote_verification_fails_for_bad_qe_report() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+        hw_quote[QE_REPORT_BODY_OFFSET] += 1;
+        let quote = Quote3::try_from(hw_quote).expect("Failed to parse quote");
+        let key = pck_leaf_signing_key(&quote);
+
+        assert_eq!(quote.verify(&key), Err(Quote3Error::SignatureVerification));
+    }
+
+    #[test]
+    fn quote_verification_fails_for_bad_attestation_key() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+
+        // To ensure the bad attestation key decodes correctly we'll use the
+        // leaf PCK key.
+        let quote = Quote3::try_from(hw_quote.clone()).expect("Failed to parse quote");
+        let key = pck_leaf_signing_key(&quote);
+
+        // From https://www.secg.org/sec1-v2.pdf Section 2.3.3, uncompressed
+        // sec1 is stored as `04 || X || Y`, but the quote only stores `X || Y`.
+        let point = key.to_encoded_point(false);
+        let key_bytes = &point.as_bytes()[1..];
+
+        let key_start = mem::size_of::<sgx_quote3_t>() + SIGNATURE_SIZE;
+        let key_end = key_start + KEY_SIZE;
+        hw_quote[key_start..key_end].copy_from_slice(key_bytes);
+
+        let quote = Quote3::try_from(hw_quote).expect("Failed to parse quote");
+
+        assert_eq!(quote.verify(&key), Err(Quote3Error::SignatureVerification));
+    }
+
+    #[test]
+    fn quote_verification_fails_for_isv_report() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+        hw_quote[REPORT_BODY_OFFSET] += 1;
+        let quote = Quote3::try_from(hw_quote).expect("Failed to parse quote");
+        let key = pck_leaf_signing_key(&quote);
+
+        assert_eq!(quote.verify(&key), Err(Quote3Error::SignatureVerification));
     }
 }
