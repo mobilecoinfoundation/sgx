@@ -85,6 +85,15 @@ pub struct TcbInfo {
 }
 
 impl TcbInfo {
+    /// Create a new instance of [`TcbInfo`]
+    pub fn new(svns: [u32; COMPONENT_SVN_COUNT], pce_svn: u32, fmspc: [u8; FMSPC_SIZE]) -> Self {
+        Self {
+            svns,
+            pce_svn,
+            fmspc,
+        }
+    }
+
     /// Get the component SVN values
     pub fn svns(&self) -> &[u32; COMPONENT_SVN_COUNT] {
         &self.svns
@@ -122,11 +131,7 @@ impl TryFrom<&Certificate> for TcbInfo {
 
         let (pce_svn, svns) = tcb_svns(&sgx_extensions)?;
 
-        Ok(TcbInfo {
-            svns,
-            pce_svn,
-            fmspc,
-        })
+        Ok(TcbInfo::new(svns, pce_svn, fmspc))
     }
 }
 
@@ -402,11 +407,7 @@ mod test {
         client = { [0, 128, 110, 166, 0, 0], "00806ea60000" },
     )]
     fn valid_fmspc_to_hex(fmspc: [u8; FMSPC_SIZE], expected: &str) {
-        let tcb_info = TcbInfo {
-            svns: [0u32; COMPONENT_SVN_COUNT],
-            pce_svn: 0,
-            fmspc,
-        };
+        let tcb_info = TcbInfo::new([0u32; COMPONENT_SVN_COUNT], 0, fmspc);
 
         assert_eq!(tcb_info.fmspc_to_hex(), expected);
     }
