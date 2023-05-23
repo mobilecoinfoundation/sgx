@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.6.1] - 2023-05-23
+
+### Added
+
+- Added `mc-sgx-dcap-types::TCBInfo` which provides the TCB (Trusted Compute Base)
+  for a quoted enclave.
+- Added a method, `mc-sgx-dcap-types::Quote3::verify()`, to verify the signature
+  of a quoted enclave.
+
 ## [0.6.0] - 2023-04-12
 
 ### Added
@@ -134,7 +143,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/{{tag_name}}...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/mobilecoinfoundation/sgx/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.1...v0.4.2

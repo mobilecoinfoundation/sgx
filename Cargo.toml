@@ -49,9 +49,7 @@ lto = true
 
 [workspace.metadata.release]
 shared-version = true
-dev-version-ext = "beta.0"
 consolidate-commits = true
-consolidate-pushes = true
 tag-name = "v{{version}}"
 
 # The file names in this key are relative to the each crate that gets released.
