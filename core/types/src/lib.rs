@@ -21,7 +21,10 @@ mod target_info;
 
 pub use crate::{
     attestation_key::{AttestationKeyId, ExtendedAttestationKeyId},
-    attributes::{Attributes, MiscellaneousAttribute, MiscellaneousSelect},
+    attributes::{
+        AttributeFlags, Attributes, ExtendedFeatureRequestMask, MiscellaneousAttribute,
+        MiscellaneousSelect,
+    },
     config_id::ConfigId,
     error::{Error, FfiError},
     key_request::{KeyName, KeyPolicy, KeyRequest, KeyRequestBuilder},

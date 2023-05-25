@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- `mc-sgx-core-types::Attributes::set_flags()` and
+  `mc-sgx-core-types::Attributes::set_extended_features_mask()` have been
+  updated to take dedicated types `mc-sgx-core-types::AttributesFlags` and
+  `mc-sgx-core-types::ExtendedFeaturesMask` respectively.
+
 ## [0.6.1] - 2023-05-23
 
 ### Added

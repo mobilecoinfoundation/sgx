@@ -272,7 +272,9 @@ mod test {
     extern crate std;
 
     use super::*;
-    use crate::{key_request::KeyId, MrEnclave, MrSigner};
+    use crate::{
+        key_request::KeyId, AttributeFlags, ExtendedFeatureRequestMask, MrEnclave, MrSigner,
+    };
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
     use std::format;
@@ -285,8 +287,8 @@ mod test {
             reserved1: [3u8; SGX_REPORT_BODY_RESERVED1_BYTES],
             isv_ext_prod_id: [4u8; SGX_ISVEXT_PROD_ID_SIZE],
             attributes: Attributes::default()
-                .set_flags(5)
-                .set_extended_features_mask(6)
+                .set_flags(AttributeFlags::INITTED | AttributeFlags::MODE_64BIT)
+                .set_extended_features_mask(ExtendedFeatureRequestMask::AVX)
                 .into(),
             mr_enclave: MrEnclave::from([7u8; MrEnclave::SIZE]).into(),
             reserved2: [8u8; SGX_REPORT_BODY_RESERVED2_BYTES],
@@ -311,8 +313,14 @@ mod test {
             reserved1: [32u8; SGX_REPORT_BODY_RESERVED1_BYTES],
             isv_ext_prod_id: [42u8; SGX_ISVEXT_PROD_ID_SIZE],
             attributes: Attributes::default()
-                .set_flags(52)
-                .set_extended_features_mask(62)
+                .set_flags(
+                    AttributeFlags::MODE_64BIT
+                        | AttributeFlags::PROVISION_KEY
+                        | AttributeFlags::EINIT_TOKEN_KEY,
+                )
+                .set_extended_features_mask(
+                    ExtendedFeatureRequestMask::AVX | ExtendedFeatureRequestMask::MPX,
+                )
                 .into(),
             mr_enclave: MrEnclave::from([72u8; MrEnclave::SIZE]).into(),
             reserved2: [82u8; SGX_REPORT_BODY_RESERVED2_BYTES],
@@ -379,8 +387,8 @@ mod test {
         assert_eq!(
             body.attributes(),
             Attributes::default()
-                .set_flags(5)
-                .set_extended_features_mask(6)
+                .set_flags(AttributeFlags::INITTED | AttributeFlags::MODE_64BIT)
+                .set_extended_features_mask(ExtendedFeatureRequestMask::AVX)
         );
         assert_eq!(body.mr_enclave(), MrEnclave::from([7u8; SGX_HASH_SIZE]));
         assert_eq!(body.0.reserved2, [8u8; SGX_REPORT_BODY_RESERVED2_BYTES]);
@@ -426,8 +434,14 @@ mod test {
         assert_eq!(
             body.attributes(),
             Attributes::default()
-                .set_flags(52)
-                .set_extended_features_mask(62)
+                .set_flags(
+                    AttributeFlags::MODE_64BIT
+                        | AttributeFlags::PROVISION_KEY
+                        | AttributeFlags::EINIT_TOKEN_KEY
+                )
+                .set_extended_features_mask(
+                    ExtendedFeatureRequestMask::AVX | ExtendedFeatureRequestMask::MPX
+                )
         );
         assert_eq!(body.mr_enclave(), MrEnclave::from([72u8; SGX_HASH_SIZE]));
         assert_eq!(body.0.reserved2, [82u8; SGX_REPORT_BODY_RESERVED2_BYTES]);
