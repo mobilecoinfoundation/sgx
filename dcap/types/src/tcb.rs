@@ -3,11 +3,8 @@
 //! TCB measurements for an SGX enclave.
 //!
 //! The TCB measurements are present as OID extensions on the leaf PCK
-//! certificate.
-//! The OID extensions are listed at
-//! <https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/4cb5c8b81f126f9aa3ee921d7980a909a9bd676d/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.h#L57>.
-//! There doesn't appear to be a more formal place where these OID extensions
-//! are documented .
+//! certificate. The extensions are documented in
+//! <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.5.pdf>
 //!
 //! These TCB measurements contain the FMSPC value which can be used to query
 //! for the advisories associated with these TCB values at
@@ -28,8 +25,8 @@ pub const FMSPC_SIZE: usize = 6;
 /// The number of component SVN values in the TCB info.
 pub const COMPONENT_SVN_COUNT: usize = 16;
 
-// Values copied from
-// <https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/4cb5c8b81f126f9aa3ee921d7980a909a9bd676d/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.h#L57>.
+// Values from
+// <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.5.pdf#%5B%7B%22num%22%3A193%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C69%2C690%2C0%5D>
 const SGX_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1");
 const TCB_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.2");
 const TCB_COMPONENT_OIDS: [ObjectIdentifier; COMPONENT_SVN_COUNT] = [
