@@ -26,8 +26,8 @@ impl Attributes {
     /// # Arguments
     ///
     /// * `flags` - The flags to be set in the attributes
-    pub fn set_flags(mut self, flags: u64) -> Self {
-        self.0.flags = flags;
+    pub fn set_flags(mut self, flags: AttributeFlags) -> Self {
+        self.0.flags = flags.bits();
         self
     }
 
@@ -36,15 +36,15 @@ impl Attributes {
     /// # Arguments
     ///
     /// * `features_mask` - The mask to be set to the `xfrm` in the attributes
-    pub fn set_extended_features_mask(mut self, features_mask: u64) -> Self {
-        self.0.xfrm = features_mask;
+    pub fn set_extended_features_mask(mut self, features_mask: ExtendedFeatureRequestMask) -> Self {
+        self.0.xfrm = features_mask.bits();
         self
     }
 }
 
 impl Display for Attributes {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        match Flags::from_bits(self.0.flags) {
+        match AttributeFlags::from_bits(self.0.flags) {
             Some(flags) => {
                 if flags.is_empty() {
                     write!(f, "Flags: (none)")?
@@ -54,7 +54,7 @@ impl Display for Attributes {
             }
             None => write!(f, "Flags: (none)")?,
         }
-        match Xfrm::from_bits(self.0.xfrm) {
+        match ExtendedFeatureRequestMask::from_bits(self.0.xfrm) {
             Some(xfrm) => {
                 if xfrm.is_empty() {
                     write!(f, " Xfrm: (none)")?
@@ -69,7 +69,7 @@ impl Display for Attributes {
     }
 }
 
-impl Display for Flags {
+impl Display for AttributeFlags {
     fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         for (idx, (name, flag)) in self.iter_names().enumerate() {
             if *self & flag == flag {
@@ -83,7 +83,7 @@ impl Display for Flags {
     }
 }
 
-impl Display for Xfrm {
+impl Display for ExtendedFeatureRequestMask {
     fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         for (idx, (name, flag)) in self.iter_names().enumerate() {
             if *self & flag == flag {
@@ -99,40 +99,47 @@ impl Display for Xfrm {
 }
 
 bitflags! {
+    /// Attribute flags of an enclave
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
-    pub struct Flags: u64 {
+    pub struct AttributeFlags: u64 {
         /// If set, then the enclave is initialized
         const INITTED = SGX_FLAGS_INITTED as u64;
         /// If set, then the enclave is debug
         const DEBUG = SGX_FLAGS_DEBUG as u64;
         /// If set, then the enclave is 64 bit
-        const MODE64BIT = SGX_FLAGS_MODE64BIT as u64;
-        /// set, then the enclave has access to provision key
+        const MODE_64BIT = SGX_FLAGS_MODE64BIT as u64;
+        /// If set, then the enclave has access to provision key
         const PROVISION_KEY = SGX_FLAGS_PROVISION_KEY as u64;
-        /// If set, then the enclave has access to EINITTOKEN key
-        const EINITTOKEN_KEY = SGX_FLAGS_EINITTOKEN_KEY as u64;
-        /// If set enclave uses KSS
+        /// If set, then the enclave has access to EINIT token key
+        const EINIT_TOKEN_KEY = SGX_FLAGS_EINITTOKEN_KEY as u64;
+        /// If set, then the enclave uses KSS(Key Separation and Sharing)
         const KSS = SGX_FLAGS_KSS as u64;
         /// BIT[55-48] will not be checked */
         const NON_CHECK_BITS = SGX_FLAGS_NON_CHECK_BITS;
+        /// Value used by `sgx_seal_data()`. See `attribute_mask` description in
+        /// <https://download.01.org/intel-sgx/sgx-linux/2.17.1/docs/Intel_SGX_Developer_Reference_Linux_2.17.1_Open_Source.pdf#%5B%7B%22num%22%3A331%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C94.5%2C733.5%2C0%5D>
+        const SEALED_DATA = 0xFF0000000000000B;
     }
 
+    /// Extended feature request mask (XFRM) of an enclave
     #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
-    pub struct Xfrm: u64 {
-        /// Legacy XFRM which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
+    pub struct ExtendedFeatureRequestMask: u64 {
+        /// Legacy features which includes the basic feature bits required by SGX, x87 state(0x01) and SSE state(0x02)
         const LEGACY = SGX_XFRM_LEGACY as u64;
-        /// AVX XFRM which includes AVX state(0x04) and SSE state(0x02) required by AVX
+        /// AVX(Advanced Vector Extensions) which includes AVX state(0x04)
+        /// and SSE state(0x02) required by AVX
         const AVX = SGX_XFRM_AVX as u64;
-        /// AVX-512 XFRM
-        const AVX512 = SGX_XFRM_AVX512 as u64;
-        /// MPX XFRM - not supported
+        /// AVX-512 (Advanced Vector Extensions, 512 bit) which includes AVX state(0x04)
+        /// and SSE state(0x02) required by AVX
+        const AVX_512 = SGX_XFRM_AVX512 as u64;
+        /// MPX(Memory Protection Extensions) - not supported
         const MPX = SGX_XFRM_MPX as u64;
-        /// PKRU state
+        /// PKRU(Protection Keys Register Userspace) state
         const PKRU = SGX_XFRM_PKRU as u64;
-        /// AMX XFRM, including XTILEDATA(0x40000) and XTILECFG(0x20000)
+        /// AMX(Advanced Matrix Extensions), including XTILEDATA(0x40000) and XTILECFG(0x20000)
         const AMX = SGX_XFRM_LEGACY as u64;
         /// Reserved for future flags.
-        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX512.bits() | Self::PKRU.bits() | Self::AMX.bits()));
+        const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX_512.bits() | Self::PKRU.bits() | Self::AMX.bits()));
     }
 }
 
@@ -183,30 +190,30 @@ mod test {
     }
 
     #[parameterized(
-    three_five = { 3, 5 },
-    four_nine = { 4, 9 },
+        inited_debug_legacy = { AttributeFlags::INITTED | AttributeFlags::DEBUG, ExtendedFeatureRequestMask::LEGACY },
+        mode_64_legacy_avx = { AttributeFlags::MODE_64BIT, ExtendedFeatureRequestMask::LEGACY | ExtendedFeatureRequestMask::AVX },
     )]
-    fn attributes_builder(flags: u64, transform: u64) {
+    fn attributes_builder(flags: AttributeFlags, transform: ExtendedFeatureRequestMask) {
         let attributes = Attributes::default()
             .set_flags(flags)
             .set_extended_features_mask(transform);
-        assert_eq!(attributes.0.flags, flags);
-        assert_eq!(attributes.0.xfrm, transform);
+        assert_eq!(attributes.0.flags, flags.bits());
+        assert_eq!(attributes.0.xfrm, transform.bits());
     }
 
     #[test]
     fn attributes_display() {
-        let flag1 = Flags::INITTED;
-        let flag2 = Flags::DEBUG;
-        let flag3 = Flags::MODE64BIT;
+        let flag1 = AttributeFlags::INITTED;
+        let flag2 = AttributeFlags::DEBUG;
+        let flag3 = AttributeFlags::MODE_64BIT;
         let flags = flag1 | flag2 | flag3;
 
-        let xfrm1 = Xfrm::LEGACY;
-        let xfrm2 = Xfrm::AVX;
+        let xfrm1 = ExtendedFeatureRequestMask::LEGACY;
+        let xfrm2 = ExtendedFeatureRequestMask::AVX;
         let xfrm = xfrm1 | xfrm2;
         let attributes = Attributes::default()
-            .set_flags(flags.bits())
-            .set_extended_features_mask(xfrm.bits());
+            .set_flags(flags)
+            .set_extended_features_mask(xfrm);
 
         let display_string = format!("{}", attributes);
         let expected = format!("Flags: {flag1} | {flag2} | {flag3} Xfrm: {xfrm1} | {xfrm2}",);
@@ -216,15 +223,15 @@ mod test {
 
     #[test]
     fn attributes_display_all_flags_no_xfrm() {
-        let flag1 = Flags::INITTED;
-        let flag2 = Flags::DEBUG;
-        let flag3 = Flags::PROVISION_KEY;
-        let flag4 = Flags::EINITTOKEN_KEY;
-        let flag5 = Flags::KSS;
-        let flag6 = Flags::NON_CHECK_BITS;
+        let flag1 = AttributeFlags::INITTED;
+        let flag2 = AttributeFlags::DEBUG;
+        let flag3 = AttributeFlags::PROVISION_KEY;
+        let flag4 = AttributeFlags::EINIT_TOKEN_KEY;
+        let flag5 = AttributeFlags::KSS;
+        let flag6 = AttributeFlags::NON_CHECK_BITS;
         let flags = flag1 | flag2 | flag3 | flag4 | flag5 | flag6;
 
-        let attributes = Attributes::default().set_flags(flags.bits());
+        let attributes = Attributes::default().set_flags(flags);
 
         let display_string = format!("{}", attributes);
         let expected = format!(
@@ -236,10 +243,10 @@ mod test {
 
     #[test]
     fn attributes_display_no_flags() {
-        let xfrm1 = Xfrm::LEGACY;
-        let xfrm2 = Xfrm::AVX;
+        let xfrm1 = ExtendedFeatureRequestMask::LEGACY;
+        let xfrm2 = ExtendedFeatureRequestMask::AVX;
         let xfrm = xfrm1 | xfrm2;
-        let attributes = Attributes::default().set_extended_features_mask(xfrm.bits());
+        let attributes = Attributes::default().set_extended_features_mask(xfrm);
 
         let display_string = format!("{}", attributes);
         let expected = format!("Flags: (none) Xfrm: {xfrm1} | {xfrm2}",);

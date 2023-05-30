@@ -198,6 +198,7 @@ mod test {
     extern crate std;
 
     use super::*;
+    use crate::{AttributeFlags, ExtendedFeatureRequestMask};
     use mc_sgx_core_sys_types::SGX_CPUSVN_SIZE;
     use rand::{rngs::StdRng, SeedableRng};
 
@@ -227,8 +228,8 @@ mod test {
             .cpu_svn(&CpuSvn::from([3; CpuSvn::SIZE]))
             .attributes(
                 Attributes::default()
-                    .set_flags(4)
-                    .set_extended_features_mask(6),
+                    .set_flags(AttributeFlags::MODE_64BIT)
+                    .set_extended_features_mask(ExtendedFeatureRequestMask::AVX),
             )
             .miscellaneous_select(&7.into())
             .config_svn(&ConfigSvn::from(8))

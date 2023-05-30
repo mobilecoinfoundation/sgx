@@ -3,7 +3,7 @@
 
 use alloc::{format, string::String, vec, vec::Vec};
 use core::{mem, ptr, result::Result as CoreResult};
-use mc_sgx_core_types::{Attributes, KeyPolicy, MiscellaneousSelect};
+use mc_sgx_core_types::{AttributeFlags, Attributes, KeyPolicy, MiscellaneousSelect};
 use mc_sgx_trts::EnclaveMemory;
 use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
 pub use mc_sgx_tservice_types::Sealed;
@@ -13,10 +13,8 @@ use mc_sgx_util::ResultInto;
 // `sgx_seal_data`. See
 // https://download.01.org/intel-sgx/sgx-linux/2.17.1/docs/Intel_SGX_Developer_Reference_Linux_2.17.1_Open_Source.pdf
 // Some fo these values can also be seen in the internal SGX SDK headers:
-// - TSEAL_DEFAULT_FLAGSMASK => DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL
 // - TSEAL_DEFAULT_MISCMASK => DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL
 const DEFAULT_MISCELLANEOUS_MASK_FOR_SEAL: u32 = 0xF0000000;
-const DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL: u64 = 0xFF0000000000000B;
 const DEFAULT_KEY_POLICY_FOR_SEAL: KeyPolicy = KeyPolicy::MRSIGNER;
 
 pub type Result<T> = CoreResult<T, Error>;
@@ -111,7 +109,7 @@ impl<T: AsRef<[u8]> + Default> SealedBuilder<T> {
 
         // Currently see no reason to expose attributes as an option.  Exposing
         // the attributes will require some error handling and normalization
-        let attributes = Attributes::default().set_flags(DEFAULT_ATTRIBUTES_FLAGS_FOR_SEAL);
+        let attributes = Attributes::default().set_flags(AttributeFlags::SEALED_DATA);
 
         // Since `misc_mask` is reserved for future extension omitting from
         // the builder

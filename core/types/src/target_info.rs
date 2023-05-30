@@ -45,6 +45,7 @@ impl_newtype! {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::{AttributeFlags, ExtendedFeatureRequestMask};
     use mc_sgx_core_sys_types::{
         SGX_CONFIGID_SIZE, SGX_HASH_SIZE, SGX_TARGET_INFO_RESERVED1_BYTES,
         SGX_TARGET_INFO_RESERVED2_BYTES, SGX_TARGET_INFO_RESERVED3_BYTES,
@@ -65,8 +66,8 @@ mod test {
         let info = sgx_target_info_t {
             mr_enclave: MrEnclave::from([1u8; MrEnclave::SIZE]).into(),
             attributes: Attributes::default()
-                .set_flags(2)
-                .set_extended_features_mask(3)
+                .set_flags(AttributeFlags::DEBUG)
+                .set_extended_features_mask(ExtendedFeatureRequestMask::LEGACY)
                 .into(),
             reserved1: [4u8; SGX_TARGET_INFO_RESERVED1_BYTES],
             config_svn: 5,
@@ -82,8 +83,8 @@ mod test {
         assert_eq!(
             info.attributes(),
             Attributes::default()
-                .set_flags(2)
-                .set_extended_features_mask(3)
+                .set_flags(AttributeFlags::DEBUG)
+                .set_extended_features_mask(ExtendedFeatureRequestMask::LEGACY)
         );
         assert_eq!(info.config_svn(), ConfigSvn::from(5));
         assert_eq!(info.miscellaneous_select(), MiscellaneousSelect::from(6));
