@@ -17,6 +17,7 @@ displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-dcap-quoteverify-sys = { path = "sys", version = "=0.6.1" }
 mc-sgx-dcap-quoteverify-sys-types = { path = "sys/types", version = "=0.6.1" }
 mc-sgx-dcap-quoteverify-types = { path = "types", version = "=0.6.1" }
+mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.6.1" }
 mc-sgx-dcap-types = { path = "../types", version = "=0.6.1" }
 mc-sgx-util = { path = "../../util", version = "=0.6.1" }
 once_cell = "1.17.0"
