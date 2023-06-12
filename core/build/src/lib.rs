@@ -117,6 +117,9 @@ pub struct SgxParseCallbacks {
 
     // Dynamically Sized types
     dynamically_sized_types: Vec<String>,
+
+    // types that need to derive `Serialize` and `Deserialize`
+    serialize_types: Vec<String>,
 }
 
 impl SgxParseCallbacks {
@@ -190,6 +193,17 @@ impl SgxParseCallbacks {
             .extend(dynamically_sized_types.into_iter().map(ToString::to_string));
         self
     }
+    
+    /// Types to derive serde `Serialize` and `Deserialize` for
+    pub fn serialize_types<'a, E, I>(mut self, serialize_types: I) -> Self
+    where
+        I: IntoIterator<Item = &'a E>,
+        E: ToString + 'a + ?Sized,
+    {
+        self.serialize_types
+            .extend(serialize_types.into_iter().map(ToString::to_string));
+        self
+    }
 }
 
 impl ParseCallbacks for SgxParseCallbacks {
@@ -217,9 +231,14 @@ impl ParseCallbacks for SgxParseCallbacks {
             // derive Copy
             attributes.push("Debug");
             if !self.enum_types.iter().any(|n| *n == name) {
-                attributes.extend(["Clone", "Hash", "PartialEq", "Eq", "Serialize", "Deserialize"]);
+                attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
             }
         };
+
+        if self.serialize_types.iter().any(|n| *n == name) {
+            attributes.extend(["Serialize", "Deserialize"]);
+        }
+
 
         attributes.into_iter().map(String::from).collect::<Vec<_>>()
     }

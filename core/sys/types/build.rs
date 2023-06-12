@@ -115,6 +115,7 @@ fn main() {
             "sgx_attributes_t",
         ])
         .dynamically_sized_types(["sgx_quote_t"])
+        .serialize_types(["sgx_measurement_t"])
         .derive_default([
             "sgx_report_t",
             "sgx_attributes_t",
