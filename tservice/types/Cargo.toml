@@ -13,7 +13,6 @@ rust-version = "1.62.1"
 
 [features]
 default = []
-serde = ["mc-sgx-core-types/serde"]
 alloc = []
 test-utils = []
 
