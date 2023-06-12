@@ -10,6 +10,8 @@
     unused_unsafe
 )]
 
+use serde::{Serialize, Deserialize};
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 /// This macro provides common byte-handling operations when the type being

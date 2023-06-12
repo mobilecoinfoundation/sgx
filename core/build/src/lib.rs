@@ -217,7 +217,7 @@ impl ParseCallbacks for SgxParseCallbacks {
             // derive Copy
             attributes.push("Debug");
             if !self.enum_types.iter().any(|n| *n == name) {
-                attributes.extend(["Clone", "Hash", "PartialEq", "Eq"]);
+                attributes.extend(["Clone", "Hash", "PartialEq", "Eq", "Serialize", "Deserialize"]);
             }
         };
 
