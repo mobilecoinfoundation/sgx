@@ -5,7 +5,7 @@
 //! Different types are used for MrSigner and MrEnclave to prevent misuse.
 
 use crate::impl_newtype_for_bytestruct;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
 
 /// An opaque type for MRENCLAVE values
