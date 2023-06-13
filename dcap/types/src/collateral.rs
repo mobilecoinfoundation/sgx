@@ -25,7 +25,7 @@ const SGX_TEE: u32 = 0;
 //      The legacy 3.0 API will return CRLs in HEX encoded DER format and the sgx_ql_qve_collateral_t.version will be set to 3.0, while
 //      the new 3.1 API will return raw DER format and the sgx_ql_qve_collateral_t.version will be set to 3.1. The pccs_api_version
 //      setting is ignored if collateral_service is set to the Intel PCS. In this case, the pccs_api_version is forced to be 3.1
-//      internally.  Currently, only values of 3.0 and 3.1 are valid.  Note, if you set this to 3.1, the PCCS use to retrieve
+//      internally.  Currently, only values of 3.0 and 3.1 are valid.  Note, if you set this to 3.1, the PCCS used to retrieve
 //      verification collateral must support the new 3.1 APIs.
 //
 // This version can be ensured by setting the `pccs_api_version` key of `/etc/sgx_default_qcnl.conf`
@@ -207,11 +207,12 @@ fn crl_from_bytes(bytes: *const core::ffi::c_char, size: u32) -> Result<Certific
     #[allow(unsafe_code)]
     let slice = unsafe { core::slice::from_raw_parts(bytes as *const u8, size as usize) };
 
-    // The DER encoding has an extra NULL byte at the end.
+    // The DER encoding from the SGX C API has an extra NULL byte at the end.
     // Since DER is a binary format, there is nothing stopping the last valid
     // byte from being 0, because of that we only trim the extra byte and not
-    // *all* trailing null bytes via the `trim_null_end()` function
-    let [crl @ .., _] = slice else {
+    // *all* trailing null bytes via the `trim_null_and_whitespace_end()`
+    // function
+    let [crl @ .., 0] = slice else {
         return Err(Error::MissingCollateral);
     };
 
@@ -476,8 +477,23 @@ mod test {
     }
 
     #[test]
-    fn almost_empty_crl_fails() {
+    fn non_null_ended_crl_fails() {
         let mut der_crl = include_bytes!("../data/tests/root_crl.der").to_vec();
+
+        // Do to the null terminated C API, if we get a trailing byte that isn't
+        // null, we want to fail because our assumptions about the data format
+        // are wrong.
+        der_crl.push(1);
+
+        assert_eq!(
+            crl_from_bytes(der_crl.as_mut_ptr() as *mut core::ffi::c_char, 0),
+            Err(Error::MissingCollateral)
+        );
+    }
+
+    #[test]
+    fn almost_empty_crl_fails() {
+        let mut der_crl = Vec::new();
         der_crl.push(0);
 
         // We pass in a size of one to account for `crl_from_bytes()` trimming
