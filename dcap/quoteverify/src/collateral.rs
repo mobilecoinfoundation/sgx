@@ -58,6 +58,10 @@ impl<T: AsRef<[u8]>> Collateral for Quote3<T> {
         }
         .into_result()?;
 
+        let collateral_pointer = CollateralPointer {
+            collateral: sgx_collateral as *mut _,
+        };
+
         // The `collateral_size` is the size of the base structure plus the size
         // of all the bytes that the members point to. Thus it should always be
         // greater than `MIN_SGX_COLLATERAL_SIZE`.
@@ -68,8 +72,6 @@ impl<T: AsRef<[u8]>> Collateral for Quote3<T> {
             ));
         }
 
-        Ok(CollateralPointer {
-            collateral: sgx_collateral as *mut _,
-        })
+        Ok(collateral_pointer)
     }
 }
