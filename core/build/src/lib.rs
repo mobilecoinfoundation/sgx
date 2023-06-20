@@ -230,7 +230,7 @@ impl ParseCallbacks for SgxParseCallbacks {
             // they are often times packed and packed types can't derive Debug
             // without deriving Copy, however by the dynamic nature one can't
             // derive Copy
-            attributes.extend(["Debug", "Ord", "PartialOrd"]);
+            attributes.insert("Debug");
             if !self.enum_types.iter().any(|n| *n == name) {
                 attributes.extend(["Eq", "PartialEq", "Hash", "Clone"]);
             }
