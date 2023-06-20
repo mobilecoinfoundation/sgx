@@ -11,6 +11,10 @@ extern crate alloc;
 mod tcb;
 
 mod certification_data;
+
+#[cfg(feature = "alloc")]
+mod collateral;
+
 mod error;
 mod quote3;
 mod quoting_enclave;
@@ -28,6 +32,9 @@ pub use crate::{
 };
 #[cfg(feature = "tcb")]
 pub use crate::{tcb::Error as TcbError, tcb::TcbInfo, tcb::COMPONENT_SVN_COUNT, tcb::FMSPC_SIZE};
+
+#[cfg(feature = "alloc")]
+pub use crate::collateral::{Collateral, Error as CollateralError};
 
 // TODO:
 //
