@@ -9,6 +9,8 @@ const DCAP_QL_FUNCTIONS: &[&str] = &[
     "sgx_qv_set_enclave_load_policy",
     "sgx_qv_set_path",
     "sgx_qv_verify_quote",
+    "tee_qv_get_collateral",
+    "tee_qv_free_collateral",
 ];
 
 fn main() {

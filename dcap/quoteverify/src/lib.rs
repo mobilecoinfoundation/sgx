@@ -3,9 +3,11 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs, missing_debug_implementations)]
 
+mod collateral;
 mod quote_enclave;
 mod verify;
 
+pub use collateral::{Collateral, CollateralPointer};
 use mc_sgx_dcap_types::QlError;
 pub use quote_enclave::{LoadPolicyInitializer, PathInitializer};
 pub use verify::supplemental_data_size;
@@ -26,6 +28,8 @@ pub enum Error {
     PathLengthTooLong(String),
     /// The quote verification enclave load policy has already been initialized
     LoadPolicyInitialized,
+    /// Collateral data size is too small: should be at least {0}, got {1}
+    CollateralSizeTooSmall(u32, u32),
 }
 
 impl From<QlError> for Error {
