@@ -7,6 +7,7 @@ use bindgen::{
     callbacks::{IntKind, ParseCallbacks},
     Builder, EnumVariation,
 };
+use std::collections::HashSet;
 use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
@@ -212,16 +213,16 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 
     fn add_derives(&self, info: &DeriveInfo<'_>) -> Vec<String> {
-        let mut attributes = vec![];
+        let mut attributes = HashSet::new();
         let name = info.name;
 
         if self.default_types.iter().any(|n| *n == name) {
-            attributes.push("Default");
+            attributes.insert("Default");
         }
 
         // The [enum_types] method adds enums to the [copyable_types]
         if self.copyable_types.iter().any(|n| *n == name) {
-            attributes.push("Copy");
+            attributes.insert("Copy");
         }
 
         if !self.dynamically_sized_types.iter().any(|n| *n == name) {
@@ -229,16 +230,15 @@ impl ParseCallbacks for SgxParseCallbacks {
             // they are often times packed and packed types can't derive Debug
             // without deriving Copy, however by the dynamic nature one can't
             // derive Copy
-            attributes.push("Debug");
+            attributes.extend(["Debug", "Ord", "PartialOrd"]);
             if !self.enum_types.iter().any(|n| *n == name) {
-                attributes.extend(["Clone", "Hash", "PartialEq", "Eq", "Ord", "PartialOrd"]);
+                attributes.extend(["Eq", "PartialEq", "Hash", "Clone"]);
             }
         };
 
         if self.serialize_types.iter().any(|n| *n == name) {
             attributes.extend(["Serialize", "Deserialize"]);
         }
-
 
         attributes.into_iter().map(String::from).collect::<Vec<_>>()
     }
