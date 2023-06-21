@@ -16,7 +16,7 @@ use mc_sgx_core_sys_types::{
 use rand_core::{CryptoRng, RngCore};
 
 /// Key ID
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct KeyId(sgx_key_id_t);
 

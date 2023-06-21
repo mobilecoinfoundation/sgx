@@ -37,7 +37,7 @@ impl Display for IsvSvn {
 
 /// CPU security version number (SVN)
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct CpuSvn(sgx_cpu_svn_t);
 
 impl_newtype_for_bytestruct! {

@@ -28,7 +28,7 @@ impl_newtype! {
 }
 
 /// Report Data
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ReportData(sgx_report_data_t);
 

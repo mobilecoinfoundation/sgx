@@ -138,20 +138,54 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
-        impl ::core::fmt::UpperHex for $wrapper {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                let inner: &[u8] = self.as_ref();
-                mc_sgx_util::fmt_hex(inner, f)
-            }
-        }
-
-        impl ::core::fmt::Display for $wrapper {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                write!(f, "{:#X}", self)
-            }
-        }
+        $crate::derive_debug_and_display_hex_from_as_ref!($wrapper);
 
     )*}
+}
+
+/// Derive [Debug] and [Display] from [AsRef<T>] to render as a hexadecimal
+/// string.
+///
+/// This is not connected to [ReprBytes] but it is a macro like the above macros
+/// that is often needed for structs holding bytes.
+#[macro_export]
+macro_rules! derive_debug_and_display_hex_from_as_ref {
+    ($mytype:ty) => {
+        $crate::derive_debug_and_display_hex_from_as_ref!($mytype, [u8]);
+    };
+    ($mytype:ty, $asref:ty) => {
+        impl core::fmt::Debug for $mytype {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}({})", stringify!($mytype), self)
+            }
+        }
+
+        impl core::fmt::Display for $mytype {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{:x}", self)
+            }
+        }
+
+        impl core::fmt::LowerHex for $mytype {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                let data: &$asref = self.as_ref();
+                for d in data {
+                    write!(f, "{:02x}", d)?;
+                }
+                Ok(())
+            }
+        }
+
+        impl core::fmt::UpperHex for $mytype {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                let data: &$asref = self.as_ref();
+                for d in data {
+                    write!(f, "{:02X}", d)?;
+                }
+                Ok(())
+            }
+        }
+    };
 }
 
 #[cfg(test)]
@@ -170,7 +204,7 @@ mod test {
         field: [u8; FIELD_SIZE],
     }
 
-    #[derive(Default, Debug, Eq, Clone, PartialEq)]
+    #[derive(Default, Eq, Clone, PartialEq)]
     #[repr(transparent)]
     struct Outer(Inner);
 

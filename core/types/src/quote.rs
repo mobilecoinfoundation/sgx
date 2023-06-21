@@ -37,7 +37,7 @@ impl_newtype! {
 }
 
 /// Platform Info
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct PlatformInfo(sgx_platform_info_t);
 
@@ -83,7 +83,7 @@ impl_newtype! {
 const BASENAME_SIZE: usize = 32;
 
 /// Basename
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Basename(sgx_basename_t);
 
@@ -94,7 +94,7 @@ impl_newtype_for_bytestruct! {
 const NONCE_SIZE: usize = 16;
 
 /// Quote Nonce
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct QuoteNonce(sgx_quote_nonce_t);
 
