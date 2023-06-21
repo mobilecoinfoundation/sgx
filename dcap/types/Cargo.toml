@@ -35,5 +35,5 @@ x509-cert = { version = "0.2.3", default-features = false, features = ["pem"], o
 assert_matches = "1.5.0"
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.6.1" }
 textwrap = "0.16.0"
-x509-cert = { version = "0.2.0", default-features = false, features = ["pem"] }
+x509-cert = { version = "0.2.3", default-features = false, features = ["pem"] }
 yare = "1.0.1"
