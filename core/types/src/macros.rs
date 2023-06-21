@@ -97,6 +97,24 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
+        impl Ord for $wrapper {
+            fn cmp(&self, other: &$wrapper) -> core::cmp::Ordering {
+                self.0.$fieldname.cmp(&other.0.$fieldname)
+            }
+        }
+
+        impl PartialOrd for $wrapper {
+            fn partial_cmp(&self, other: &$wrapper) -> Option<core::cmp::Ordering> {
+                Some(self.0.$fieldname.cmp(&other.0.$fieldname))
+            }
+        }
+
+        /*impl Iterator for $wrapper {
+            fn next(&mut self) -> Option<Self::Item> {
+                self.0.$fieldname.next()
+            }
+        }*/
+
         impl<'bytes> TryFrom<&'bytes [u8]> for $wrapper {
             type Error = $crate::FfiError;
 
@@ -153,12 +171,12 @@ mod test {
 
     const FIELD_SIZE: usize = 24;
 
-    #[derive(Default, Debug, Clone, Copy, PartialEq)]
+    #[derive(Default, Debug, Eq, Clone, Copy, PartialEq)]
     struct Inner {
         field: [u8; FIELD_SIZE],
     }
 
-    #[derive(Default, Debug, Clone, PartialEq)]
+    #[derive(Default, Debug, Eq, Clone, PartialEq)]
     #[repr(transparent)]
     struct Outer(Inner);
 
