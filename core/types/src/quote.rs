@@ -2,8 +2,8 @@
 //! Quote types
 
 use crate::{
-    attestation_key::QuoteSignatureKind, impl_newtype, impl_newtype_for_bytestruct, report::Report,
-    FfiError, IsvSvn, ReportBody, TargetInfo, impl_display_for_bytestruct,
+    attestation_key::QuoteSignatureKind, impl_display_for_bytestruct, impl_newtype,
+    impl_newtype_for_bytestruct, report::Report, FfiError, IsvSvn, ReportBody, TargetInfo,
 };
 use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,

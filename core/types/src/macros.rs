@@ -152,7 +152,6 @@ macro_rules! derive_hex_from_as_ref {
         $crate::derive_hex_from_as_ref!($mytype, [u8]);
     };
     ($mytype:ty, $asref:ty) => {
-
         impl core::fmt::LowerHex for $mytype {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 let data: &$asref = self.as_ref();

@@ -1,7 +1,7 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX core SVN (Security Version Numbers)
 
-use crate::{impl_newtype_for_bytestruct, impl_newtype_no_display, impl_display_for_bytestruct};
+use crate::{impl_display_for_bytestruct, impl_newtype_for_bytestruct, impl_newtype_no_display};
 use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{sgx_config_svn_t, sgx_cpu_svn_t, sgx_isv_svn_t, SGX_CPUSVN_SIZE};
 
