@@ -109,12 +109,6 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
-        /*impl Iterator for $wrapper {
-            fn next(&mut self) -> Option<Self::Item> {
-                self.0.$fieldname.next()
-            }
-        }*/
-
         impl<'bytes> TryFrom<&'bytes [u8]> for $wrapper {
             type Error = $crate::FfiError;
 
