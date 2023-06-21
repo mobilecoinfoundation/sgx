@@ -1,6 +1,7 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX Report
 
+use crate::impl_display_for_bytestruct;
 use crate::{
     config_id::ConfigId, impl_newtype, impl_newtype_for_bytestruct, impl_newtype_no_display,
     key_request::KeyId, Attributes, ConfigSvn, CpuSvn, FfiError, IsvSvn, MiscellaneousSelect,
@@ -28,13 +29,14 @@ impl_newtype! {
 }
 
 /// Report Data
-#[derive(Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ReportData(sgx_report_data_t);
 
 impl_newtype_for_bytestruct! {
     ReportData, sgx_report_data_t, SGX_REPORT_DATA_SIZE, d;
 }
+impl_display_for_bytestruct!(ReportData);
 
 /// There are times when only part of [`ReportData`] is of interest. [`BitAnd`]
 /// allows clients to mask off the parts of [`ReportData`] that are not of

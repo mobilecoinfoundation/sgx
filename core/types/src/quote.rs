@@ -3,7 +3,7 @@
 
 use crate::{
     attestation_key::QuoteSignatureKind, impl_newtype, impl_newtype_for_bytestruct, report::Report,
-    FfiError, IsvSvn, ReportBody, TargetInfo,
+    FfiError, IsvSvn, ReportBody, TargetInfo, impl_display_for_bytestruct,
 };
 use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,
@@ -37,13 +37,14 @@ impl_newtype! {
 }
 
 /// Platform Info
-#[derive(Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct PlatformInfo(sgx_platform_info_t);
 
 impl_newtype_for_bytestruct! {
     PlatformInfo, sgx_platform_info_t, SGX_PLATFORM_INFO_SIZE, platform_info;
 }
+impl_display_for_bytestruct!(PlatformInfo);
 
 /// Update Info Bit
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
@@ -83,24 +84,26 @@ impl_newtype! {
 const BASENAME_SIZE: usize = 32;
 
 /// Basename
-#[derive(Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Basename(sgx_basename_t);
 
 impl_newtype_for_bytestruct! {
     Basename, sgx_basename_t, BASENAME_SIZE, name;
 }
+impl_display_for_bytestruct!(Basename);
 
 const NONCE_SIZE: usize = 16;
 
 /// Quote Nonce
-#[derive(Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct QuoteNonce(sgx_quote_nonce_t);
 
 impl_newtype_for_bytestruct! {
     QuoteNonce, sgx_quote_nonce_t, NONCE_SIZE, rand;
 }
+impl_display_for_bytestruct!(QuoteNonce);
 
 /// The raw bytes representing a quote.
 ///
