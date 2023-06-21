@@ -25,6 +25,7 @@ mc-sgx-tservice-sys = { path = "sys", version = "=0.6.1" }
 mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.6.1" }
 mc-sgx-tservice-types = { path = "types", version = "=0.6.1", features = [ "alloc" ] }
 mc-sgx-util = { path = "../util", version = "=0.6.1" }
+serde = { version = "1.0.152", default-features = false, features = ["derive", "alloc"] }
 
 [dev-dependencies]
 mc-sgx-tservice-types = { path = "types", version = "=0.6.1", features = [ "test-utils" ] }

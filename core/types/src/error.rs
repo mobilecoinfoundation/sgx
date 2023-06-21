@@ -5,12 +5,12 @@
 use mc_sgx_core_sys_types::sgx_status_t;
 use mc_sgx_util::{ResultFrom, ResultInto};
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Errors seen when converting to, or from, rust for the SGX types
-#[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(
+    Clone, Debug, Deserialize, displaydoc::Display, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[non_exhaustive]
 pub enum FfiError {
     /** When the provided bytes or slice are too small to support converting
@@ -46,8 +46,19 @@ impl From<nom::Err<nom::error::Error<&[u8]>>> for FfiError {
 ///  8. `0x7000-0x7fff`: Errors with the "SGX Encrypted FS" utility.
 ///  9. `0x8000-0x8fff`: Attestation key errors.
 /// 10. `0xf000-0xffff`: Internal (to SGX) errors.
-#[derive(Copy, Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Deserialize,
+    displaydoc::Display,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+)]
 #[non_exhaustive]
 pub enum Error {
     // 0x0001 - 0x0fff: Generic errors
