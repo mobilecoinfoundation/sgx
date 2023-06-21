@@ -10,7 +10,7 @@
     unused_unsafe
 )]
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 

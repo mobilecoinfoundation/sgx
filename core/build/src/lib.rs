@@ -194,7 +194,7 @@ impl SgxParseCallbacks {
             .extend(dynamically_sized_types.into_iter().map(ToString::to_string));
         self
     }
-    
+
     /// Types to derive serde `Serialize` and `Deserialize` for
     pub fn serialize_types<'a, E, I>(mut self, serialize_types: I) -> Self
     where
