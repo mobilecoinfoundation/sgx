@@ -5,7 +5,6 @@
 use displaydoc::Display;
 use mc_sgx_dcap_sys_types::quote3_error_t;
 use mc_sgx_util::{ResultFrom, ResultInto};
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Errors interacting with a Quote3
@@ -56,8 +55,9 @@ impl From<p256::ecdsa::Error> for Quote3Error {
 ///
 /// These errors correspond to error elements of
 /// [`quote3_error_t`](mc_sgx_dcap_sys_types::quote3_error_t).
-#[derive(Copy, Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[derive(
+    Copy, Clone, Debug, Deserialize, Display, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[non_exhaustive]
 #[repr(u32)]
 pub enum QlError {

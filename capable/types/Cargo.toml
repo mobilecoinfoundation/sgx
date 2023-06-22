@@ -13,17 +13,13 @@ rust-version = "1.62.1"
 
 [features]
 default = []
-serde = [
-    "dep:serde",
-    "mc-sgx-core-types/serde"
-]
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
 mc-sgx-capable-sys-types = { path = "../sys/types", version = "=0.6.1" }
 mc-sgx-core-types = { path = "../../core/types", version = "=0.6.1" }
 mc-sgx-util = { path = "../../util", version = "=0.6.1" }
-serde = { version = "1.0.152", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
 yare = "1.0.1"

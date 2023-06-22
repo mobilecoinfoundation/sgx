@@ -97,6 +97,18 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
+        impl Ord for $wrapper {
+            fn cmp(&self, other: &$wrapper) -> core::cmp::Ordering {
+                self.0.$fieldname.cmp(&other.0.$fieldname)
+            }
+        }
+
+        impl PartialOrd for $wrapper {
+            fn partial_cmp(&self, other: &$wrapper) -> Option<core::cmp::Ordering> {
+                Some(self.0.$fieldname.cmp(&other.0.$fieldname))
+            }
+        }
+
         impl<'bytes> TryFrom<&'bytes [u8]> for $wrapper {
             type Error = $crate::FfiError;
 
@@ -126,19 +138,82 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
+    )*}
+}
+
+/// Derive [UpperHex] and [LowerHex] from [AsRef<T>] to render as a hexadecimal
+/// string.
+///
+/// This is not connected to [ReprBytes] but it is a macro like the above macros
+/// that is often needed for structs holding bytes.
+#[macro_export]
+macro_rules! derive_measurement_hex_from_as_ref {
+    ($mytype:ty) => {
+        $crate::derive_measurement_hex_from_as_ref!($mytype, [u8]);
+    };
+    ($mytype:ty, $asref:ty) => {
+        impl core::fmt::LowerHex for $mytype {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                let data: &$asref = self.as_ref();
+                for d in data {
+                    write!(f, "{:02x}", d)?;
+                }
+                Ok(())
+            }
+        }
+
+        impl core::fmt::UpperHex for $mytype {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                let data: &$asref = self.as_ref();
+                for d in data {
+                    write!(f, "{:02X}", d)?;
+                }
+                Ok(())
+            }
+        }
+    };
+}
+
+/// Implement [Debug] and [Display] for enclave measurement types.
+/// Measurement types are usually stored/shared a lowercase hex strings with no byte
+/// delimiters and no leading '0x'
+/// This implementation differs from other bytestruct types.
+#[macro_export]
+macro_rules! impl_display_and_debug_for_measurement {
+    ($($wrapper:ident),*) => {$(
+        $crate::derive_measurement_hex_from_as_ref!($wrapper);
+        impl core::fmt::Debug for $wrapper {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}({})", stringify!($wrapper), self)
+            }
+        }
+
+        impl core::fmt::Display for $wrapper {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{:x}", self)
+            }
+        }
+    )*}
+}
+
+/// Implement [Display] for bytestruct types.
+/// bytestruct types should display as an uppercase, two-byte underscore-delimited
+/// hex string prefixed with a '0x'
+/// Non-measurement bytestruct types derive [Debug], so it is not implemented here.
+#[macro_export]
+macro_rules! impl_display_for_bytestruct {
+    ($($wrapper:ident)*) => {$(
         impl ::core::fmt::UpperHex for $wrapper {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 let inner: &[u8] = self.as_ref();
                 mc_sgx_util::fmt_hex(inner, f)
             }
         }
-
         impl ::core::fmt::Display for $wrapper {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 write!(f, "{:#X}", self)
             }
         }
-
     )*}
 }
 
@@ -153,18 +228,19 @@ mod test {
 
     const FIELD_SIZE: usize = 24;
 
-    #[derive(Default, Debug, Clone, Copy, PartialEq)]
+    #[derive(Debug, Default, Eq, Clone, Copy, PartialEq)]
     struct Inner {
         field: [u8; FIELD_SIZE],
     }
 
-    #[derive(Default, Debug, Clone, PartialEq)]
+    #[derive(Debug, Default, Eq, Clone, PartialEq)]
     #[repr(transparent)]
     struct Outer(Inner);
 
     impl_newtype_for_bytestruct! {
     Outer, Inner, FIELD_SIZE, field;
     }
+    impl_display_for_bytestruct!(Outer);
 
     #[test]
     fn outer_from_inner() {

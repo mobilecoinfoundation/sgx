@@ -2,8 +2,8 @@
 //! SGX key request rust types
 
 use crate::{
-    impl_newtype, impl_newtype_for_bytestruct, Attributes, ConfigSvn, CpuSvn, IsvSvn,
-    MiscellaneousSelect,
+    impl_display_for_bytestruct, impl_newtype, impl_newtype_for_bytestruct, Attributes, ConfigSvn,
+    CpuSvn, IsvSvn, MiscellaneousSelect,
 };
 use bitflags::bitflags;
 use mc_sgx_core_sys_types::{
@@ -16,13 +16,14 @@ use mc_sgx_core_sys_types::{
 use rand_core::{CryptoRng, RngCore};
 
 /// Key ID
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct KeyId(sgx_key_id_t);
 
 impl_newtype_for_bytestruct! {
     KeyId, sgx_key_id_t, SGX_KEYID_SIZE, id;
 }
+impl_display_for_bytestruct!(KeyId);
 
 /// Key Name
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]

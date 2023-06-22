@@ -8,6 +8,7 @@ use mc_sgx_trts::EnclaveMemory;
 use mc_sgx_tservice_sys_types::sgx_sealed_data_t;
 pub use mc_sgx_tservice_types::Sealed;
 use mc_sgx_util::ResultInto;
+use serde::{Deserialize, Serialize};
 
 // Default values used in `sgx_seal_data_ex` to behave the same as
 // `sgx_seal_data`. See
@@ -19,8 +20,9 @@ const DEFAULT_KEY_POLICY_FOR_SEAL: KeyPolicy = KeyPolicy::MRSIGNER;
 
 pub type Result<T> = CoreResult<T, Error>;
 
-#[derive(Clone, Debug, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(
+    Clone, Debug, Deserialize, displaydoc::Display, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize,
+)]
 #[non_exhaustive]
 pub enum Error {
     /// Error from SGX function {0}

@@ -4,15 +4,16 @@
 //!
 //! Different types are used for MrSigner and MrEnclave to prevent misuse.
 
-use crate::impl_newtype_for_bytestruct;
+use crate::{impl_display_and_debug_for_measurement, impl_newtype_for_bytestruct};
 use mc_sgx_core_sys_types::{sgx_measurement_t, SGX_HASH_SIZE};
+use serde::{Deserialize, Serialize};
 
 /// An opaque type for MRENCLAVE values
 ///
 /// A MRENCLAVE value is a chained cryptographic hash of the signed
 /// enclave binary (.so), and the results of the page initialization
 /// steps which created the enclave's pages.
-#[derive(Default, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Deserialize, Clone, Copy, Eq, Hash, PartialEq, Serialize)]
 #[repr(transparent)]
 pub struct MrEnclave(sgx_measurement_t);
 
@@ -20,7 +21,7 @@ pub struct MrEnclave(sgx_measurement_t);
 ///
 /// A MRSIGNER value is a cryptographic hash of the public key an enclave
 /// was signed with.
-#[derive(Default, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Deserialize, Clone, Copy, Eq, Hash, PartialEq, Serialize)]
 #[repr(transparent)]
 pub struct MrSigner(sgx_measurement_t);
 
@@ -28,6 +29,7 @@ impl_newtype_for_bytestruct! {
     MrEnclave, sgx_measurement_t, SGX_HASH_SIZE, m;
     MrSigner, sgx_measurement_t, SGX_HASH_SIZE, m;
 }
+impl_display_and_debug_for_measurement!(MrEnclave, MrSigner);
 
 #[cfg(test)]
 mod test {
@@ -69,8 +71,7 @@ mod test {
         let mr_enclave = MrEnclave::from([1u8; MrEnclave::SIZE]);
 
         let display_string = format!("{mr_enclave}");
-        let expected_string =
-            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+        let expected_string = "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
     }
@@ -80,8 +81,7 @@ mod test {
         let mr_signer = MrSigner::from([1u8; MrSigner::SIZE]);
 
         let display_string = format!("{mr_signer}");
-        let expected_string =
-            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+        let expected_string = "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
     }

@@ -1,7 +1,7 @@
 // Copyright (c) 2022-2023 The MobileCoin Foundation
 //! SGX core SVN (Security Version Numbers)
 
-use crate::{impl_newtype_for_bytestruct, impl_newtype_no_display};
+use crate::{impl_display_for_bytestruct, impl_newtype_for_bytestruct, impl_newtype_no_display};
 use core::fmt::{Display, Formatter};
 use mc_sgx_core_sys_types::{sgx_config_svn_t, sgx_cpu_svn_t, sgx_isv_svn_t, SGX_CPUSVN_SIZE};
 
@@ -37,12 +37,13 @@ impl Display for IsvSvn {
 
 /// CPU security version number (SVN)
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
 pub struct CpuSvn(sgx_cpu_svn_t);
 
 impl_newtype_for_bytestruct! {
     CpuSvn, sgx_cpu_svn_t, SGX_CPUSVN_SIZE, svn;
 }
+impl_display_for_bytestruct!(CpuSvn);
 
 #[cfg(test)]
 mod test {
