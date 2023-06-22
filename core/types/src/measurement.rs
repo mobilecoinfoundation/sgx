@@ -29,8 +29,7 @@ impl_newtype_for_bytestruct! {
     MrEnclave, sgx_measurement_t, SGX_HASH_SIZE, m;
     MrSigner, sgx_measurement_t, SGX_HASH_SIZE, m;
 }
-impl_display_and_debug_for_measurement!(MrEnclave);
-impl_display_and_debug_for_measurement!(MrSigner);
+impl_display_and_debug_for_measurement!(MrEnclave, MrSigner);
 
 #[cfg(test)]
 mod test {
