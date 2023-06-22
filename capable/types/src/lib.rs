@@ -8,7 +8,7 @@ use core::result::Result as CoreResult;
 use mc_sgx_capable_sys_types::sgx_device_status_t;
 use mc_sgx_core_types::Error as SgxError;
 use mc_sgx_util::{ResultFrom, ResultInto};
-use serde::Serialize;
+use serde::{Deserialize,Serialize};
 
 /// Convenience type for handling SGX capable results
 pub type Result<T> = CoreResult<T, Error>;
@@ -19,14 +19,14 @@ pub type Result<T> = CoreResult<T, Error>;
     Copy,
     Clone,
     Debug,
-    serde::Deserialize,
+    Deserialize,
     displaydoc::Display,
     Eq,
     Hash,
     Ord,
     PartialEq,
     PartialOrd,
-    serde::Serialize,
+    Serialize,
 )]
 #[non_exhaustive]
 pub enum Error {
