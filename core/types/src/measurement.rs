@@ -73,7 +73,7 @@ mod test {
 
         let display_string = format!("{mr_enclave}");
         let expected_string =
-            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+            "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
     }
@@ -84,7 +84,7 @@ mod test {
 
         let display_string = format!("{mr_signer}");
         let expected_string =
-            "0x0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101";
+            "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
     }
