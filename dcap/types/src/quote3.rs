@@ -130,7 +130,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
         data[..hash.len()].copy_from_slice(hash.as_slice());
 
         match data
-            .ct_eq(signature_data.qe_report_body.report_data().as_ref())
+            .ct_eq(signature_data.qe_report_body().report_data().as_ref())
             .into()
         {
             true => Ok(()),
@@ -343,6 +343,11 @@ impl<'a> SignatureData<'a> {
     /// [`CertificationData`] of the [`SignatureData`]
     pub fn certification_data(&self) -> &CertificationData {
         &self.certification_data
+    }
+
+    /// QE(quoting enclave) [`ReportBody`] of the [`SignatureData`]
+    pub fn qe_report_body(&self) -> &ReportBody {
+        &self.qe_report_body
     }
 }
 
@@ -830,7 +835,7 @@ mod test {
             signature_data.attestation_key,
             VerifyingKey::try_from(sec1_key.as_slice()).unwrap()
         );
-        assert_eq!(signature_data.qe_report_body, report_body.into(),);
+        assert_eq!(signature_data.qe_report_body(), &report_body.into());
         assert_eq!(
             signature_data.qe_report_signature,
             Signature::try_from([3u8; 64].as_slice()).unwrap()
@@ -866,7 +871,7 @@ mod test {
             signature_data.attestation_key,
             VerifyingKey::try_from(sec1_key.as_slice()).unwrap()
         );
-        assert_eq!(signature_data.qe_report_body, report_body.into());
+        assert_eq!(signature_data.qe_report_body(), &report_body.into());
         assert_eq!(
             signature_data.qe_report_signature,
             Signature::try_from([4u8; 64].as_slice()).unwrap()
