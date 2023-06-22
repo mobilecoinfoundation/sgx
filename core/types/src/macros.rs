@@ -180,7 +180,7 @@ macro_rules! derive_measurement_hex_from_as_ref {
 /// This implementation differs from other bytestruct types.
 #[macro_export]
 macro_rules! impl_display_and_debug_for_measurement {
-    ($($wrapper:ident)*) => {$(
+    ($($wrapper:ident),*) => {$(
         $crate::derive_measurement_hex_from_as_ref!($wrapper);
         impl core::fmt::Debug for $wrapper {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
