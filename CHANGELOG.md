@@ -9,12 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Added the `mc-sgx-dcap-type::Collateral` type. This can be retrieved via the
+  `mc-sgx-dcap-quoteverify::Collateral` trait on a `mc-sgx-dcap_types::Quote3`.
+- Added the `BitAnd` trait implementation for `mc-sgx-core-types::MiscellaneousSelect`.
+- Added the `BitAnd` trait implementation for `mc-sgx-core-types::Attributes`.
+- Added the ability to get the QE(Quoting Enclave) report body from
+  `mc-sgx-dcap-types::SignatureData`.
+  
 ### Changed
 
 - `mc-sgx-core-types::Attributes::set_flags()` and
   `mc-sgx-core-types::Attributes::set_extended_features_mask()` have been
   updated to take dedicated types `mc-sgx-core-types::AttributesFlags` and
   `mc-sgx-core-types::ExtendedFeaturesMask` respectively.
+- `serde` is no longer an optional dependency behind a `serde` feature. It is
+  now a required dependency.
+- The SGX SDK version is now 2.19.100.3
+- The `MrSigner` and `MrEnclave` `Display` implementations has been changed.
+  Previously they were displayed as `0xABCD_EF01_2345_6789_...` now they are
+  displayed as `abcdef0123456789...`. This is to make it easier to copy the
+  value into code sources or command line utilities.
 
 ## [0.6.1] - 2023-05-23
 
