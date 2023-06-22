@@ -5,6 +5,7 @@
 use crate::{impl_newtype, impl_newtype_no_display};
 use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
+use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_FLAGS_DEBUG,
     SGX_FLAGS_EINITTOKEN_KEY, SGX_FLAGS_INITTED, SGX_FLAGS_KSS, SGX_FLAGS_MODE64BIT,
@@ -158,6 +159,17 @@ impl Display for MiscellaneousSelect {
     }
 }
 
+/// When verifying a QE(quoting enclave) only some of the bits in
+/// [`MiscellaneousSelect`] are looked at. These bits are indicated via a
+/// provided mask of the same type.
+impl BitAnd for MiscellaneousSelect {
+    type Output = MiscellaneousSelect;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        MiscellaneousSelect(self.0 & rhs.0)
+    }
+}
+
 /// Miscellaneous attributes and select bits for target enclave.
 #[repr(transparent)]
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -263,5 +275,20 @@ mod test {
         let expected_string = "0x0121_ABF8";
 
         assert_eq!(display_string, expected_string);
+    }
+
+    #[parameterized(
+        all_zeros = {0, 0, 0},
+        all_ones = {0b1111_1111, 0b1111_1111, 0b1111_1111},
+        ones_and_zeros_are_zeros = {0b1111_1111, 0, 0},
+        lower_nybble_matches = {0b1010_1010, 0b0000_1010, 0b0000_1010},
+        last_bit = {0b1111_1111, 0b0000_0001, 0b0000_0001},
+        first_bit = {0b1111_1111, 0b1000_0000, 0b1000_0000},
+    )]
+    fn bitwise_and_miscellaneous_select(left: u32, right: u32, expected: u32) {
+        let left = MiscellaneousSelect::from(left);
+        let right = MiscellaneousSelect::from(right);
+        let expected = MiscellaneousSelect::from(expected);
+        assert_eq!(left & right, expected);
     }
 }
