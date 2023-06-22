@@ -147,9 +147,9 @@ macro_rules! impl_newtype_for_bytestruct {
 /// This is not connected to [ReprBytes] but it is a macro like the above macros
 /// that is often needed for structs holding bytes.
 #[macro_export]
-macro_rules! derive_hex_from_as_ref {
+macro_rules! derive_measurement_hex_from_as_ref {
     ($mytype:ty) => {
-        $crate::derive_hex_from_as_ref!($mytype, [u8]);
+        $crate::derive_measurement_hex_from_as_ref!($mytype, [u8]);
     };
     ($mytype:ty, $asref:ty) => {
         impl core::fmt::LowerHex for $mytype {
@@ -181,7 +181,7 @@ macro_rules! derive_hex_from_as_ref {
 #[macro_export]
 macro_rules! impl_display_and_debug_for_measurement {
     ($($wrapper:ident)*) => {$(
-        $crate::derive_hex_from_as_ref!($wrapper);
+        $crate::derive_measurement_hex_from_as_ref!($wrapper);
         impl core::fmt::Debug for $wrapper {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 write!(f, "{}({})", stringify!($wrapper), self)
@@ -203,7 +203,12 @@ macro_rules! impl_display_and_debug_for_measurement {
 #[macro_export]
 macro_rules! impl_display_for_bytestruct {
     ($($wrapper:ident)*) => {$(
-        $crate::derive_hex_from_as_ref!($wrapper);
+        impl ::core::fmt::UpperHex for $wrapper {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                let inner: &[u8] = self.as_ref();
+                mc_sgx_util::fmt_hex(inner, f)
+            }
+        }
         impl ::core::fmt::Display for $wrapper {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 write!(f, "{:#X}", self)
