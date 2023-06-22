@@ -13,7 +13,7 @@ rust-version = "1.62.1"
 
 [features]
 default = []
-alloc = []
+alloc = ["dep:x509-cert"]
 tcb = ["alloc", "dep:x509-cert", "dep:const-oid", "dep:hex"]
 
 [dependencies]
@@ -29,9 +29,10 @@ serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 sha2 = { version = "0.10.6", default-features = false }
 static_assertions = "1.1.0"
 subtle = { version = "2.4.1", default-features = false }
-x509-cert = { version = "0.2.0", default-features = false, optional = true }
+x509-cert = { version = "0.2.0", default-features = false, features = ["pem"], optional = true }
 
 [dev-dependencies]
+assert_matches = "1.5.0"
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.6.1" }
 textwrap = "0.16.0"
 x509-cert = { version = "0.2.0", default-features = false, features = ["pem"] }

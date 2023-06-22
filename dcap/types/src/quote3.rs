@@ -254,6 +254,12 @@ impl TryFrom<Vec<u8>> for Quote3<Vec<u8>> {
     }
 }
 
+impl<T: AsRef<[u8]>> AsRef<[u8]> for Quote3<T> {
+    fn as_ref(&self) -> &[u8] {
+        self.raw_bytes.as_ref()
+    }
+}
+
 /// Signature Data
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SignatureData<'a> {
@@ -670,6 +676,7 @@ mod test {
         );
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn quote_fails_to_decode_attestation_key() {
         let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
@@ -1016,6 +1023,7 @@ mod test {
         assert_eq!(quote.verify(&key), Ok(()));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn quote_verification_fails_for_bad_qe_report() {
         let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
@@ -1026,6 +1034,7 @@ mod test {
         assert_eq!(quote.verify(&key), Err(Quote3Error::SignatureVerification));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn quote_verification_fails_for_bad_attestation_key() {
         let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
@@ -1049,6 +1058,7 @@ mod test {
         assert_eq!(quote.verify(&key), Err(Quote3Error::SignatureVerification));
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn quote_verification_fails_for_isv_report() {
         let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
