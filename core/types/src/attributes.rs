@@ -53,7 +53,11 @@ impl Display for Attributes {
                     write!(f, "Flags: {}", flags)?
                 }
             }
-            None => write!(f, "Flags: (none)")?,
+
+            None => {
+                write!(f, "Flags: ")?;
+                mc_sgx_util::fmt_hex(&self.0.flags.to_be_bytes(), f)?;
+            }
         }
         match ExtendedFeatureRequestMask::from_bits(self.0.xfrm) {
             Some(xfrm) => {
@@ -63,7 +67,10 @@ impl Display for Attributes {
                     write!(f, " Xfrm: {}", xfrm)?
                 }
             }
-            None => write!(f, " Xfrm: (none)")?,
+            None => {
+                write!(f, " Xfrm: ")?;
+                mc_sgx_util::fmt_hex(&self.0.xfrm.to_be_bytes(), f)?;
+            }
         }
 
         Ok(())
@@ -144,6 +151,19 @@ bitflags! {
     }
 }
 
+/// When verifying a QE(quoting enclave) only some of the bits in
+/// [`Attributes`] are looked at. These bits are indicated via a
+/// provided mask of the same type.
+impl BitAnd for Attributes {
+    type Output = Attributes;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let flags = self.0.flags & rhs.0.flags;
+        let xfrm = self.0.xfrm & rhs.0.xfrm;
+        Attributes(sgx_attributes_t { flags, xfrm })
+    }
+}
+
 /// Miscellaneous select bits for target enclave. Reserved for future extension.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
@@ -185,6 +205,7 @@ mod test {
 
     use super::*;
     use std::format;
+    use std::string::ToString;
     use yare::parameterized;
 
     #[test]
@@ -267,6 +288,32 @@ mod test {
     }
 
     #[test]
+    fn attributes_display_all_flag_bits_set() {
+        let attributes = Attributes::from(sgx_attributes_t {
+            flags: 0xFFFF_FFFF_FFFF_FFFF,
+            xfrm: 0,
+        });
+        assert_eq!(
+            attributes.to_string(),
+            "Flags: 0xFFFF_FFFF_FFFF_FFFF Xfrm: (none)"
+        );
+    }
+
+    #[test]
+    fn attributes_display_unknown_xfrm_bits_set() {
+        // Notice the MSB isn't set, this is because setting *all* the bits will
+        // result in it picking up the RESERVED bits
+        let attributes = Attributes::from(sgx_attributes_t {
+            flags: 0,
+            xfrm: 0x7FFF_FFFF_FFFF_FFFF,
+        });
+        assert_eq!(
+            attributes.to_string(),
+            "Flags: (none) Xfrm: 0x7FFF_FFFF_FFFF_FFFF"
+        );
+    }
+
+    #[test]
     fn miscellaneous_select_display() {
         let inner = 18983928;
         let miscellaneous_select = MiscellaneousSelect::from(inner);
@@ -289,6 +336,60 @@ mod test {
         let left = MiscellaneousSelect::from(left);
         let right = MiscellaneousSelect::from(right);
         let expected = MiscellaneousSelect::from(expected);
+        assert_eq!(left & right, expected);
+    }
+
+    #[parameterized(
+        all_zeros = {0, 0, 0},
+        all_ones = {0xFFFF_FFFF_FFFF_FFFF, 0xFFFF_FFFF_FFFF_FFFF, 0xFFFF_FFFF_FFFF_FFFF},
+        ones_and_zeros_are_zeros = {0xFFFF_FFFF_FFFF_FFFF, 0, 0},
+        lower_byte_matches = {0xAAAA_AAAA_AAAA_AAAA, 0x5555_5555_5555_AAAA, 0x0000_0000_0000_AAAA},
+        upper_byte_matches = {0xAAAA_AAAA_AAAA_AAAA, 0xAAAA_5555_5555_5555, 0xAAAA_0000_0000_0000},
+        last_bit = {0x0000_0000_0000_0001, 0xFFFF_FFFF_FFFF_FFFF, 0x0000_0000_0000_0001},
+        first_bit = {0xFFFF_FFFF_FFFF_FFFF, 0x8000_0000_0000_0000, 0x8000_0000_0000_0000},
+    )]
+    fn bitwise_and_attribute_flags(left: u64, right: u64, expected: u64) {
+        // Build attributes from the base type because, the `AttributeFlags` will be limited based
+        // on what we know to be defined, while the actual flags seen in practice could grow.
+        // For example `AttributeFlags::from_bits(256)` will fail since the largest known bit is at
+        // 128 but `Attributes(sgx_attributes_t { flags: 256, xfrm: 0 })` will work fine.
+        let left = Attributes(sgx_attributes_t {
+            flags: left,
+            xfrm: 0,
+        });
+        let right = Attributes(sgx_attributes_t {
+            flags: right,
+            xfrm: 0,
+        });
+        let expected = Attributes(sgx_attributes_t {
+            flags: expected,
+            xfrm: 0,
+        });
+        assert_eq!(left & right, expected);
+    }
+
+    #[parameterized(
+        all_zeros = {0, 0, 0},
+        all_ones = {0xFFFF_FFFF_FFFF_FFFF, 0xFFFF_FFFF_FFFF_FFFF, 0xFFFF_FFFF_FFFF_FFFF},
+        ones_and_zeros_are_zeros = {0xFFFF_FFFF_FFFF_FFFF, 0, 0},
+        lower_byte_matches = {0x5555_5555_5555_AAAA, 0xAAAA_AAAA_AAAA_AAAA, 0x0000_0000_0000_AAAA},
+        upper_byte_matches = {0xAAAA_5555_5555_5555, 0xAAAA_AAAA_AAAA_AAAA, 0xAAAA_0000_0000_0000},
+        last_bit = {0xFFFF_FFFF_FFFF_FFFF, 0x0000_0000_0000_0001, 0x0000_0000_0000_0001},
+        first_bit = {0x8000_0000_0000_0000, 0xFFFF_FFFF_FFFF_FFFF, 0x8000_0000_0000_0000},
+    )]
+    fn bitwise_and_attribute_extended_feature_mask(left: u64, right: u64, expected: u64) {
+        let left = Attributes(sgx_attributes_t {
+            flags: 0,
+            xfrm: left,
+        });
+        let right = Attributes(sgx_attributes_t {
+            flags: 0,
+            xfrm: right,
+        });
+        let expected = Attributes(sgx_attributes_t {
+            flags: 0,
+            xfrm: expected,
+        });
         assert_eq!(left & right, expected);
     }
 }
