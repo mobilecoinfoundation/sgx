@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.7.0] - 2023-06-22
+
 ### Added
 
 - Added the `mc-sgx-dcap-type::Collateral` type. This can be retrieved via the
@@ -166,7 +168,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/mobilecoinfoundation/sgx/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.4.2...v0.5.0
