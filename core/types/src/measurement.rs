@@ -71,8 +71,7 @@ mod test {
         let mr_enclave = MrEnclave::from([1u8; MrEnclave::SIZE]);
 
         let display_string = format!("{mr_enclave}");
-        let expected_string =
-            "0101010101010101010101010101010101010101010101010101010101010101";
+        let expected_string = "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
     }
@@ -82,8 +81,7 @@ mod test {
         let mr_signer = MrSigner::from([1u8; MrSigner::SIZE]);
 
         let display_string = format!("{mr_signer}");
-        let expected_string =
-            "0101010101010101010101010101010101010101010101010101010101010101";
+        let expected_string = "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
     }
