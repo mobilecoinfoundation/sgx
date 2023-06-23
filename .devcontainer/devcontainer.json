@@ -1,8 +1,4 @@
 {
   "name": "MobileCoin SGX FFI Crates",
-  "build": { "dockerfile": "Dockerfile" },
-  // Note: the mount `target` uses `/home/docker`. I tried to use
-  // `${containerEnv:HOME}`, but it wasn't resolved.
-  // This means it's dependent on the name of the user in the Dockerfile.
-  "mounts": ["source=${localEnv:HOME}/.cargo/credentials.toml,target=/home/docker/.cargo/credentials.toml,type=bind"]
+  "build": { "dockerfile": "Dockerfile" }
 }
