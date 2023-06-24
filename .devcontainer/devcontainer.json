@@ -1,4 +1,19 @@
 {
   "name": "MobileCoin SGX FFI Crates",
-  "build": { "dockerfile": "Dockerfile" }
+  "build": { "dockerfile": "Dockerfile" },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "extensions": {
+          // Work around for https://github.com/microsoft/vscode-remote-release/issues/8169
+          "verifySignature": false
+      }
+    },
+      "extensions": [
+        "eamodio.gitlens",
+        "vadimcn.vscode-lldb",
+        "rust-lang.rust-analyzer",
+      ]
+    }
+  }
 }
