@@ -9,7 +9,7 @@ use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
     sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_FLAGS_DEBUG,
     SGX_FLAGS_EINITTOKEN_KEY, SGX_FLAGS_INITTED, SGX_FLAGS_KSS, SGX_FLAGS_MODE64BIT,
-    SGX_FLAGS_NON_CHECK_BITS, SGX_FLAGS_PROVISION_KEY, SGX_XFRM_AVX, SGX_XFRM_AVX512,
+    SGX_FLAGS_NON_CHECK_BITS, SGX_FLAGS_PROVISION_KEY, SGX_XFRM_AMX, SGX_XFRM_AVX, SGX_XFRM_AVX512,
     SGX_XFRM_LEGACY, SGX_XFRM_MPX, SGX_XFRM_PKRU,
 };
 
@@ -145,7 +145,7 @@ bitflags! {
         /// PKRU(Protection Keys Register Userspace) state
         const PKRU = SGX_XFRM_PKRU as u64;
         /// AMX(Advanced Matrix Extensions), including XTILEDATA(0x40000) and XTILECFG(0x20000)
-        const AMX = SGX_XFRM_LEGACY as u64;
+        const AMX = SGX_XFRM_AMX as u64;
         /// Reserved for future flags.
         const RESERVED = (!(Self::LEGACY.bits() | Self::AVX.bits() | Self::AVX_512.bits() | Self::PKRU.bits() | Self::AMX.bits()));
     }
@@ -276,15 +276,15 @@ mod test {
 
     #[test]
     fn attributes_display_no_flags() {
-        let xfrm1 = ExtendedFeatureRequestMask::LEGACY;
-        let xfrm2 = ExtendedFeatureRequestMask::AVX;
-        let xfrm = xfrm1 | xfrm2;
+        let xfrm = ExtendedFeatureRequestMask::LEGACY
+            | ExtendedFeatureRequestMask::AVX
+            | ExtendedFeatureRequestMask::AMX;
         let attributes = Attributes::default().set_extended_features_mask(xfrm);
 
-        let display_string = format!("{}", attributes);
-        let expected = format!("Flags: (none) Xfrm: {xfrm1} | {xfrm2}",);
-
-        assert_eq!(display_string, expected);
+        assert_eq!(
+            attributes.to_string(),
+            "Flags: (none) Xfrm: LEGACY | AVX | AMX"
+        );
     }
 
     #[test]
