@@ -138,6 +138,14 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
+        impl hex::FromHex for $wrapper {
+            type Error = hex::FromHexError;
+            fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Self::Error> {
+                let bytes = <[u8; $size]>::from_hex(hex)?;
+                Ok(bytes.into())
+            }
+        }
+
     )*}
 }
 
