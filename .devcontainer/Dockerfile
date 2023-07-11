@@ -7,7 +7,7 @@ FROM --platform=amd64 ubuntu:22.04
 # seemed reasonable to install these niceties for developers.
 RUN  apt-get update \
   && apt-get install -y \
-     build-essential curl git wget libclang-14-dev sudo zsh \
+     build-essential curl git wget libclang-14-dev sudo vim zsh \
   && apt-get clean \
   && rm -r /var/lib/apt/lists
 
