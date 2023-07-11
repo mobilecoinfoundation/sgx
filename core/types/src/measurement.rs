@@ -33,7 +33,11 @@ impl_display_and_debug_for_measurement!(MrEnclave, MrSigner);
 
 #[cfg(test)]
 mod test {
+    extern crate alloc;
     extern crate std;
+
+    use alloc::string::String;
+    use hex::{FromHex, ToHex};
 
     use super::*;
     use std::format;
@@ -84,5 +88,29 @@ mod test {
         let expected_string = "0101010101010101010101010101010101010101010101010101010101010101";
 
         assert_eq!(display_string, expected_string);
+    }
+
+    #[test]
+    fn mr_signer_to_from_hex() {
+        let hex_str = "48656c6c6f20746573742066726f6d207365616e6b2048656c6c6f2074657374";
+        let expected_bytes: [u8; MrSigner::SIZE] = [
+            72, 101, 108, 108, 111, 32, 116, 101, 115, 116, 32, 102, 114, 111, 109, 32, 115, 101,
+            97, 110, 107, 32, 72, 101, 108, 108, 111, 32, 116, 101, 115, 116,
+        ];
+        let expected_mr_signer = MrSigner::from(expected_bytes);
+
+        // test decoding hex string
+        assert_eq!(expected_mr_signer, MrSigner::from_hex(hex_str).unwrap());
+
+        // test encoding hex string
+        assert_eq!(
+            expected_mr_signer.encode_hex::<String>(),
+            hex_str.to_ascii_lowercase()
+        );
+        // test encoding hex string upper
+        assert_eq!(
+            expected_mr_signer.encode_hex_upper::<String>(),
+            hex_str.to_ascii_uppercase()
+        );
     }
 }

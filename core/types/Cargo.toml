@@ -18,6 +18,7 @@ alloc = []
 [dependencies]
 bitflags = "2.0.0"
 displaydoc = { version = "0.2.3", default-features = false }
+hex = { version = "0.4.2", default-features = false }
 mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.7.0" }
 mc-sgx-util = { path = "../../util", version = "=0.7.0" }
 nom = { version = "7.1.2", default-features = false }
