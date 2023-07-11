@@ -138,14 +138,6 @@ macro_rules! impl_newtype_for_bytestruct {
             }
         }
 
-        impl hex::FromHex for $wrapper {
-            type Error = hex::FromHexError;
-            fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Self::Error> {
-                let bytes = <[u8; $size]>::from_hex(hex)?;
-                Ok(bytes.into())
-            }
-        }
-
     )*}
 }
 
@@ -177,6 +169,14 @@ macro_rules! derive_measurement_hex_from_as_ref {
                     write!(f, "{:02X}", d)?;
                 }
                 Ok(())
+            }
+        }
+
+        impl hex::FromHex for $mytype {
+            type Error = hex::FromHexError;
+            fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Self::Error> {
+                let bytes = <[u8; <$mytype>::SIZE]>::from_hex(hex)?;
+                Ok(bytes.into())
             }
         }
     };

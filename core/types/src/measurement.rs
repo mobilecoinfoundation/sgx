@@ -99,12 +99,15 @@ mod test {
         ];
         let expected_mr_signer = MrSigner::from(expected_bytes);
 
+        // test decoding hex string
         assert_eq!(expected_mr_signer, MrSigner::from_hex(hex_str).unwrap());
 
+        // test encoding hex string
         assert_eq!(
             expected_mr_signer.encode_hex::<String>(),
             hex_str.to_ascii_lowercase()
         );
+        // test encoding hex string upper
         assert_eq!(
             expected_mr_signer.encode_hex_upper::<String>(),
             hex_str.to_ascii_uppercase()
