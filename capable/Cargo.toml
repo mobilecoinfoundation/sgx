@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-capable"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -13,11 +13,11 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
-mc-sgx-capable-sys = { path = "sys", version = "=0.7.0" }
-mc-sgx-capable-sys-types = { path = "sys/types", version = "=0.7.0" }
-mc-sgx-capable-types = { path = "types", version = "=0.7.0" }
-mc-sgx-core-types = { path = "../core/types", version = "=0.7.0" }
-mc-sgx-util = { path = "../util", version = "=0.7.0" }
+mc-sgx-capable-sys = { path = "sys", version = "=0.7.1" }
+mc-sgx-capable-sys-types = { path = "sys/types", version = "=0.7.1" }
+mc-sgx-capable-types = { path = "types", version = "=0.7.1" }
+mc-sgx-core-types = { path = "../core/types", version = "=0.7.1" }
+mc-sgx-util = { path = "../util", version = "=0.7.1" }
 
 [dev-dependencies]
 yare = "1.0.1"
