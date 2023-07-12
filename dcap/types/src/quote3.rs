@@ -246,7 +246,7 @@ impl<'a> TryFrom<&'a [u8]> for Quote3<&'a [u8]> {
 }
 
 #[cfg(feature = "alloc")]
-impl<'a> From<Quote3<&[u8]>> for Quote3<Vec<u8>> {
+impl From<Quote3<&[u8]>> for Quote3<Vec<u8>> {
     fn from(quote: Quote3<&[u8]>) -> Self {
         Self {
             raw_bytes: quote.raw_bytes.to_vec(),
