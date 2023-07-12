@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.7.1] - 2023-07-12
+
+### Added
+
+- Added `FromHex` implementation for MrEnclave and MrSigner
+- Added `From<quote3<&[u8]>> for Quote<Vec<u8>>`
+
 ## [0.7.0] - 2023-06-22
 
 ### Added
