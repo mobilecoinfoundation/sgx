@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.7.1] - 2023-07-12
+
+### Added
+
+- Added `FromHex` implementation for MrEnclave and MrSigner
+- Added `From<Quote3<&[u8]>> for Quote3<Vec<u8>>`
+
+### Fixed
+
+- Fixed `ExtendedFeatureRequestMask::AMX`
+  - Previously the `ExtendedFeatureRequestMask::AMX` was mapped to `SGX_XFRM_LEGACY`. Now `ExtendedFeatureRequestMask::AMX` correctly maps to `SGX_XFRM_AMX`.
+
 ## [0.7.0] - 2023-06-22
 
 ### Added
