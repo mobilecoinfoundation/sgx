@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed `ExtendedFeatureRequestMask::AMX`
-    - Previously the `ExtendedFeatureRequestMask::AMX` was mapped to `SGX_XFRM_LEGACY`. Now `ExtendedFeatureRequestMask::AMX` correctly maps to `SGX_XFRM_AMX`.
+  - Previously the `ExtendedFeatureRequestMask::AMX` was mapped to `SGX_XFRM_LEGACY`. Now `ExtendedFeatureRequestMask::AMX` correctly maps to `SGX_XFRM_AMX`.
 
 ## [0.7.0] - 2023-06-22
 
