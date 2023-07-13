@@ -99,7 +99,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} build --release
+      - run: cargo +${{ matrix.rust }} build --release --locked
 
   test:
     runs-on: ubuntu-22.04
@@ -127,7 +127,7 @@ jobs:
         # For some reason `SGX_AESM_ADDR` is set to 1 in the github runners.
         # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
-        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --features "sim alloc"
+        run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --features "sim alloc" --locked
 
   doc:
     runs-on: ubuntu-22.04
@@ -169,7 +169,7 @@ jobs:
         # Not seeing it documented here, https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
         # The FFI bindings crates always report 100% because they have no code
-        run: unset SGX_AESM_ADDR && cargo llvm-cov --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
+        run: unset SGX_AESM_ADDR && cargo llvm-cov --locked --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
       - uses: codecov/codecov-action@v3
         with:
           files: lcov.info
@@ -206,7 +206,7 @@ jobs:
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +nightly-2022-12-13 build -Z build-std=core --target ${{ matrix.target }} -p $0 || exit 255'
+            xargs -n1 sh -c 'CFLAGS="-isystem${GITHUB_WORKSPACE}/core/build/headers -isystem${GITHUB_WORKSPACE}/core/build/headers/tlibc" cargo +nightly-2022-12-13 build -Z build-std=core --target ${{ matrix.target }} -p $0 --locked || exit 255'
 
   notify:
     runs-on: ubuntu-latest
