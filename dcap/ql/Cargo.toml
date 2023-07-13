@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-dcap-ql"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -14,12 +14,12 @@ keywords = ["sgx"]
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
-mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.7.0" }
-mc-sgx-core-types = { path = "../../core/types", version = "=0.7.0" }
-mc-sgx-dcap-ql-sys = { path = "sys", version = "=0.7.0" }
-mc-sgx-dcap-ql-types = { path = "types", version = "=0.7.0" }
-mc-sgx-dcap-types = { path = "../types", version = "=0.7.0", features = ["alloc"] }
-mc-sgx-util = { path = "../../util", version = "=0.7.0" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.7.1" }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.7.1" }
+mc-sgx-dcap-ql-sys = { path = "sys", version = "=0.7.1" }
+mc-sgx-dcap-ql-types = { path = "types", version = "=0.7.1" }
+mc-sgx-dcap-types = { path = "../types", version = "=0.7.1", features = ["alloc"] }
+mc-sgx-util = { path = "../../util", version = "=0.7.1" }
 once_cell = "1.17.0"
 
 [features]
