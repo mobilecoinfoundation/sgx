@@ -66,6 +66,38 @@ impl Default for sgx_att_key_id_ext_t {
     }
 }
 
+#[serde_as]
+#[repr(C)]
+#[derive(PartialEq, Hash, Clone, Eq, Copy, Debug, Serialize, Deserialize)]
+pub struct sgx_report_data_t {
+    #[serde_as(as = "Bytes")]
+    pub d: [u8; SGX_REPORT_DATA_SIZE],
+}
+
+#[serde_as]
+#[repr(C)]
+#[derive(Hash, Copy, Eq, Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct sgx_report_body_t {
+    pub cpu_svn: sgx_cpu_svn_t,
+    pub misc_select: sgx_misc_select_t,
+    pub reserved1: [u8; SGX_REPORT_BODY_RESERVED1_BYTES],
+    pub isv_ext_prod_id: sgx_isvext_prod_id_t,
+    pub attributes: sgx_attributes_t,
+    pub mr_enclave: sgx_measurement_t,
+    pub reserved2: [u8; SGX_REPORT_BODY_RESERVED2_BYTES],
+    pub mr_signer: sgx_measurement_t,
+    pub reserved3: [u8; SGX_REPORT_BODY_RESERVED3_BYTES],
+    #[serde_as(as = "Bytes")]
+    pub config_id: sgx_config_id_t,
+    pub isv_prod_id: sgx_prod_id_t,
+    pub isv_svn: sgx_isv_svn_t,
+    pub config_svn: sgx_config_svn_t,
+    #[serde_as(as = "Bytes")]
+    pub reserved4: [u8; SGX_REPORT_BODY_RESERVED4_BYTES],
+    pub isv_family_id: sgx_isvfamily_id_t,
+    pub report_data: sgx_report_data_t,
+}
+
 impl Default for sgx_report_body_t {
     fn default() -> Self {
         Self {

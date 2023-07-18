@@ -19,12 +19,10 @@ use mc_sgx_core_build::SgxParseCallbacks;
 const CORE_TYPES: &[&str] = &[
     "_attributes_t",
     "_key_request_t",
-    "_report_body_t",
     "_report_t",
     "_sgx_cpu_svn_t",
     "_sgx_key_id_t",
     "_sgx_measurement_t",
-    "_sgx_report_data_t",
     "_sgx_misc_attribute_t",
     "_status_t",
     "sgx_config_id_t",
@@ -105,15 +103,19 @@ fn main() {
             "sgx_qe_report_info_t",
             "sgx_quote_nonce_t",
             "sgx_report_t",
-            "sgx_report_body_t",
             "sgx_key_id_t",
             "sgx_cpu_svn_t",
             "sgx_measurement_t",
-            "sgx_report_data_t",
             "sgx_attributes_t",
         ])
         .dynamically_sized_types(["sgx_quote_t"])
-        .serialize_types(["sgx_measurement_t", "sgx_attributes_t"])
+        .serialize_types([
+            "sgx_measurement_t",
+            "sgx_attributes_t",
+            "sgx_report_t",
+            "sgx_key_id_t",
+            "sgx_cpu_svn_t",
+        ])
         .derive_default([
             "sgx_report_t",
             "sgx_attributes_t",
