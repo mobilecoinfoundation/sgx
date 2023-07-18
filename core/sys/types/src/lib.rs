@@ -11,6 +11,7 @@
 )]
 
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, Bytes};
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -86,6 +87,26 @@ impl Default for sgx_report_body_t {
             report_data: Default::default(),
         }
     }
+}
+
+// Manually creating the bindings for `sgx_target_info_t` because of the need to derive serde for
+// the `config_id` and `reserved3` fields. This structure is unlikely to change in size as the
+// `reserved3` field is 384 bytes, appearing to be padding to make this structure 512 bytes. It is
+// likely that any new fields will be taken from the `reserved3` space.
+#[serde_as]
+#[repr(C)]
+#[derive(Eq, Hash, PartialEq, Clone, Debug, Copy, Serialize, Deserialize)]
+pub struct sgx_target_info_t {
+    pub mr_enclave: sgx_measurement_t,
+    pub attributes: sgx_attributes_t,
+    pub reserved1: [u8; SGX_TARGET_INFO_RESERVED1_BYTES],
+    pub config_svn: sgx_config_svn_t,
+    pub misc_select: sgx_misc_select_t,
+    pub reserved2: [u8; SGX_TARGET_INFO_RESERVED2_BYTES],
+    #[serde_as(as = "Bytes")]
+    pub config_id: sgx_config_id_t,
+    #[serde_as(as = "Bytes")]
+    pub reserved3: [u8; SGX_TARGET_INFO_RESERVED3_BYTES],
 }
 
 impl Default for sgx_target_info_t {
