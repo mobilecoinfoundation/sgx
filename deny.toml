@@ -8,7 +8,11 @@ unmaintained = "deny"
 unsound = "deny"
 yanked = "deny"
 notice = "warn"
-ignore = []
+ignore = [
+    # serde_cbor is only used in dev, it's to maintain parity with the serialization in
+    # <https://github.com/mobilecoinfoundation/mobilecoin>
+    "RUSTSEC-2021-0127",
+]
 
 [licenses]
 unlicensed = "deny"
@@ -32,7 +36,8 @@ multiple-versions = "warn"
 # Lint level for when a crate version requirement is `*`
 wildcards = "deny"
 highlight = "all"
-allow = []
+allow = [
+]
 deny = [
     # https://github.com/briansmith/ring/issues/774
     { name = "ring" },

@@ -27,7 +27,6 @@ const CORE_TYPES: &[&str] = &[
     "_sgx_report_data_t",
     "_sgx_misc_attribute_t",
     "_status_t",
-    "_target_info_t",
     "sgx_config_id_t",
     "sgx_config_svn_t",
     "sgx_isv_svn_t",
@@ -105,7 +104,6 @@ fn main() {
             "sgx_att_key_id_ext_t",
             "sgx_qe_report_info_t",
             "sgx_quote_nonce_t",
-            "sgx_target_info_t",
             "sgx_report_t",
             "sgx_report_body_t",
             "sgx_key_id_t",
@@ -115,7 +113,7 @@ fn main() {
             "sgx_attributes_t",
         ])
         .dynamically_sized_types(["sgx_quote_t"])
-        .serialize_types(["sgx_measurement_t"])
+        .serialize_types(["sgx_measurement_t", "sgx_attributes_t"])
         .derive_default([
             "sgx_report_t",
             "sgx_attributes_t",
