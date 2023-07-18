@@ -18,6 +18,7 @@ use mc_sgx_core_sys_types::{
 };
 use nom::bytes::complete::take;
 use nom::number::complete::{le_u16, le_u32, le_u64};
+use serde::{Deserialize, Serialize};
 
 /// MAC
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
@@ -245,7 +246,7 @@ impl TryFrom<&[u8]> for ReportBody {
 
 /// An enclave Report
 #[repr(transparent)]
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Report(sgx_report_t);
 
 impl Report {
@@ -465,6 +466,7 @@ mod test {
             })
         );
     }
+
     #[test]
     fn report_from_sgx_report() {
         let mut body = ReportBody::default();
@@ -478,6 +480,23 @@ mod test {
         assert_eq!(report.body(), body);
         assert_eq!(report.key_id(), KeyId::from([4u8; SGX_KEYID_SIZE]));
         assert_eq!(report.mac(), Mac([5u8; SGX_MAC_SIZE]));
+    }
+
+    #[test]
+    fn report_serialized_from_sgx_report() {
+        let mut body = ReportBody::default();
+        body.0.isv_prod_id = 4;
+        let sgx_report = sgx_report_t {
+            body: body.clone().into(),
+            key_id: KeyId::from([5u8; SGX_KEYID_SIZE]).into(),
+            mac: [6u8; SGX_MAC_SIZE],
+        };
+        let bytes = serde_cbor::to_vec(&sgx_report).expect("Failed to serialize");
+        let report: Report =
+            serde_cbor::from_slice(bytes.as_slice()).expect("Failed to deserialize");
+        assert_eq!(report.body(), body);
+        assert_eq!(report.key_id(), KeyId::from([5u8; SGX_KEYID_SIZE]));
+        assert_eq!(report.mac(), Mac([6u8; SGX_MAC_SIZE]));
     }
 
     #[test]
