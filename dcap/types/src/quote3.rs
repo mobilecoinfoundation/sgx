@@ -2,18 +2,30 @@
 
 //! This module provides types related to Quote v3
 
-use crate::certification_data::{CertificationData, MIN_CERT_DATA_SIZE};
-use crate::Quote3Error;
+use crate::{
+    certification_data::{CertificationData, MIN_CERT_DATA_SIZE},
+    Quote3Error,
+};
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-use core::cmp::Ordering;
-use core::hash::{Hash, Hasher};
-use core::mem;
+use core::{
+    cmp::Ordering,
+    fmt::Formatter,
+    hash::{Hash, Hasher},
+    mem,
+};
 use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
-use p256::ecdsa::signature::Verifier;
-use p256::ecdsa::{Signature, VerifyingKey};
-use p256::EncodedPoint;
+use p256::{
+    ecdsa::{signature::Verifier, Signature, VerifyingKey},
+    EncodedPoint,
+};
+
+use serde::{
+    de::{Error as DeError, Visitor},
+    ser::{Serialize, Serializer},
+    Deserialize, Deserializer,
+};
 use sha2::{Digest, Sha256};
 use static_assertions::const_assert;
 use subtle::ConstantTimeEq;
@@ -267,6 +279,43 @@ impl TryFrom<Vec<u8>> for Quote3<Vec<u8>> {
 impl<T: AsRef<[u8]>> AsRef<[u8]> for Quote3<T> {
     fn as_ref(&self) -> &[u8] {
         self.raw_bytes.as_ref()
+    }
+}
+
+impl<T: AsRef<[u8]>> Serialize for Quote3<T> {
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // Quotes only need to serialize the underlying bytes. The `report_body` is derived from
+        // these bytes and serializing them would be redundant.
+        serializer.serialize_bytes(self.as_ref())
+    }
+}
+
+struct Quote3Visitor;
+
+impl<'de> Visitor<'de> for Quote3Visitor {
+    type Value = Quote3<&'de [u8]>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
+        formatter.write_str("a byte array")
+    }
+
+    fn visit_borrowed_bytes<E: DeError>(
+        self,
+        v: &'de [u8],
+    ) -> core::result::Result<Self::Value, E> {
+        Quote3::try_from(v).map_err(|_| DeError::custom("Error decoding quote"))
+    }
+}
+
+impl<'de> Deserialize<'de> for Quote3<&'de [u8]> {
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_bytes(Quote3Visitor)
     }
 }
 
@@ -1082,5 +1131,17 @@ mod test {
         let key = pck_leaf_signing_key(&quote);
 
         assert_eq!(quote.verify(&key), Err(Quote3Error::SignatureVerification));
+    }
+
+    #[test]
+    fn quote_can_be_serialized_and_deserialized() {
+        let hw_quote = include_bytes!("../data/tests/hw_quote.dat");
+        let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
+
+        let bytes = serde_cbor::to_vec(&quote).expect("Failed to serialize quote");
+        let new_quote: Quote3<&[u8]> =
+            serde_cbor::from_slice(&bytes).expect("Failed to deserialize qutoe");
+
+        assert_eq!(quote, new_quote);
     }
 }

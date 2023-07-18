@@ -719,6 +719,7 @@ dependencies = [
  "nom",
  "p256",
  "serde",
+ "serde_cbor",
  "sha2",
  "static_assertions",
  "subtle",
