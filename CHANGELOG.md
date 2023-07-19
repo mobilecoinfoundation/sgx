@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Added `Deserialize` and `Serialize` traits to:
+  - `mc-sgx-core-types::TargetInfo`
+  - `mc-sgx-core-types::Report`
+  - `mc-sgx-dcap-types::Quote3`
+
 ## [0.7.1] - 2023-07-12
 
 ### Added
