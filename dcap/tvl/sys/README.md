@@ -17,5 +17,5 @@ FFI linkage for the `sgx_dcap_tvl` library.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-tvl-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-tvl-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-tvl-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-tvl-sys/0.7.1/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-tvl-sys/0.7.1
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-tvl-sys/0.7.2/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-tvl-sys/0.7.2

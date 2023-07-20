@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-sdk-tools"
-version = "0.7.1"
+version = "0.7.2"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.65"
@@ -13,7 +13,7 @@ keywords = ["build", "sgx"]
 
 [dependencies]
 displaydoc = "0.2.3"
-mc-sgx-core-build = { path = "../core/build", version = "=0.7.1" }
+mc-sgx-core-build = { path = "../core/build", version = "=0.7.2" }
 
 [dev-dependencies]
 tempfile = "3.3.0"
