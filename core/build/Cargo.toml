@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-core-build"
-version = "0.7.1"
+version = "0.7.2"
 authors = ["MobileCoin"]
 categories = ["development-tools"]
 description = "Build Helpers for SGX FFI Crates"

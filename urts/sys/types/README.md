@@ -17,5 +17,5 @@ FFI type bindings used by the `sgx_urts` library.
 [crate-link]: https://crates.io/crates/mc-sgx-urts-sys-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-urts-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-urts-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-urts-sys-types/0.7.1/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-urts-sys-types/0.7.1
+[deps-image]: https://deps.rs/crate/mc-sgx-urts-sys-types/0.7.2/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-urts-sys-types/0.7.2
