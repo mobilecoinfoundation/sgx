@@ -23,7 +23,7 @@ mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.7.2" }
 mc-sgx-util = { path = "../../util", version = "=0.7.2" }
 nom = { version = "7.1.2", default-features = false }
 rand_core = { version = "0.6.4", default-features = false }
-serde = { version = "1.0.152", default-features = false, features = ["derive"] }
+serde = { version = "1.0.173", default-features = false, features = ["derive"] }
 
 # `getrandom` is pulled in by `rand_core` we only need to access it directly when registering a custom spng,
 # `register_custom_getrandom`, which only happens for target_os = none
