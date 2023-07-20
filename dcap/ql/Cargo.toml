@@ -30,5 +30,5 @@ sim = []
 
 [dev-dependencies]
 serial_test = { version = "2.0.0", default-features = false }
-tempfile = "3.3.0"
+tempfile = "3.7.0"
 yare = "1.0.1"
