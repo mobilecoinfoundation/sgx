@@ -67,7 +67,7 @@ jobs:
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: mobilecoinfoundation/actions/dcap-libs@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@nick/add-missing-and
         with:
           version: 1.16.100.2-jammy1
       - uses: dtolnay/rust-toolchain@master
@@ -92,7 +92,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.19.100.3
-      - uses: mobilecoinfoundation/actions/dcap-libs@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@nick/add-missing-and
         with:
           version: 1.16.100.2-jammy1
       - uses: dtolnay/rust-toolchain@master
@@ -116,7 +116,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.19.100.3
-      - uses: mobilecoinfoundation/actions/dcap-libs@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@nick/add-missing-and
         with:
           version: 1.16.100.2-jammy1
       - uses: dtolnay/rust-toolchain@master
@@ -157,7 +157,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.19.100.3
-      - uses: mobilecoinfoundation/actions/dcap-libs@main
+      - uses: mobilecoinfoundation/actions/dcap-libs@nick/add-missing-and
         with:
           version: 1.16.100.2-jammy1
       - uses: dtolnay/rust-toolchain@stable
