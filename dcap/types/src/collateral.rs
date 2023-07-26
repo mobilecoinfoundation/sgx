@@ -10,6 +10,7 @@ extern crate alloc;
 use alloc::string::{FromUtf8Error, String};
 use alloc::vec::Vec;
 use mc_sgx_dcap_sys_types::sgx_ql_qve_collateral_t;
+use serde::{Deserialize, Serialize};
 use x509_cert::crl::CertificateList;
 use x509_cert::der::Decode;
 use x509_cert::Certificate;
@@ -75,13 +76,18 @@ impl From<FromUtf8Error> for Error {
 ///
 /// The certificate chains and CRLs are documented in
 /// <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.5.pdf>
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Collateral {
+    #[serde(with = "certificate_list")]
     root_ca_crl: CertificateList,
+    #[serde(with = "certificates")]
     pck_crl_issuer_chain: Vec<Certificate>,
+    #[serde(with = "certificate_list")]
     pck_crl: CertificateList,
+    #[serde(with = "certificates")]
     tcb_issuer_chain: Vec<Certificate>,
     tcb_info: String,
+    #[serde(with = "certificates")]
     qe_identity_issuer_chain: Vec<Certificate>,
     qe_identity: String,
 }
@@ -295,6 +301,99 @@ const fn trim_null_and_whitespace_end(slice: &[u8]) -> &[u8] {
         }
     }
     bytes
+}
+
+/// serializing and deserializing of `CertificateList`
+mod certificate_list {
+    use core::fmt;
+    use core::marker::PhantomData;
+    use serde::de::{Error, Visitor};
+    use x509_cert::crl::CertificateList;
+    use x509_cert::der::{Decode, Encode};
+
+    pub fn serialize<S>(cert_list: &CertificateList, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bytes(&cert_list.to_der().map_err(serde::ser::Error::custom)?)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<CertificateList, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct CertificateListVisitor(PhantomData<CertificateList>);
+
+        impl<'de> Visitor<'de> for CertificateListVisitor {
+            type Value = CertificateList;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "a DER encoded CertificateList")
+            }
+
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                CertificateList::from_der(v).map_err(Error::custom)
+            }
+        }
+        deserializer.deserialize_bytes(CertificateListVisitor(PhantomData))
+    }
+}
+
+/// serializing and deserializing a vector of `Certificate`
+mod certificates {
+    use alloc::vec::Vec;
+    use core::fmt;
+    use core::marker::PhantomData;
+    use serde::de::{Error, SeqAccess, Visitor};
+    use serde::ser::SerializeSeq;
+    use x509_cert::der::{Decode, Encode};
+    use x509_cert::Certificate;
+
+    pub fn serialize<S>(certificates: &[Certificate], serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(certificates.len()))?;
+        for cert in certificates {
+            // Note: forcing to &[u8] to work with the `Display` requirement of
+            // `serde::ser::Error::custom`
+            let bytes: &[u8] = &cert.to_der().map_err(serde::ser::Error::custom)?;
+            seq.serialize_element(bytes)?;
+        }
+        seq.end()
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<Certificate>, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct CertificateVisitor(PhantomData<Certificate>);
+
+        impl<'de> Visitor<'de> for CertificateVisitor {
+            type Value = Vec<Certificate>;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "a sequence of DER encoded Certificates")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let mut certificates = Vec::new();
+                // Note: This has to be Vec<u8> to work with CBOR, it doesn't support slices
+                while let Some(elem) = seq.next_element::<Vec<u8>>()? {
+                    let certificate = Certificate::from_der(&elem).map_err(Error::custom)?;
+                    certificates.push(certificate);
+                }
+                Ok(certificates)
+            }
+        }
+        deserializer.deserialize_bytes(CertificateVisitor(PhantomData))
+    }
 }
 
 #[cfg(test)]
@@ -817,5 +916,40 @@ mod test {
         sgx_collateral.qe_identity_size = qe_identity.len() as u32;
 
         assert_matches!(Collateral::try_from(&sgx_collateral), Err(Error::Utf8(_)));
+    }
+
+    #[test]
+    fn collateral_can_be_serialized_and_deserialized() {
+        let mut root_crl = include_bytes!("../data/tests/root_crl.der").to_vec();
+        root_crl.push(0);
+        let (mut pem_chain, _) = pem_cert_chain();
+        let mut pck_crl = include_bytes!("../data/tests/processor_crl.der").to_vec();
+        pck_crl.push(0);
+        let mut tcb_info = String::from("Hello");
+        let mut qe_identity = String::from("World");
+        let mut sgx_collateral = empty_collateral_with_version(3, 1);
+        sgx_collateral.root_ca_crl = root_crl.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.root_ca_crl_size = root_crl.len() as u32;
+        sgx_collateral.pck_crl_issuer_chain = pem_chain.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.pck_crl_issuer_chain_size = pem_chain.len() as u32;
+        sgx_collateral.pck_crl = pck_crl.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.pck_crl_size = pck_crl.len() as u32;
+        sgx_collateral.tcb_info_issuer_chain = pem_chain.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.tcb_info_issuer_chain_size = pem_chain.len() as u32;
+        sgx_collateral.tcb_info = tcb_info.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.tcb_info_size = tcb_info.len() as u32;
+        sgx_collateral.qe_identity_issuer_chain = pem_chain.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.qe_identity_issuer_chain_size = pem_chain.len() as u32;
+        sgx_collateral.qe_identity = qe_identity.as_mut_ptr() as *mut core::ffi::c_char;
+        sgx_collateral.qe_identity_size = qe_identity.len() as u32;
+
+        let collateral =
+            Collateral::try_from(&sgx_collateral).expect("Failed to convert collateral");
+
+        let bytes = serde_cbor::to_vec(&collateral).expect("Failed to serialize collateral");
+        let new_collateral: Collateral =
+            serde_cbor::from_slice(&bytes).expect("Failed to deserialize collateral");
+
+        assert_eq!(collateral, new_collateral);
     }
 }
