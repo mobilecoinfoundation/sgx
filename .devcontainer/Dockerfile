@@ -50,3 +50,5 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 
 # Install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+RUN echo "[ -f /opt/intel/sgxsdk/environment ] && . /opt/intel/sgxsdk/environment" >> ~/.zshenv

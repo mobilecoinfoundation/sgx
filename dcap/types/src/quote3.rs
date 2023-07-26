@@ -319,6 +319,18 @@ impl<'de> Deserialize<'de> for Quote3<&'de [u8]> {
     }
 }
 
+#[cfg(feature = "alloc")]
+impl<'de> Deserialize<'de> for Quote3<Vec<u8>> {
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer
+            .deserialize_bytes(Quote3Visitor)
+            .map(|q| q.into())
+    }
+}
+
 /// Signature Data
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SignatureData<'a> {
@@ -1140,6 +1152,19 @@ mod test {
 
         let bytes = serde_cbor::to_vec(&quote).expect("Failed to serialize quote");
         let new_quote: Quote3<&[u8]> =
+            serde_cbor::from_slice(&bytes).expect("Failed to deserialize qutoe");
+
+        assert_eq!(quote, new_quote);
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn quote_vec_version_can_be_serialized_and_deserialized() {
+        let hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+        let quote = Quote3::try_from(hw_quote).expect("Failed to parse quote");
+
+        let bytes = serde_cbor::to_vec(&quote).expect("Failed to serialize quote");
+        let new_quote: Quote3<Vec<u8>> =
             serde_cbor::from_slice(&bytes).expect("Failed to deserialize qutoe");
 
         assert_eq!(quote, new_quote);
