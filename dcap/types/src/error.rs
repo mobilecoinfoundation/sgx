@@ -8,7 +8,7 @@ use mc_sgx_util::{ResultFrom, ResultInto};
 use serde::{Deserialize, Serialize};
 
 /// Errors interacting with a Quote3
-#[derive(Clone, Debug, Display, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Display, Eq, Hash, PartialEq, PartialOrd, Ord, Deserialize, Serialize)]
 #[non_exhaustive]
 pub enum Quote3Error {
     /** Quote buffer too small; actual size: {actual}, required size
@@ -548,5 +548,18 @@ mod test {
             QlError::try_from(unknown).expect("Could not parse an unknown SGX Status"),
             QlError::Unexpected
         );
+    }
+
+    #[test]
+    fn serializing_quote3_error() {
+        let error = Quote3Error::InputLength {
+            required: 1,
+            actual: 2,
+        };
+
+        let bytes = serde_cbor::to_vec(&error).expect("Could not serialize error");
+        let new_error: Quote3Error =
+            serde_cbor::from_slice(&bytes).expect("Could not deserialize error");
+        assert_eq!(error, new_error);
     }
 }
