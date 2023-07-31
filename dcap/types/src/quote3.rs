@@ -293,6 +293,15 @@ impl<T: AsRef<[u8]>> Serialize for Quote3<T> {
     }
 }
 
+impl<'de> Deserialize<'de> for Quote3<&'de [u8]> {
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_bytes(Quote3Visitor)
+    }
+}
+
 struct Quote3Visitor;
 
 impl<'de> Visitor<'de> for Quote3Visitor {
@@ -307,15 +316,6 @@ impl<'de> Visitor<'de> for Quote3Visitor {
         v: &'de [u8],
     ) -> core::result::Result<Self::Value, E> {
         Quote3::try_from(v).map_err(|_| DeError::custom("Error decoding quote"))
-    }
-}
-
-impl<'de> Deserialize<'de> for Quote3<&'de [u8]> {
-    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_bytes(Quote3Visitor)
     }
 }
 
