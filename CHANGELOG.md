@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Added `Deserialize` and `Serialize` traits to:
+  - `mc-sgx-dcap-types::Collateral`
+  - `mc-sgx-dcap-types::Quote3Error`
+  - `mc-sgx-dcap-types::Quote3<Vec<u8>>`
+
+### Removed
+
+- Removed patch version restriction on `serde` crate dependency.
+
 ## [0.7.2] - 2023-07-20
 
 ### Added
