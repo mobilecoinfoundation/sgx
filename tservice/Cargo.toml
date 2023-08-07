@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-tservice"
-version = "0.7.2"
+version = "0.7.3"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -18,15 +18,15 @@ doctest = false
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
-mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.7.2" }
-mc-sgx-core-types = { path = "../core/types", version = "=0.7.2" }
-mc-sgx-trts = { path = "../trts", version = "=0.7.2" }
-mc-sgx-tservice-sys = { path = "sys", version = "=0.7.2" }
-mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.7.2" }
-mc-sgx-tservice-types = { path = "types", version = "=0.7.2", features = [ "alloc" ] }
-mc-sgx-util = { path = "../util", version = "=0.7.2" }
+mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.7.3" }
+mc-sgx-core-types = { path = "../core/types", version = "=0.7.3" }
+mc-sgx-trts = { path = "../trts", version = "=0.7.3" }
+mc-sgx-tservice-sys = { path = "sys", version = "=0.7.3" }
+mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.7.3" }
+mc-sgx-tservice-types = { path = "types", version = "=0.7.3", features = [ "alloc" ] }
+mc-sgx-util = { path = "../util", version = "=0.7.3" }
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
 
 [dev-dependencies]
-mc-sgx-tservice-types = { path = "types", version = "=0.7.2", features = [ "test-utils" ] }
+mc-sgx-tservice-types = { path = "types", version = "=0.7.3", features = [ "test-utils" ] }
 yare = "1.0.2"
