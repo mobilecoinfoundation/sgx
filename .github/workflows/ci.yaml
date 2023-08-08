@@ -101,6 +101,30 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo +${{ matrix.rust }} build --release --locked
 
+  build-all-features:
+    runs-on: ubuntu-22.04
+    needs:
+      - "lint"
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly-2022-12-13
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mobilecoinfoundation/actions/sgxsdk@main
+        with:
+          version: 2.19.100.3
+      - uses: mobilecoinfoundation/actions/dcap-libs@main
+        with:
+          version: 1.16.100.2-jammy1
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: r7kamura/rust-problem-matchers@v1
+      - run: cargo +${{ matrix.rust }} build --release --locked --all-features
+
   test:
     runs-on: ubuntu-22.04
     needs:
