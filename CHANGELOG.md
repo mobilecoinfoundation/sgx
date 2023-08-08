@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Fixed
+
+- Fixed `alloc` feature in `mc-sgx-dcap-types` missing dependency on `serde/alloc`
+
 ## [0.7.4] - 2023-08-08
 
 ### Fixed
