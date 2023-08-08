@@ -75,7 +75,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings
+      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings `${{ matrix.rust == 'beta' }} && echo "-Aclippy::incorrect_clone_impl_on_copy_type"`
 
   build:
     runs-on: ubuntu-22.04
