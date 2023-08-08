@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Fixed
+
+- Fixed `tcb` feature in `mc-sgx-dcap-types` missing dependency on `serde/alloc`
+- Fixed vendored include paths for the `*-sys-*` crate builds. In particular
+  build issues related to `time.h`.
+
 ## [0.7.3] - 2023-08-07
 
 ### Added
