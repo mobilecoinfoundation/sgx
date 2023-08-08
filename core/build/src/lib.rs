@@ -64,9 +64,7 @@ pub fn normalize_item_name(name: &str) -> Option<String> {
 /// Returns a builder configured with the defaults for using bindgen with the
 /// SGX libraries.
 pub fn sgx_builder() -> Builder {
-    let include_path = sgx_include_string();
-
-    let builder = Builder::default()
+    let mut builder = Builder::default()
         .derive_copy(false)
         .derive_debug(false)
         .default_enum_style(EnumVariation::NewType {
@@ -77,10 +75,13 @@ pub fn sgx_builder() -> Builder {
         .use_core()
         .ctypes_prefix("core::ffi")
         .allowlist_recursively(false)
-        .clang_args(env_c_flags())
-        .clang_arg(format!("-I{include_path}"));
+        .clang_args(env_c_flags());
 
-    cargo_emit::rerun_if_changed!(include_path);
+    for include_path in vendored_include_paths() {
+        let include_path = include_path.display();
+        builder = builder.clang_arg(format!("-I{include_path}"));
+        cargo_emit::rerun_if_changed!(include_path);
+    }
 
     builder
 }
@@ -268,22 +269,12 @@ fn sgx_sdk_dir() -> Option<PathBuf> {
 /// scattered about the repo.
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
-/// Return the SGX include path
+/// Return the SGX include paths
 ///
-/// Will first attempt to look at the environment variable `SGX_SDK`, if that
-/// isn't present then the "headers" directory of this crate will be used.
-pub fn sgx_include_dir() -> PathBuf {
-    PathBuf::from(CARGO_MANIFEST_DIR).join("headers")
-}
-
-/// Return the SGX include path as a string.
-///
-/// Calls sgx_include_dir() and converts to a string.
-pub fn sgx_include_string() -> String {
-    sgx_include_dir()
-        .to_str()
-        .expect("SGX_SDK contained invalid UTF-8 that wasn't caught by rust")
-        .to_owned()
+/// The paths to the vendored headers are always used.
+fn vendored_include_paths() -> Vec<PathBuf> {
+    let headers = PathBuf::from(CARGO_MANIFEST_DIR).join("headers");
+    vec![headers.join("tlibc"), headers]
 }
 
 /// Return the SGX library path.
