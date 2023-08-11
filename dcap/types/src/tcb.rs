@@ -10,12 +10,13 @@
 //! for the advisories associated with these TCB values at
 //! <https://api.trustedservices.intel.com/sgx/certification/v4/tcb?fmspc={}>.
 
+use crate::{CertificationData, Quote3};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use const_oid::ObjectIdentifier;
 use x509_cert::attr::{AttributeTypeAndValue, AttributeValue};
 use x509_cert::der::asn1::OctetStringRef;
-use x509_cert::der::Decode;
+use x509_cert::der::{Decode, DecodePem};
 use x509_cert::Certificate;
 
 /// Per <https://api.portal.trustedservices.intel.com/documentation#pcs-tcb-info-model-v3>
@@ -59,6 +60,8 @@ pub enum Error {
     Der(x509_cert::der::Error),
     /// Expected an FMSPC size of 6 bytes, got {0}
     FmspcSize(usize),
+    /// Unsupported quote certification data, should be `PckCertificateChain`
+    UnsupportedQuoteCertificationData,
 }
 
 impl From<x509_cert::der::Error> for Error {
@@ -129,6 +132,26 @@ impl TryFrom<&Certificate> for TcbInfo {
         let (pce_svn, svns) = tcb_svns(&sgx_extensions)?;
 
         Ok(TcbInfo::new(svns, pce_svn, fmspc))
+    }
+}
+
+impl<T: AsRef<[u8]>> TryFrom<&Quote3<T>> for TcbInfo {
+    type Error = Error;
+
+    fn try_from(quote: &Quote3<T>) -> Result<Self, Self::Error> {
+        let signature_data = quote.signature_data();
+        let certification_data = signature_data.certification_data();
+        let CertificationData::PckCertificateChain(pem_chain) = certification_data else {
+            return Err(Error::UnsupportedQuoteCertificationData);
+        };
+        let chain = pem_chain
+            .into_iter()
+            .map(Certificate::from_pem)
+            .collect::<Result<Vec<_>, _>>()?;
+        let leaf_cert = chain
+            .first()
+            .ok_or(Error::UnsupportedQuoteCertificationData)?;
+        Self::try_from(leaf_cert)
     }
 }
 
@@ -206,7 +229,10 @@ fn tcb_svns(sgx_extensions: &SgxExtensions) -> Result<(u32, [u32; COMPONENT_SVN_
 mod test {
     use super::*;
     use alloc::vec;
+    use assert_matches::assert_matches;
+    use core::mem;
     use core::ops::Range;
+    use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t};
     use x509_cert::der::Tag::{BitString, OctetString};
     use x509_cert::der::{Any, Encode};
     use yare::parameterized;
@@ -227,6 +253,23 @@ mod test {
 
         let oid_end = oid_offset + oid_bytes.len();
         oid_offset..oid_end
+    }
+
+    /// Get the offset to the QE Certification data within the provided quote bytes
+    ///
+    /// The QE Certification data and its offset is defined in Table 9
+    /// <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf#%5B%7B%22num%22%3A72%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C69%2C356%2C0%5D>
+    fn cert_data_offset(quote_bytes: impl AsRef<[u8]>) -> usize {
+        let quote_bytes = quote_bytes.as_ref();
+        let auth_data_offset =
+            mem::size_of::<sgx_quote3_t>() + mem::size_of::<sgx_ql_ecdsa_sig_data_t>();
+        let auth_data_size = u16::from_le_bytes([
+            quote_bytes[auth_data_offset],
+            quote_bytes[auth_data_offset + 1],
+        ]) as usize;
+
+        // "2" is for the u16 for reading in the auth data size
+        auth_data_offset + auth_data_size + 2
     }
 
     #[test]
@@ -407,5 +450,80 @@ mod test {
         let tcb_info = TcbInfo::new([0u32; COMPONENT_SVN_COUNT], 0, fmspc);
 
         assert_eq!(tcb_info.fmspc_to_hex(), expected);
+    }
+
+    #[test]
+    fn tcb_from_quote() {
+        let hw_quote = include_bytes!("../data/tests/hw_quote.dat");
+        let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
+        let tcb_info = TcbInfo::try_from(&quote).expect("Failed getting tcb info from quote");
+
+        // These were taken by looking at `leaf_cert.der` on an ASN1 decoder, like
+        // <https://lapo.it/asn1js/#MIIEjzCCBDSgAwIBAgIVAPtJxlxRlleZOb_spRh9U8K7AT_3MAoGCCqGSM49BAMCMHExIzAhBgNVBAMMGkludGVsIFNHWCBQQ0sgUHJvY2Vzc29yIENBMRowGAYDVQQKDBFJbnRlbCBDb3Jwb3JhdGlvbjEUMBIGA1UEBwwLU2FudGEgQ2xhcmExCzAJBgNVBAgMAkNBMQswCQYDVQQGEwJVUzAeFw0yMjA2MTMyMTQ2MzRaFw0yOTA2MTMyMTQ2MzRaMHAxIjAgBgNVBAMMGUludGVsIFNHWCBQQ0sgQ2VydGlmaWNhdGUxGjAYBgNVBAoMEUludGVsIENvcnBvcmF0aW9uMRQwEgYDVQQHDAtTYW50YSBDbGFyYTELMAkGA1UECAwCQ0ExCzAJBgNVBAYTAlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEj_Ee1lkGJofDX745Ks5qxqu7Mk7Mqcwkx58TCSTsabRCSvobSl_Ts8b0dltKUW3jqRd-SxnPEWJ-jUw-SpzwWaOCAqgwggKkMB8GA1UdIwQYMBaAFNDoqtp11_kuSReYPHsUZdDV8llNMGwGA1UdHwRlMGMwYaBfoF2GW2h0dHBzOi8vYXBpLnRydXN0ZWRzZXJ2aWNlcy5pbnRlbC5jb20vc2d4L2NlcnRpZmljYXRpb24vdjMvcGNrY3JsP2NhPXByb2Nlc3NvciZlbmNvZGluZz1kZXIwHQYDVR0OBBYEFKy9gk624HzNnDyCw7QWnhmVfE31MA4GA1UdDwEB_wQEAwIGwDAMBgNVHRMBAf8EAjAAMIIB1AYJKoZIhvhNAQ0BBIIBxTCCAcEwHgYKKoZIhvhNAQ0BAQQQ36FQl3ntUr3KUwbEFvmRGzCCAWQGCiqGSIb4TQENAQIwggFUMBAGCyqGSIb4TQENAQIBAgERMBAGCyqGSIb4TQENAQICAgERMBAGCyqGSIb4TQENAQIDAgECMBAGCyqGSIb4TQENAQIEAgEEMBAGCyqGSIb4TQENAQIFAgEBMBEGCyqGSIb4TQENAQIGAgIAgDAQBgsqhkiG-E0BDQECBwIBBjAQBgsqhkiG-E0BDQECCAIBADAQBgsqhkiG-E0BDQECCQIBADAQBgsqhkiG-E0BDQECCgIBADAQBgsqhkiG-E0BDQECCwIBADAQBgsqhkiG-E0BDQECDAIBADAQBgsqhkiG-E0BDQECDQIBADAQBgsqhkiG-E0BDQECDgIBADAQBgsqhkiG-E0BDQECDwIBADAQBgsqhkiG-E0BDQECEAIBADAQBgsqhkiG-E0BDQECEQIBCzAfBgsqhkiG-E0BDQECEgQQERECBAGABgAAAAAAAAAAADAQBgoqhkiG-E0BDQEDBAIAADAUBgoqhkiG-E0BDQEEBAYAkG7VAAAwDwYKKoZIhvhNAQ0BBQoBADAKBggqhkjOPQQDAgNJADBGAiEA1XJi0ht4hw8YtC6E4rYscp9bF-7UOhVGeKePA5TW2FQCIQCIUAaewOuWOIvstZN4V8Zu8NFCC4vFg-cZqO6QfezEaA>
+        let expected_tcb_info = TcbInfo {
+            svns: [17, 17, 2, 4, 1, 128, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            pce_svn: 11,
+            fmspc: [0, 144, 110, 213, 0, 0],
+        };
+        assert_eq!(tcb_info, expected_tcb_info);
+    }
+
+    #[test]
+    fn tcb_from_quote_fails_for_wrong_cert_data_type() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+
+        let cert_data_offset = cert_data_offset(&hw_quote);
+
+        // Not all types are supported so we set to 1
+        // (PPID in plain text, CPUSVN and PCESVN)
+        hw_quote[cert_data_offset] = 1;
+
+        let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
+
+        assert_matches!(
+            TcbInfo::try_from(&quote),
+            Err(Error::UnsupportedQuoteCertificationData)
+        );
+    }
+
+    #[test]
+    fn tcb_from_quote_fails_for_no_certificates() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+
+        let cert_data_offset = cert_data_offset(&hw_quote);
+
+        // 2, to skip the certification data type
+        let start = cert_data_offset + 2;
+        let end = start + 4;
+
+        // Setting size to 0 bytes, so no certs
+        hw_quote[start..end].copy_from_slice(&[0, 0, 0, 0]);
+
+        let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
+
+        assert_matches!(
+            TcbInfo::try_from(&quote),
+            Err(Error::UnsupportedQuoteCertificationData)
+        );
+    }
+
+    #[test]
+    fn tcb_from_quote_fails_to_decode_certificates() {
+        let mut hw_quote = include_bytes!("../data/tests/hw_quote.dat").to_vec();
+
+        let cert_data_offset = cert_data_offset(&hw_quote);
+
+        // 2 to skip the certification data type, 4 to skip the size
+        let cert_contents_offset = cert_data_offset + 2 + 4;
+
+        // Then we skip past the PEM header to get to a pem byte that we can change.
+        let pem_byte_offset = cert_contents_offset + "-----BEGIN CERTIFICATE-----\n".len();
+
+        // `%` is an invalid base64 character sure to make the parsing fail.
+        hw_quote[pem_byte_offset] = '%' as u8;
+
+        let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
+
+        assert_matches!(TcbInfo::try_from(&quote), Err(Error::Der(_)));
     }
 }
