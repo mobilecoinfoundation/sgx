@@ -13,7 +13,7 @@ rust-version = "1.62.1"
 
 [features]
 default = []
-alloc = ["dep:x509-cert"]
+alloc = ["dep:x509-cert", "serde/alloc"]
 tcb = ["alloc", "dep:x509-cert", "dep:const-oid", "dep:hex", "serde/alloc"]
 
 [dependencies]
