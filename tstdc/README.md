@@ -38,5 +38,5 @@ thread(s) consistently at the synchronization points.
 [crate-link]: https://crates.io/crates/mc-sgx-tstdc
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tstdc?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tstdc
-[deps-image]: https://deps.rs/crate/mc-sgx-tstdc/0.7.3/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tstdc/0.7.3
+[deps-image]: https://deps.rs/crate/mc-sgx-tstdc/0.7.4/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tstdc/0.7.4

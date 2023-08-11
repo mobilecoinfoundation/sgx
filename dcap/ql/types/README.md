@@ -17,5 +17,5 @@ Rust wrappers for types used by the `libsgx_dcap_ql` library.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-ql-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-ql-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-ql-types
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-ql-types/0.7.3/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-ql-types/0.7.3
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-ql-types/0.7.4/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-ql-types/0.7.4

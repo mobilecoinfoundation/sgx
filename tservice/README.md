@@ -17,5 +17,5 @@ Idiomatic rust for the `sgx_tservice` library.
 [crate-link]: https://crates.io/crates/mc-sgx-tservice
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tservice?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tservice
-[deps-image]: https://deps.rs/crate/mc-sgx-tservice/0.7.3/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tservice/0.7.3
+[deps-image]: https://deps.rs/crate/mc-sgx-tservice/0.7.4/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tservice/0.7.4

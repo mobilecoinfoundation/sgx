@@ -17,5 +17,5 @@ Rust wrappers for types used by the `libsgx_capable` library.
 [crate-link]: https://crates.io/crates/mc-sgx-capable-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-capable-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-capable-types
-[deps-image]: https://deps.rs/crate/mc-sgx-capable-types/0.7.3/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-capable-types/0.7.3
+[deps-image]: https://deps.rs/crate/mc-sgx-capable-types/0.7.4/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-capable-types/0.7.4

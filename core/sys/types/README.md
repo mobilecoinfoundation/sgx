@@ -17,5 +17,5 @@ Provides FFI types used by various SGX libraries.
 [chat-link]: https://mobilecoin.chat
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-core-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-core-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-core-sys-types/0.7.3/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-core-sys-types/0.7.3
+[deps-image]: https://deps.rs/crate/mc-sgx-core-sys-types/0.7.4/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-core-sys-types/0.7.4
