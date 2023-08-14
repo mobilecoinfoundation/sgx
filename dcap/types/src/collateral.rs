@@ -76,14 +76,14 @@ impl From<FromUtf8Error> for Error {
 ///
 /// The certificate chains and CRLs are documented in
 /// <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.5.pdf>
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Collateral {
     #[serde(with = "certificate_list")]
-    root_ca_crl: CertificateList,
+    root_ca_crl: Option<CertificateList>,
     #[serde(with = "certificates")]
     pck_crl_issuer_chain: Vec<Certificate>,
     #[serde(with = "certificate_list")]
-    pck_crl: CertificateList,
+    pck_crl: Option<CertificateList>,
     #[serde(with = "certificates")]
     tcb_issuer_chain: Vec<Certificate>,
     tcb_info: String,
@@ -101,7 +101,7 @@ impl Collateral {
     ///
     /// It can manually be retrieved from
     /// <https://certificates.trustedservices.intel.com/IntelSGXRootCA.der>
-    pub fn root_ca_crl(&self) -> &CertificateList {
+    pub fn root_ca_crl(&self) -> &Option<CertificateList> {
         &self.root_ca_crl
     }
 
@@ -118,7 +118,7 @@ impl Collateral {
     ///
     /// This will be the "Intel® SGX PCK Processor CA CRL" described in
     /// <https://api.trustedservices.intel.com/documents/Intel_SGX_PCK_Certificate_CRL_Spec-1.5.pdf>.
-    pub fn pck_crl(&self) -> &CertificateList {
+    pub fn pck_crl(&self) -> &Option<CertificateList> {
         &self.pck_crl
     }
 
@@ -158,12 +158,12 @@ impl TryFrom<&sgx_ql_qve_collateral_t> for Collateral {
 
     fn try_from(collateral: &sgx_ql_qve_collateral_t) -> Result<Self, Self::Error> {
         ensure_version(collateral)?;
-        let root_ca_crl = crl_from_bytes(collateral.root_ca_crl, collateral.root_ca_crl_size)?;
+        let root_ca_crl = Some(crl_from_bytes(collateral.root_ca_crl, collateral.root_ca_crl_size)?);
         let pck_crl_issuer_chain = cert_chain_from_bytes(
             collateral.pck_crl_issuer_chain,
             collateral.pck_crl_issuer_chain_size,
         )?;
-        let pck_crl = crl_from_bytes(collateral.pck_crl, collateral.pck_crl_size)?;
+        let pck_crl = Some(crl_from_bytes(collateral.pck_crl, collateral.pck_crl_size)?);
         let tcb_issuer_chain = cert_chain_from_bytes(
             collateral.tcb_info_issuer_chain,
             collateral.tcb_info_issuer_chain_size,
@@ -680,9 +680,9 @@ mod test {
         root_crl.pop();
         pck_crl.pop();
         let root_ca_crl =
-            CertificateList::from_der(root_crl.as_slice()).expect("Failed to parse root CRL");
+            Some(CertificateList::from_der(root_crl.as_slice()).expect("Failed to parse root CRL"));
         let pck_crl =
-            CertificateList::from_der(pck_crl.as_slice()).expect("Failed to parse PCK CRL");
+            Some(CertificateList::from_der(pck_crl.as_slice()).expect("Failed to parse PCK CRL"));
         assert_eq!(collateral.pck_crl_issuer_chain, certificates);
         assert_eq!(collateral.root_ca_crl, root_ca_crl);
         assert_eq!(collateral.pck_crl, pck_crl);
