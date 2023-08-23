@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-core-types"
-version = "0.7.4"
+version = "0.7.5"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for common SGX types."
@@ -19,8 +19,8 @@ alloc = []
 bitflags = "2.0.0"
 displaydoc = { version = "0.2.3", default-features = false }
 hex = { version = "0.4.2", default-features = false }
-mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.7.4" }
-mc-sgx-util = { path = "../../util", version = "=0.7.4" }
+mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.7.5" }
+mc-sgx-util = { path = "../../util", version = "=0.7.5" }
 nom = { version = "7.1.2", default-features = false }
 rand_core = { version = "0.6.4", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
