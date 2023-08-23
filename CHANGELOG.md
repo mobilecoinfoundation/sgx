@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `Deserialize` and `Serialize` traits to:
   - `mc-sgx-core-types::QuoteNonce`
+- Added `ConstantTimeEq` trait to:
+  - `mc-sgx-core-types::QuoteNonce`
+  - `mc-sgx-core-types::Basename`
+  - `mc-sgx-core-types::PlatformInfo`
+  - `mc-sgx-core-types::ReportData`
+  - `mc-sgx-core-types::KeyId`
+  - `mc-sgx-core-types::MrEnclave`
+  - `mc-sgx-core-types::MrSigner`
+  - `mc-sgx-core-types::CpuSvn`
 
 ### Fixed
 

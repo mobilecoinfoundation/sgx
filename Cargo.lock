@@ -556,6 +556,7 @@ dependencies = [
  "rand_core",
  "serde",
  "serde_cbor",
+ "subtle",
  "textwrap",
  "yare",
 ]

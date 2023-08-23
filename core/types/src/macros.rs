@@ -3,6 +3,8 @@
 #[cfg(feature = "alloc")]
 pub(crate) use alloc::vec::Vec;
 
+pub(crate) use subtle::ConstantTimeEq;
+
 /// Boilerplate macro to fill in any trait implementations required by
 /// an SgxWrapperType that don't depend on the contents of the inner
 /// type.
@@ -94,6 +96,12 @@ macro_rules! impl_newtype_for_bytestruct {
         impl AsMut<[u8]> for $wrapper {
             fn as_mut(&mut self) -> &mut [u8] {
                 &mut (self.0).$fieldname[..]
+            }
+        }
+
+        impl $crate::macros::ConstantTimeEq for $wrapper {
+            fn ct_eq(&self, other: &Self) -> subtle::Choice {
+                (self.0).$fieldname[..].ct_eq(&(other.0).$fieldname[..])
             }
         }
 
