@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `TryFrom<Quote3<T>` impl for `TcbInfo`
 - Added `Deserialize` and `Serialize` traits to:
   - `mc-sgx-core-types::QuoteNonce`
 - Added `ConstantTimeEq` trait to:
