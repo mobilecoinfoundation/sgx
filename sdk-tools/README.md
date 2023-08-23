@@ -17,5 +17,5 @@ Tools for building SGX enclaves
 [crate-link]: https://crates.io/crates/mc-sgx-sdk-tools
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-sdk-tools?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-sdk-tools
-[deps-image]: https://deps.rs/crate/mc-sgx-sdk-tools/0.7.4/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-sdk-tools/0.7.4
+[deps-image]: https://deps.rs/crate/mc-sgx-sdk-tools/0.7.5/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-sdk-tools/0.7.5
