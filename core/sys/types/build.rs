@@ -115,6 +115,7 @@ fn main() {
             "sgx_report_t",
             "sgx_key_id_t",
             "sgx_cpu_svn_t",
+            "sgx_quote_nonce_t",
         ])
         .derive_default([
             "sgx_report_t",

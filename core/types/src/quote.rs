@@ -9,6 +9,7 @@ use mc_sgx_core_sys_types::{
     sgx_basename_t, sgx_epid_group_id_t, sgx_platform_info_t, sgx_qe_report_info_t,
     sgx_quote_nonce_t, sgx_quote_sign_type_t, sgx_update_info_bit_t, SGX_PLATFORM_INFO_SIZE,
 };
+use serde::{Deserialize, Serialize};
 
 /// Quoting Enclave Report Info
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
@@ -96,7 +97,7 @@ impl_display_for_bytestruct!(Basename);
 const NONCE_SIZE: usize = 16;
 
 /// Quote Nonce
-#[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(transparent)]
 pub struct QuoteNonce(sgx_quote_nonce_t);
 
@@ -396,5 +397,13 @@ mod test {
         let mut report = sgx_report_t::default();
         report.body.misc_select = 3;
         assert_eq!(info.report(), Report::from(report));
+    }
+
+    #[test]
+    fn serializing_quote_nonce() {
+        let nonce = QuoteNonce::from([1u8; 16]);
+        let serialized = serde_cbor::to_vec(&nonce).expect("Failed to serialize nonce");
+        let new_nonce = serde_cbor::from_slice(&serialized).expect("Failed to deserialize nonce");
+        assert_eq!(nonce, new_nonce);
     }
 }
