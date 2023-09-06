@@ -432,7 +432,7 @@ mod test {
         let mut cert_data = [0u8; MIN_CERT_DATA_SIZE];
         cert_data[0] = 5;
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -453,7 +453,7 @@ mod test {
         cert_data.extend(cert);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -486,7 +486,7 @@ mod test {
         cert_chain.splice(2..2, size_bytes);
 
         let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -512,7 +512,7 @@ mod test {
         cert_data.extend(pem);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -543,7 +543,7 @@ mod test {
         cert_data.extend(pem);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -574,7 +574,7 @@ mod test {
         cert_data.extend(pem);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -607,7 +607,7 @@ mod test {
         cert_data.extend(key);
 
         let certification_data = CertificationData::try_from(cert_data.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
@@ -646,7 +646,7 @@ mod test {
         cert_chain.splice(2..2, size_bytes);
 
         let certification_data = CertificationData::try_from(cert_chain.as_slice()).unwrap();
-        let CertificationData::PckCertificateChain(cert_chain) = certification_data  else {
+        let CertificationData::PckCertificateChain(cert_chain) = certification_data else {
             panic!("expected a PckCertChain");
         };
         let cert_iter = cert_chain.into_iter();
