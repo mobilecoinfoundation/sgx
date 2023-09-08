@@ -14,6 +14,7 @@ use crate::{CertificationData, Quote3};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use const_oid::ObjectIdentifier;
+use serde::{Deserialize, Serialize};
 use x509_cert::attr::{AttributeTypeAndValue, AttributeValue};
 use x509_cert::der::asn1::OctetStringRef;
 use x509_cert::der::{Decode, DecodePem};
@@ -52,12 +53,12 @@ const PCE_SVN_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.1137
 const FMSPC_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.4");
 
 /// Error parsing TCB info from PCK leaf certificate
-#[derive(Debug, PartialEq, displaydoc::Display)]
+#[derive(Debug, PartialEq, displaydoc::Display, Clone, Serialize, Deserialize)]
 pub enum Error {
     /// Missing the SGX OID extension: {0}
     MissingSgxExtension(String),
     /// Failed to parse TCB info: {0}
-    Der(x509_cert::der::Error),
+    Der(String),
     /// Expected an FMSPC size of 6 bytes, got {0}
     FmspcSize(usize),
     /// Unsupported quote certification data, should be `PckCertificateChain`
@@ -66,7 +67,7 @@ pub enum Error {
 
 impl From<x509_cert::der::Error> for Error {
     fn from(err: x509_cert::der::Error) -> Self {
-        Error::Der(err)
+        Error::Der(err.to_string())
     }
 }
 
