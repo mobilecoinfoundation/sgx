@@ -53,7 +53,7 @@ const PCE_SVN_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.1137
 const FMSPC_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113741.1.13.1.4");
 
 /// Error parsing TCB info from PCK leaf certificate
-#[derive(Debug, PartialEq, displaydoc::Display, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, displaydoc::Display, Clone, Serialize, Deserialize)]
 pub enum Error {
     /// Missing the SGX OID extension: {0}
     MissingSgxExtension(String),
