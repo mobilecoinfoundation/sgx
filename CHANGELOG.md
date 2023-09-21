@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.8.0] - 2023-09-21
+
 ### Added
 
 - Added `Deserialize`, `Serialize`, and `Clone` traits to `mc-sgx-dcap-types::TcbError`.
@@ -241,7 +243,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.7.5...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.7.5...v0.8.0
 [0.7.5]: https://github.com/mobilecoinfoundation/sgx/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/mobilecoinfoundation/sgx/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/mobilecoinfoundation/sgx/compare/v0.7.2...v0.7.3

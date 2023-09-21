@@ -17,5 +17,5 @@ FFI type definitions used by the `sgx_dcap_ql` library.
 [chat-link]: https://mobilecoin.chat
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-ql-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-ql-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-ql-sys-types/0.7.5/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-ql-sys-types/0.7.5
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-ql-sys-types/0.8.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-ql-sys-types/0.8.0
