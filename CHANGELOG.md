@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Added `Deserialize`, `Serialize`, and `Clone` traits to `mc-sgx-dcap-types::TcbError`.
+
+### Changed
+
+- Changed from `mc-sgx-dcap-types::TcbError::Der(x509_cert::der::Error)` to
+  `mc-sgx-dcap-types::TcbError::Der(String)`. The containing string is the
+  formatted `x509_cert::der::Error` message.
+
 ## [0.7.5] - 2023-08-23
 
 ### Added
