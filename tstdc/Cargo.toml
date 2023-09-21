@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-tstdc"
-version = "0.7.5"
+version = "0.8.0"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -19,5 +19,5 @@ doctest = false
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
 libc = { version = "0.2.139", default-features = false }
-mc-sgx-tstdc-sys = { path = "sys", version = "=0.7.5" }
-mc-sgx-tstdc-sys-types = { path = "sys/types", version = "=0.7.5" }
+mc-sgx-tstdc-sys = { path = "sys", version = "=0.8.0" }
+mc-sgx-tstdc-sys-types = { path = "sys/types", version = "=0.8.0" }
