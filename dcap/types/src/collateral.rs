@@ -199,7 +199,18 @@ fn string_from_bytes(bytes: *mut core::ffi::c_char, size: u32) -> Result<String,
     // thus no longer references the `bytes`.
     #[allow(unsafe_code)]
     let slice = unsafe { core::slice::from_raw_parts(bytes as *const u8, size as usize) };
-    Ok(String::from_utf8(slice.to_vec())?)
+
+    let string = String::from_utf8(slice.to_vec())?;
+
+    // The C API returns a null terminated string, so we need to trim the null
+    // byte(s) off for Json parsers.
+    let trimmed = string.trim_matches('\0');
+
+    if trimmed.is_empty() {
+        return Err(Error::MissingCollateral);
+    }
+
+    Ok(trimmed.into())
 }
 
 fn crl_from_bytes(bytes: *const core::ffi::c_char, size: u32) -> Result<CertificateList, Error> {
@@ -618,6 +629,20 @@ mod test {
     }
 
     #[test]
+    fn null_terminated_string_strips_off_trailing_null_characters() {
+        let non_null_terminated_string =
+            String::from("This is my string. There are many like it, but this one is mine.");
+        let mut null_terminated_string = non_null_terminated_string.clone();
+        null_terminated_string.push('\0');
+        let string = string_from_bytes(
+            null_terminated_string.as_mut_ptr() as *mut core::ffi::c_char,
+            null_terminated_string.len() as u32,
+        )
+        .expect("Expect valid string");
+        assert_eq!(string, non_null_terminated_string);
+    }
+
+    #[test]
     fn null_string_fails() {
         assert_eq!(
             string_from_bytes(core::ptr::null_mut(), 10),
@@ -644,6 +669,21 @@ mod test {
             string_from_bytes(
                 empty_string.as_mut_ptr() as *mut core::ffi::c_char,
                 empty_string.len() as u32
+            ),
+            Err(Error::MissingCollateral)
+        );
+    }
+
+    #[test]
+    fn string_of_only_null_bytes_fails() {
+        let mut null_string = String::new();
+        null_string.push('\0');
+        null_string.push('\0');
+        null_string.push('\0');
+        assert_eq!(
+            string_from_bytes(
+                null_string.as_mut_ptr() as *mut core::ffi::c_char,
+                null_string.len() as u32
             ),
             Err(Error::MissingCollateral)
         );
