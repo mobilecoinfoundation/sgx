@@ -70,12 +70,19 @@ jobs:
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.16.100.2-jammy1
+      - id: suppression
+        run: |
+          if [ "${{ matrix.rust }}" == "stable" ]; then
+            echo "suppression=-Aclippy::incorrect_clone_impl_on_copy_type" >> "$GITHUB_OUTPUT"
+          elif [ "${{ matrix.rust }}" == "beta" ]; then
+            echo "suppression=-Aclippy::non_canonical_clone_impl" >> "$GITHUB_OUTPUT"
+          fi
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings -Aclippy::incorrect_clone_impl_on_copy_type
+      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings ${{ steps.suppression.outputs.suppression }}
 
   build:
     runs-on: ubuntu-22.04
