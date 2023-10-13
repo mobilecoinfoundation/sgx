@@ -7,10 +7,10 @@ use bitflags::bitflags;
 use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
-    sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_FLAGS_DEBUG,
-    SGX_FLAGS_EINITTOKEN_KEY, SGX_FLAGS_INITTED, SGX_FLAGS_KSS, SGX_FLAGS_MODE64BIT,
-    SGX_FLAGS_NON_CHECK_BITS, SGX_FLAGS_PROVISION_KEY, SGX_XFRM_AMX, SGX_XFRM_AVX, SGX_XFRM_AVX512,
-    SGX_XFRM_LEGACY, SGX_XFRM_MPX, SGX_XFRM_PKRU,
+    sgx_attributes_t, sgx_misc_attribute_t, sgx_misc_select_t, SGX_FLAGS_AEX_NOTIFY,
+    SGX_FLAGS_DEBUG, SGX_FLAGS_EINITTOKEN_KEY, SGX_FLAGS_INITTED, SGX_FLAGS_KSS,
+    SGX_FLAGS_MODE64BIT, SGX_FLAGS_NON_CHECK_BITS, SGX_FLAGS_PROVISION_KEY, SGX_XFRM_AMX,
+    SGX_XFRM_AVX, SGX_XFRM_AVX512, SGX_XFRM_LEGACY, SGX_XFRM_MPX, SGX_XFRM_PKRU,
 };
 
 /// Attributes of the enclave
@@ -122,6 +122,8 @@ bitflags! {
         const EINIT_TOKEN_KEY = SGX_FLAGS_EINITTOKEN_KEY as u64;
         /// If set, then the enclave uses KSS(Key Separation and Sharing)
         const KSS = SGX_FLAGS_KSS as u64;
+        /// If set, then the enclave enables AEX Notify
+        const AEX_NOTIFY = SGX_FLAGS_AEX_NOTIFY as u64;
         /// BIT[55-48] will not be checked */
         const NON_CHECK_BITS = SGX_FLAGS_NON_CHECK_BITS;
         /// Value used by `sgx_seal_data()`. See `attribute_mask` description in

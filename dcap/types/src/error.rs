@@ -283,6 +283,8 @@ pub enum QlError {
     RootCaUntrusted = quote3_error_t::SGX_QL_ROOT_CA_UNTRUSTED.0,
     /// The current TCB level cannot be found in the platform/enclave TCB info
     TcbNotSupported = quote3_error_t::SGX_QL_TCB_NOT_SUPPORTED.0,
+    /// The QPL's config file is in JSON format but has a format error
+    ConfigInvalidJson = quote3_error_t::SGX_QL_CONFIG_INVALID_JSON.0,
 
     /// Indicate max error to allow better translation
     Max = quote3_error_t::SGX_QL_ERROR_MAX.0,
@@ -420,6 +422,7 @@ impl TryFrom<quote3_error_t> for QlError {
             }
             quote3_error_t::SGX_QL_ROOT_CA_UNTRUSTED => Ok(QlError::RootCaUntrusted),
             quote3_error_t::SGX_QL_TCB_NOT_SUPPORTED => Ok(QlError::TcbNotSupported),
+            quote3_error_t::SGX_QL_CONFIG_INVALID_JSON => Ok(QlError::ConfigInvalidJson),
             quote3_error_t::SGX_QL_ERROR_MAX => Ok(QlError::Max),
             // Map all unknowns to the unexpected error
             _ => Ok(QlError::Unexpected),
@@ -527,6 +530,7 @@ mod test {
     supplemental_data_version_not_supported = { quote3_error_t::SGX_QL_SUPPLEMENTAL_DATA_VERSION_NOT_SUPPORTED, QlError::SupplementalDataVersionNotSupported },
     root_ca_untrusted = { quote3_error_t::SGX_QL_ROOT_CA_UNTRUSTED, QlError::RootCaUntrusted },
     tcb_not_supported = { quote3_error_t::SGX_QL_TCB_NOT_SUPPORTED, QlError::TcbNotSupported },
+    config_invalid_json = { quote3_error_t::SGX_QL_CONFIG_INVALID_JSON, QlError::ConfigInvalidJson },
     max = { quote3_error_t::SGX_QL_ERROR_MAX, QlError::Max }
     )]
     fn error_from_ffi(ffi: quote3_error_t, expected: QlError) {
