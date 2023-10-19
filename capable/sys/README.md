@@ -17,5 +17,5 @@ FFI bindings to the `libsgx_capable` library.
 [crate-link]: https://crates.io/crates/mc-sgx-capable-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-capable-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-capable-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-capable-sys/0.8.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-capable-sys/0.8.0
+[deps-image]: https://deps.rs/crate/mc-sgx-capable-sys/0.9.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-capable-sys/0.9.0
