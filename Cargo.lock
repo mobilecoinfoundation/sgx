@@ -643,7 +643,6 @@ dependencies = [
  "bindgen",
  "cargo-emit",
  "mc-sgx-core-build",
- "mc-sgx-dcap-sys-types",
 ]
 
 [[package]]
@@ -672,7 +671,6 @@ dependencies = [
  "cargo-emit",
  "mc-sgx-core-build",
  "mc-sgx-core-sys-types",
- "mc-sgx-dcap-quoteverify-sys-types",
  "mc-sgx-dcap-sys-types",
 ]
 
