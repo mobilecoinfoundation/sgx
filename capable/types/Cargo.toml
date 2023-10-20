@@ -22,4 +22,4 @@ mc-sgx-util = { path = "../../util", version = "=0.9.0" }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
-yare = "1.0.1"
+yare = "2.0.0"

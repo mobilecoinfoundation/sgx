@@ -35,4 +35,4 @@ getrandom = { version = "0.2", default-features = false, features = ["custom"] }
 rand = "0.8.5"
 serde_cbor = "0.11.1"
 textwrap = "0.16.0"
-yare = "1.0.1"
+yare = "2.0.0"

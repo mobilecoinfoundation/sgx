@@ -29,4 +29,4 @@ serde = { version = "1.0", default-features = false, features = ["derive", "allo
 
 [dev-dependencies]
 mc-sgx-tservice-types = { path = "types", version = "=0.9.0", features = [ "test-utils" ] }
-yare = "1.0.2"
+yare = "2.0.0"
