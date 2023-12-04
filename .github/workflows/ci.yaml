@@ -22,7 +22,7 @@ jobs:
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo fmt --all -- --check
       - uses: xt0rted/markdownlint-problem-matcher@v2
-      - uses: DavidAnson/markdownlint-cli2-action@v13
+      - uses: DavidAnson/markdownlint-cli2-action@v14
         with:
           globs: "**/*.md"
 
@@ -70,19 +70,12 @@ jobs:
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.18.100.1-jammy1
-      - id: suppression
-        run: |
-          if [ "${{ matrix.rust }}" == "stable" ]; then
-            echo "suppression=-Aclippy::incorrect_clone_impl_on_copy_type" >> "$GITHUB_OUTPUT"
-          elif [ "${{ matrix.rust }}" == "beta" ]; then
-            echo "suppression=-Aclippy::non_canonical_clone_impl" >> "$GITHUB_OUTPUT"
-          fi
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - uses: r7kamura/rust-problem-matchers@v1
-      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings ${{ steps.suppression.outputs.suppression }}
+      - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings -Aclippy::non_canonical_clone_impl
 
   build:
     runs-on: ubuntu-22.04
