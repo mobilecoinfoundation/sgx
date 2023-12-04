@@ -7,7 +7,7 @@ use mc_sgx_core_sys_types::{sgx_config_svn_t, sgx_cpu_svn_t, sgx_isv_svn_t, SGX_
 
 /// Config security version number (SVN)
 #[repr(transparent)]
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default, PartialOrd, Ord)]
 pub struct ConfigSvn(sgx_config_svn_t);
 
 impl_newtype_no_display! {
@@ -22,7 +22,7 @@ impl Display for ConfigSvn {
 
 /// Independent software vendor (ISV) security version number (SVN)
 #[repr(transparent)]
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default, PartialOrd, Ord)]
 pub struct IsvSvn(sgx_isv_svn_t);
 
 impl_newtype_no_display! {

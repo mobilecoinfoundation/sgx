@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Added `Ord` and `PartialOrd` traits to:
+  - `mc-sgx-core-types::ConfigSvn`
+  - `mc-sgx-core-types::IsvSvn`
+
 ## [0.9.0] - 2023-10-19
 
 ### Changed
