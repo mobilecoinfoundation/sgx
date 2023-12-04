@@ -12,14 +12,14 @@ RUN  apt-get update \
   && rm -r /var/lib/apt/lists
 
 # Install SGX_SDK
-ARG SGX_URL=https://download.01.org/intel-sgx/sgx-linux/2.21/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.21.100.1.bin
+ARG SGX_URL=https://download.01.org/intel-sgx/sgx-linux/2.22/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.22.100.3.bin
 RUN  curl -o sgx.bin "${SGX_URL}" \
   && chmod +x ./sgx.bin \
   && ./sgx.bin --prefix=/opt/intel \
   && rm ./sgx.bin
 
 # Install DCAP libraries
-ARG DCAP_VERSION=1.18.100.1-jammy1
+ARG DCAP_VERSION=1.19.100.3-jammy1
 RUN mkdir -p /etc/apt/keyrings \
   && wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | gpg --dearmor | tee /etc/apt/keyrings/intel-sgx.gpg > /dev/null \
   && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/intel-sgx.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | tee /etc/apt/sources.list.d/intel-sgx.list \

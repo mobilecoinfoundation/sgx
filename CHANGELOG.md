@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- The SGX SDK version is now 2.22.100.3
+
 ### Added
 
 - Added `Ord` and `PartialOrd` traits to:

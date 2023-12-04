@@ -56,7 +56,7 @@ typedef struct _aes_gcm_data_t
 typedef struct _sealed_data_t
 {
     sgx_key_request_t  key_request;       /* 00: The key request used to obtain the sealing key */
-    uint32_t           plain_text_offset; /* 64: Offset within aes_data.playload to the start of the optional additional MAC text */
+    uint32_t           plain_text_offset; /* 64: Offset within aes_data.payload to the start of the optional additional MAC text */
     uint8_t            reserved[12];      /* 68: Reserved bits */
     sgx_aes_gcm_data_t aes_data;          /* 80: Data structure holding the AES/GCM related data */
 } sgx_sealed_data_t;
@@ -190,8 +190,8 @@ extern "C" {
         uint32_t *p_decrypted_text_length);
 
     /* sgx_mac_aadata
-    * Purpose: Use AES-GCM algorithm to generate a sealed data structure with integrity protection.  
-    *          Specifically, the input data set is ONLY the plaintext data stream, or 
+    * Purpose: Use AES-GCM algorithm to generate a sealed data structure with integrity protection.
+    *          Specifically, the input data set is ONLY the plaintext data stream, or
     *          additional authenticated data(AAD), no encrypt data.
     *          The sgx_sealed_data_t structure should be allocated prior to the API call and
     *          should include buffer storage for the plaintext data.
@@ -237,7 +237,7 @@ extern "C" {
         sgx_sealed_data_t *p_sealed_data);
 
     /* sgx_unmac_aadata
-    * Purpose: Unseal the sealed data structure passed in and populate the plaintext data stream 
+    * Purpose: Unseal the sealed data structure passed in and populate the plaintext data stream
     *          with the appropriate data from the sealed data structure.
     *
     * Parameters:
