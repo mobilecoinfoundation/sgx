@@ -45,7 +45,8 @@ impl From<nom::Err<nom::error::Error<&[u8]>>> for FfiError {
 ///  7. `0x6000-0x6fff`: Errors with the encrypted enclave loader.
 ///  8. `0x7000-0x7fff`: Errors with the "SGX Encrypted FS" utility.
 ///  9. `0x8000-0x8fff`: Attestation key errors.
-/// 10. `0xf000-0xffff`: Internal (to SGX) errors.
+/// 10. `0x9000-0x9fff`: TLS errors.
+/// 11. `0xf000-0xffff`: Internal (to SGX) errors.
 #[derive(
     Copy,
     Clone,
@@ -249,6 +250,10 @@ pub enum Error {
     /// The PCK cert for the platform is not available.
     PlatformCertUnavailable,
 
+    // 0x9000-0x9fff: TLS errors
+    /// RA-TLS x509 invalid extension
+    TlsX509InvalidExtension,
+
     // 0xf000-0xffff: Internal-to-SGX errors
     /// The ioctl for enclave_create unexpectedly failed with EINTR.
     EnclaveCreateInterrupted,
@@ -355,6 +360,11 @@ impl TryFrom<sgx_status_t> for Error {
             sgx_status_t::SGX_ERROR_INVALID_ATT_KEY_CERT_DATA => Ok(Error::InvalidAttKeyCertData),
             sgx_status_t::SGX_ERROR_PLATFORM_CERT_UNAVAILABLE => Ok(Error::PlatformCertUnavailable),
 
+            // 0x9000-0x9fff: TLS errors
+            sgx_status_t::SGX_ERROR_TLS_X509_INVALID_EXTENSION => {
+                Ok(Error::TlsX509InvalidExtension)
+            }
+
             // 0xf000-0xffff: Internal-to-SGX errors
             sgx_status_t::SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED => {
                 Ok(Error::EnclaveCreateInterrupted)
@@ -393,6 +403,7 @@ mod test {
         file_close_failed = { sgx_status_t::SGX_ERROR_FILE_CLOSE_FAILED, Error::FileCloseFailed },
         unsupported_att_key_id = { sgx_status_t::SGX_ERROR_UNSUPPORTED_ATT_KEY_ID, Error::UnsupportedAttKeyId },
         platform_cert_unavailable = { sgx_status_t::SGX_ERROR_PLATFORM_CERT_UNAVAILABLE, Error::PlatformCertUnavailable },
+        invald_ra_tls = { sgx_status_t::SGX_ERROR_TLS_X509_INVALID_EXTENSION, Error::TlsX509InvalidExtension },
         interrupted = { sgx_status_t::SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED, Error::EnclaveCreateInterrupted },
     )]
     fn from_sgx_to_error(sgx_status: sgx_status_t, expected: Error) {

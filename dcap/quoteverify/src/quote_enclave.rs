@@ -223,7 +223,6 @@ mod test {
     use serial_test::serial;
     use std::fs;
     use tempfile::tempdir;
-    use yare::parameterized;
 
     /// Resets the [`PATH_INITIALIZER`] to being uninitialized.
     /// Since there is *one* [`PATH_INITIALIZER`] for the entire test process
@@ -231,17 +230,6 @@ mod test {
     /// should be utilizing the `#[serial]` macro.
     fn reset_path_initializer() {
         let mut value = PATH_INITIALIZER.lock().expect("Mutex has been poisoned");
-        *value = None;
-    }
-
-    /// Resets the [`LOAD_POLICY_INITIALIZER`] to being uninitialized.
-    /// Since there is *one* [`LOAD_POLICY_INITIALIZER`] for the entire test
-    /// process any tests focusing on the functionality of the
-    /// [`LOAD_POLICY_INITIALIZER`] should be utilizing the `#[serial]` macro.
-    fn reset_load_policy_initializer() {
-        let mut value = LOAD_POLICY_INITIALIZER
-            .lock()
-            .expect("Mutex has been poisoned");
         *value = None;
     }
 
@@ -412,32 +400,27 @@ mod test {
         assert_eq!(PathInitializer::ensure_initialized(), Ok(()));
     }
 
-    #[parameterized(
-    persistent = { RequestPolicy::Persistent },
-    ephemeral = { RequestPolicy::Ephemeral },
-    )]
-    #[serial]
-    fn load_policy_succeeds(policy: RequestPolicy) {
-        reset_load_policy_initializer();
-        assert_eq!(LoadPolicyInitializer::policy(policy), Ok(()));
-    }
-
     #[test]
-    #[serial]
-    fn load_policy_fails_when_already_initialized() {
-        reset_load_policy_initializer();
-        LoadPolicyInitializer::try_default().unwrap();
+    fn load_policy() {
+        // The load policy can only be set once per process, as such this is a
+        // bit of a workflow test and no other test can set or change the load
+        // policy.
+        //
+        // The workflow is:
+        // 1. The first call to set the policy should succeed.
+        // 2. The next call to set the policy should result in an initialized
+        //    error.
+        // 3. Ensuring the policy is initialized should *not* result in an
+        //    error if it's already been initialized.
+
         assert_eq!(
-            LoadPolicyInitializer::try_default(),
+            LoadPolicyInitializer::policy(RequestPolicy::Ephemeral),
+            Ok(())
+        );
+        assert_eq!(
+            LoadPolicyInitializer::policy(RequestPolicy::Ephemeral),
             Err(Error::LoadPolicyInitialized)
         );
-    }
-
-    #[test]
-    #[serial]
-    fn ensuring_the_policy_is_set_is_ok_when_already_set() {
-        reset_load_policy_initializer();
-        LoadPolicyInitializer::policy(RequestPolicy::Ephemeral).unwrap();
         assert_eq!(LoadPolicyInitializer::ensure_initialized(), Ok(()));
     }
 }

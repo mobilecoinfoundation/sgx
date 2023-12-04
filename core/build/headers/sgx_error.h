@@ -101,7 +101,7 @@ typedef enum _status_t
     SGX_ERROR_PCL_MAC_MISMATCH          = SGX_MK_ERROR(0x6003),   /* section mac result does not match build time mac */
     SGX_ERROR_PCL_SHA_MISMATCH          = SGX_MK_ERROR(0x6004),   /* Unsealed key MAC does not match MAC of key hardcoded in enclave binary */
     SGX_ERROR_PCL_GUID_MISMATCH         = SGX_MK_ERROR(0x6005),   /* GUID in sealed blob does not match GUID hardcoded in enclave binary */
-    
+
     /* SGX errors are only used in the file API when there is no appropriate EXXX (EINVAL, EIO etc.) error code */
     SGX_ERROR_FILE_BAD_STATUS               = SGX_MK_ERROR(0x7001),	/* The file is in bad status, run sgx_clearerr to try and fix it */
     SGX_ERROR_FILE_NO_KEY_ID                = SGX_MK_ERROR(0x7002),	/* The Key ID field is all zeros, can't re-generate the encryption key */
@@ -120,7 +120,8 @@ typedef enum _status_t
     SGX_ERROR_INVALID_ATT_KEY_CERT_DATA     = SGX_MK_ERROR(0x8004),    /* TThe data returned by the platform library's sgx_get_quote_config() is invalid.*/
     SGX_ERROR_PLATFORM_CERT_UNAVAILABLE     = SGX_MK_ERROR(0x8005),    /* The PCK Cert for the platform is not available.*/
 
-    SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED = SGX_MK_ERROR(0xF001), /* The ioctl for enclave_create unexpectedly failed with EINTR. */ 
+    SGX_ERROR_TLS_X509_INVALID_EXTENSION   = SGX_MK_ERROR(0x9001),    /* error of RA-TLS x509 invalid extension */
+    SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED = SGX_MK_ERROR(0xF001), /* The ioctl for enclave_create unexpectedly failed with EINTR. */
 
 } sgx_status_t;
 
