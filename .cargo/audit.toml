@@ -1,0 +1,7 @@
+[advisories]
+# RUSTSEC-2021-0127 - is for serde-cbor which is unmaintained
+# at this time there still isn't a good alternative.
+# `serde-cbor` is what the main MobileCoin repo uses into and out of the 
+# enclaves, we only use it for testing in this repo to ensure it works as 
+# expected.
+ignore = ["RUSTSEC-2021-0127"]

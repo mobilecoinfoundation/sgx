@@ -2,7 +2,7 @@
   // Disable some built-in rules
   "config": {
     "line-length": false,
-    "no-duplicate-header": {
+    "no-duplicate-heading": {
         // Allow multiple "Added" sections in the changelog
         "siblings_only": true
     }
