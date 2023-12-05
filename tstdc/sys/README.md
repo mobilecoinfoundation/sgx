@@ -17,5 +17,5 @@ FFI linkage for the `sgx_tstdc` library.
 [crate-link]: https://crates.io/crates/mc-sgx-tstdc-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tstdc-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tstdc-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-tstdc-sys/0.9.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tstdc-sys/0.9.0
+[deps-image]: https://deps.rs/crate/mc-sgx-tstdc-sys/0.10.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tstdc-sys/0.10.0

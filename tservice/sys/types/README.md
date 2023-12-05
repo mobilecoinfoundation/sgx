@@ -17,5 +17,5 @@ FFI type definitions used by the `sgx_tservice` library.
 [crate-link]: https://crates.io/crates/mc-sgx-tservice-sys-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tservice-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tservice-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-tservice-sys-types/0.9.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tservice-sys-types/0.9.0
+[deps-image]: https://deps.rs/crate/mc-sgx-tservice-sys-types/0.10.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tservice-sys-types/0.10.0

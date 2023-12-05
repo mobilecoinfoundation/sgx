@@ -17,5 +17,5 @@ FFI type definitions used by the `sgx_dcap_quoteverify` library.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-quoteverify-sys-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-quoteverify-sys-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-quoteverify-sys-types
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys-types/0.9.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys-types/0.9.0
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys-types/0.10.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys-types/0.10.0
