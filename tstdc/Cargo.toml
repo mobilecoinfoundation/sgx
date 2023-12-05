@@ -18,6 +18,6 @@ doctest = false
 
 [dependencies]
 displaydoc = { version = "0.2.3", default-features = false }
-libc = { version = "0.2.139", default-features = false }
+libc = { version = "0.2.150", default-features = false }
 mc-sgx-tstdc-sys = { path = "sys", version = "=0.10.0" }
 mc-sgx-tstdc-sys-types = { path = "sys/types", version = "=0.10.0" }
