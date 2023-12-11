@@ -17,5 +17,5 @@ FFI linkage for the `sgx_dcap_ql` library.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-ql-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-ql-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-ql-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-ql-sys/0.10.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-ql-sys/0.10.0
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-ql-sys/0.10.1/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-ql-sys/0.10.1

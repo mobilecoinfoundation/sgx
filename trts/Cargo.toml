@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-trts"
-version = "0.10.0"
+version = "0.10.1"
 edition = "2021"
 authors = ["MobileCoin"]
 rust-version = "1.62.1"
@@ -18,4 +18,4 @@ test = false
 doctest = false
 
 [dependencies]
-mc-sgx-trts-sys = { path = "sys", version = "=0.10.0" }
+mc-sgx-trts-sys = { path = "sys", version = "=0.10.1" }
