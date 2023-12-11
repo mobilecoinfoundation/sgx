@@ -7,7 +7,7 @@ use bindgen::{
     callbacks::{IntKind, ParseCallbacks},
     Builder, EnumVariation,
 };
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::{env, path::PathBuf};
 
 static DEFAULT_SGX_SDK_PATH: &str = "/opt/intel/sgxsdk";
@@ -206,6 +206,37 @@ impl SgxParseCallbacks {
             .extend(serialize_types.into_iter().map(ToString::to_string));
         self
     }
+
+    /// Get the derives that should be applied to the provided named type.
+    fn derives(&self, type_name: &str) -> Vec<String> {
+        let mut attributes = BTreeSet::new();
+
+        if self.default_types.iter().any(|n| *n == type_name) {
+            attributes.insert("Default");
+        }
+
+        // The [enum_types] method adds enums to the [copyable_types]
+        if self.copyable_types.iter().any(|n| *n == type_name) {
+            attributes.insert("Copy");
+        }
+
+        if !self.dynamically_sized_types.iter().any(|n| *n == type_name) {
+            // For dynamically sized types we don't even derive Debug, because
+            // they are often times packed and packed types can't derive Debug
+            // without deriving Copy, however by the dynamic nature one can't
+            // derive Copy
+            attributes.insert("Debug");
+            if !self.enum_types.iter().any(|n| *n == type_name) {
+                attributes.extend(["Eq", "PartialEq", "Hash", "Clone"]);
+            }
+        };
+
+        if self.serialize_types.iter().any(|n| *n == type_name) {
+            attributes.extend(["Serialize", "Deserialize"]);
+        }
+
+        attributes.into_iter().map(String::from).collect::<Vec<_>>()
+    }
 }
 
 impl ParseCallbacks for SgxParseCallbacks {
@@ -214,34 +245,7 @@ impl ParseCallbacks for SgxParseCallbacks {
     }
 
     fn add_derives(&self, info: &DeriveInfo<'_>) -> Vec<String> {
-        let mut attributes = HashSet::new();
-        let name = info.name;
-
-        if self.default_types.iter().any(|n| *n == name) {
-            attributes.insert("Default");
-        }
-
-        // The [enum_types] method adds enums to the [copyable_types]
-        if self.copyable_types.iter().any(|n| *n == name) {
-            attributes.insert("Copy");
-        }
-
-        if !self.dynamically_sized_types.iter().any(|n| *n == name) {
-            // For dynamically sized types we don't even derive Debug, because
-            // they are often times packed and packed types can't derive Debug
-            // without deriving Copy, however by the dynamic nature one can't
-            // derive Copy
-            attributes.insert("Debug");
-            if !self.enum_types.iter().any(|n| *n == name) {
-                attributes.extend(["Eq", "PartialEq", "Hash", "Clone"]);
-            }
-        };
-
-        if self.serialize_types.iter().any(|n| *n == name) {
-            attributes.extend(["Serialize", "Deserialize"]);
-        }
-
-        attributes.into_iter().map(String::from).collect::<Vec<_>>()
+        self.derives(info.name)
     }
 
     fn int_macro(&self, name: &str, _value: i64) -> Option<IntKind> {
@@ -326,5 +330,38 @@ pub fn sgx_library_suffix() -> &'static str {
     match env::var("CARGO_FEATURE_SIM") {
         Ok(_) => "_sim",
         _ => "",
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn verify_consistency_of_derive_attributes() {
+        // This test prevents a regression where `HashSet` was used to prevent
+        // duplicates in the derives. Using `HashSet` resulted in the derives
+        // coming back in varying order based on seed of the default hasher.
+        // The seed of the default hasher is randomized per process run.
+        // This inconsistent ordering of the derives prevented reproducible
+        // builds as the derived implementations would move around in the
+        // resultant binary.
+        let mut callbacks = SgxParseCallbacks::default();
+        callbacks = callbacks.serialize_types(["foo"]);
+        let derives = callbacks.derives("foo");
+
+        let expected = [
+            "Clone",
+            "Debug",
+            "Deserialize",
+            "Eq",
+            "Hash",
+            "PartialEq",
+            "Serialize",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>();
+        assert_eq!(derives, expected);
     }
 }
