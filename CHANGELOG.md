@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.1] - 2023-12-11
 
+### Fixed
+
+- Fixed reproducible builds for generated code in sys crates.
+
 ## [0.10.0] - 2023-12-04
 
 ### Changed
@@ -29,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The SGX SDK version is now 2.21.100.1
 
-## Fixed
+### Fixed
 
 - Fixed the handling of `qe_identity` and `tcb_info` json strings in
   `mc-sgx-dcap-types::Collateral`.
