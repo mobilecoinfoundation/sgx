@@ -28,5 +28,5 @@ interface.
 [crate-link]: https://crates.io/crates/mc-sgx-tservice-types
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-tservice-types?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-tservice-types
-[deps-image]: https://deps.rs/crate/mc-sgx-tservice-types/0.10.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-tservice-types/0.10.0
+[deps-image]: https://deps.rs/crate/mc-sgx-tservice-types/0.10.1/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-tservice-types/0.10.1
