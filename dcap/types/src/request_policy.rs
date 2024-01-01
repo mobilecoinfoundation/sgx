@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 The MobileCoin Foundation
+// Copyright (c) 2022-2024 The MobileCoin Foundation
 
 // ! This module provides types related to request policy
 

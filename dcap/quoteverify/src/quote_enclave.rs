@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 The MobileCoin Foundation
+// Copyright (c) 2022-2024 The MobileCoin Foundation
 
 //! Provides functionality for interacting with the quoting enclaves.  Both the
 //! QVE(Quote Verification Enclave) and the QPL(Quote Provider Library).

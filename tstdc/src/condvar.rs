@@ -1,4 +1,4 @@
-// Copyright (c) 2023 The MobileCoin Foundation
+// Copyright (c) 2023-2024 The MobileCoin Foundation
 
 //! Condition variable functionality for use inside of an SGX enclave
 

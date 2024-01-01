@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 The MobileCoin Foundation
+// Copyright (c) 2022-2024 The MobileCoin Foundation
 
 //! Builds the FFI type bindings for the untrusted side of the Intel SGX SDK
 use mc_sgx_core_build::SgxParseCallbacks;

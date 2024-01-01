@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 The MobileCoin Foundation
+// Copyright (c) 2022-2024 The MobileCoin Foundation
 
 //! Builds the FFI function bindings for tstdc (trusted standard C) of the
 //! Intel SGX SDK
