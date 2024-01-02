@@ -17,7 +17,7 @@ test = false
 doctest = false
 
 [dependencies]
-displaydoc = { version = "0.2.3", default-features = false }
+displaydoc = { version = "0.2", default-features = false }
 mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.10.1" }
 mc-sgx-core-types = { path = "../core/types", version = "=0.10.1" }
 mc-sgx-trts = { path = "../trts", version = "=0.10.1" }
@@ -25,8 +25,8 @@ mc-sgx-tservice-sys = { path = "sys", version = "=0.10.1" }
 mc-sgx-tservice-sys-types = { path = "sys/types", version = "=0.10.1" }
 mc-sgx-tservice-types = { path = "types", version = "=0.10.1", features = [ "alloc" ] }
 mc-sgx-util = { path = "../util", version = "=0.10.1" }
-serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
 
 [dev-dependencies]
 mc-sgx-tservice-types = { path = "types", version = "=0.10.1", features = [ "test-utils" ] }
-yare = "1.0.2"
+yare = "2"

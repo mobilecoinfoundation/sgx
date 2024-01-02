@@ -13,14 +13,14 @@ categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
 
 [dependencies]
-displaydoc = { version = "0.2.3", default-features = false }
+displaydoc = { version = "0.2", default-features = false }
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.10.1" }
 mc-sgx-core-types = { path = "../../core/types", version = "=0.10.1" }
 mc-sgx-dcap-ql-sys = { path = "sys", version = "=0.10.1" }
 mc-sgx-dcap-ql-types = { path = "types", version = "=0.10.1" }
 mc-sgx-dcap-types = { path = "../types", version = "=0.10.1", features = ["alloc"] }
 mc-sgx-util = { path = "../../util", version = "=0.10.1" }
-once_cell = "1.17.0"
+once_cell = "1"
 
 [features]
 default = []
@@ -29,6 +29,6 @@ default = []
 sim = []
 
 [dev-dependencies]
-serial_test = { version = "2.0.0", default-features = false }
-tempfile = "3.7.1"
-yare = "1.0.1"
+serial_test = { version = "2", default-features = false }
+tempfile = "3"
+yare = "2"
