@@ -3,7 +3,7 @@
 //! SGX Attributes types
 
 use crate::{impl_newtype, impl_newtype_no_display};
-use bitflags::bitflags;
+use bitflags::{bitflags, Flags};
 use core::fmt::{Display, Formatter};
 use core::ops::BitAnd;
 use mc_sgx_core_sys_types::{
@@ -79,31 +79,44 @@ impl Display for Attributes {
 
 impl Display for AttributeFlags {
     fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
-        for (idx, (name, flag)) in self.iter_names().enumerate() {
-            if *self & flag == flag {
-                if idx >= 1 {
-                    write!(f, " | ")?;
-                }
-                write!(f, "{}", name)?;
-            }
-        }
-        Ok(())
+        format_bitflags(self, f)
     }
 }
 
 impl Display for ExtendedFeatureRequestMask {
     fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
-        for (idx, (name, flag)) in self.iter_names().enumerate() {
-            if *self & flag == flag {
-                if idx >= 1 {
-                    write!(f, " | ")?;
-                }
-                write!(f, "{}", name)?;
-            }
-        }
-
-        Ok(())
+        format_bitflags(self, f)
     }
+}
+
+/// Formats the provided bitflags as text
+///
+/// Any bits taht aren't part of a contained flag will be formatted as a hex number.
+///
+/// Example output with two known flags and some bits that didn't pertain to a tag
+///
+///    FLAG1 | FLAG2 | 0x0000_0000_FF00_0000
+///
+fn format_bitflags<F: Flags>(bitflags: &F, f: &mut Formatter) -> core::fmt::Result
+where
+    F::Bits: Into<u64>,
+{
+    let mut separators = ::core::iter::once("").chain(::core::iter::repeat(" | "));
+    let mut iter = bitflags.iter_names();
+    for (name, _) in &mut iter {
+        let separator = separators.next().expect("Separator should exist");
+        write!(f, "{}", separator)?;
+        write!(f, "{}", name)?;
+    }
+
+    let remaining = iter.remaining().bits();
+    if remaining != bitflags::Bits::EMPTY {
+        let separator = separators.next().expect("Separator should exist");
+        write!(f, "{}", separator)?;
+        mc_sgx_util::fmt_hex(&remaining.into().to_be_bytes(), f)?;
+    }
+
+    Ok(())
 }
 
 bitflags! {
@@ -311,7 +324,7 @@ mod test {
         });
         assert_eq!(
             attributes.to_string(),
-            "Flags: (none) Xfrm: 0x7FFF_FFFF_FFFF_FFFF"
+            "Flags: (none) Xfrm: LEGACY | AVX | AVX_512 | MPX | PKRU | AMX | 0x7FFF_FFFF_FFF9_FD00"
         );
     }
 
