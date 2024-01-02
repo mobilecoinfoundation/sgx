@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 The MobileCoin Foundation
+// Copyright (c) 2022-2024 The MobileCoin Foundation
 #![deny(missing_docs, missing_debug_implementations, unsafe_code)]
 //! Contains format utilities for formatting Hex representations of integers and byte arrays.
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 The MobileCoin Foundation
+// Copyright (c) 2022-2024 The MobileCoin Foundation
 //! Builds the FFI function bindings for dcap tvl library of the Intel SGX SDK
 
 const DCAP_TVL_FUNCTIONS: &[&str] = &["sgx_tvl_verify_qve_report_and_identity"];
