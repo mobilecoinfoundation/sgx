@@ -1,18 +1,26 @@
 rust:
-  - '**.rs'
-  - '**/Cargo.lock'
-  - '**/Cargo.toml'
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**.rs'
+      - '**/Cargo.lock'
+      - '**/Cargo.toml'
 
 dependencies:
-  - '**/Cargo.lock'
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**/Cargo.lock'
 
 github_actions:
-  - '.github/workflows/**'
-  - '.github/labeler.yml'
-  - '.github/triage-labeler.yml'
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '.github/workflows/**'
+      - '.github/labeler.yml'
+      - '.github/triage-labeler.yml'
 
 python:
-  - '**/*.py'
-  - '**/poetry.lock'
-  - '**/pyproject.toml'
-  - '**/requirements.txt'
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**/*.py'
+      - '**/poetry.lock'
+      - '**/pyproject.toml'
+      - '**/requirements.txt'
