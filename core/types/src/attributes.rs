@@ -91,7 +91,7 @@ impl Display for ExtendedFeatureRequestMask {
 
 /// Formats the provided bitflags as text
 ///
-/// Any bits taht aren't part of a contained flag will be formatted as a hex number.
+/// Any bits that aren't part of a contained flag will be formatted as a hex number.
 ///
 /// Example output with two known flags and some bits that didn't pertain to a tag
 ///
