@@ -16,14 +16,14 @@ default = []
 alloc = []
 
 [dependencies]
-bitflags = "2.0.0"
-displaydoc = { version = "0.2.3", default-features = false }
-hex = { version = "0.4.2", default-features = false }
+bitflags = "2"
+displaydoc = { version = "0.2", default-features = false }
+hex = { version = "0.4", default-features = false }
 mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.10.1" }
 mc-sgx-util = { path = "../../util", version = "=0.10.1" }
-nom = { version = "7.1.2", default-features = false }
-rand_core = { version = "0.6.4", default-features = false }
-serde = { version = "1.0", default-features = false, features = ["derive"] }
+nom = { version = "7", default-features = false }
+rand_core = { version = "0.6", default-features = false }
+serde = { version = "1", default-features = false, features = ["derive"] }
 subtle = { version = "2", default-features = false }
 
 # `getrandom` is pulled in by `rand_core` we only need to access it directly when registering a custom spng,
@@ -32,7 +32,7 @@ subtle = { version = "2", default-features = false }
 getrandom = { version = "0.2", default-features = false, features = ["custom"] }
 
 [dev-dependencies]
-rand = "0.8.5"
-serde_cbor = "0.11.1"
-textwrap = "0.16.0"
-yare = "1.0.1"
+rand = "0.8"
+serde_cbor = "0.11"
+textwrap = "0.16"
+yare = "2"
