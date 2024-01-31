@@ -194,7 +194,7 @@ jobs:
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
         # The FFI bindings crates always report 100% because they have no code
         run: unset SGX_AESM_ADDR && cargo llvm-cov --locked --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: lcov.info
 
