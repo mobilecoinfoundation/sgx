@@ -275,9 +275,7 @@ mod test {
     extern crate std;
 
     use super::*;
-    use crate::{
-        key_request::KeyId, AttributeFlags, ExtendedFeatureRequestMask, MrEnclave, MrSigner,
-    };
+    use crate::{AttributeFlags, ExtendedFeatureRequestMask};
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{SGX_KEYID_SIZE, SGX_MAC_SIZE};
     use std::format;

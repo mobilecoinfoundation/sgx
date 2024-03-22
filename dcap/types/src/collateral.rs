@@ -411,7 +411,6 @@ mod certificates {
 mod test {
     use super::*;
     use crate::{CertificationData, Quote3};
-    use alloc::string::String;
     use assert_matches::assert_matches;
     use x509_cert::der::DecodePem;
     use yare::parameterized;

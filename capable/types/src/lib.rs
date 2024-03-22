@@ -107,7 +107,6 @@ impl ResultInto<Error> for sgx_device_status_t {}
 #[cfg(test)]
 mod test {
     use super::*;
-    use mc_sgx_util::ResultInto;
     use yare::parameterized;
 
     #[parameterized(

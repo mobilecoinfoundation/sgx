@@ -125,67 +125,67 @@ impl_newtype! {
 pub trait BaseQuote {
     /// Provides access to the [`RawQuote`] to perform the common lookup
     /// operations on the basic quote type.
-    fn raw_quote(&self) -> &RawQuote;
+    fn _raw_quote(&self) -> &RawQuote;
 
     /// Version of the quote
-    fn version(&self) -> Version {
-        let bytes = self.raw_quote().bytes[..2]
+    fn _version(&self) -> Version {
+        let bytes = self._raw_quote().bytes[..2]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `version`");
         u16::from_le_bytes(bytes).into()
     }
 
     /// The signature type
-    fn signature_type(&self) -> Result<QuoteSignatureKind, FfiError> {
-        let bytes = self.raw_quote().bytes[2..4]
+    fn _signature_type(&self) -> Result<QuoteSignatureKind, FfiError> {
+        let bytes = self._raw_quote().bytes[2..4]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `sign_type`");
         sgx_quote_sign_type_t(u16::from_le_bytes(bytes) as u32).try_into()
     }
 
     /// EPID group id
-    fn epid_group_id(&self) -> EpidGroupId {
-        let bytes: [u8; 4] = self.raw_quote().bytes[4..8]
+    fn _epid_group_id(&self) -> EpidGroupId {
+        let bytes: [u8; 4] = self._raw_quote().bytes[4..8]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `epid_group_id`");
         bytes.into()
     }
 
     /// Quoting enclave (QE) SVN (Security Version Number)
-    fn quoting_enclave_svn(&self) -> IsvSvn {
-        let bytes = self.raw_quote().bytes[8..10]
+    fn _quoting_enclave_svn(&self) -> IsvSvn {
+        let bytes = self._raw_quote().bytes[8..10]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `qe_svn`");
         u16::from_le_bytes(bytes).into()
     }
 
     /// Provisioning certification enclave (PCE) SVN (Security Version Number)
-    fn provisioning_certification_enclave_svn(&self) -> IsvSvn {
-        let bytes = self.raw_quote().bytes[10..12]
+    fn _provisioning_certification_enclave_svn(&self) -> IsvSvn {
+        let bytes = self._raw_quote().bytes[10..12]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `pce_svn`");
         u16::from_le_bytes(bytes).into()
     }
 
     /// Extended EPID group id
-    fn extended_epid_group_id(&self) -> EpidGroupId {
-        let bytes: [u8; 4] = self.raw_quote().bytes[12..16]
+    fn _extended_epid_group_id(&self) -> EpidGroupId {
+        let bytes: [u8; 4] = self._raw_quote().bytes[12..16]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `xeid`");
         bytes.into()
     }
 
     /// Basename
-    fn basename(&self) -> Basename {
-        let bytes: [u8; BASENAME_SIZE] = self.raw_quote().bytes[16..48]
+    fn _basename(&self) -> Basename {
+        let bytes: [u8; BASENAME_SIZE] = self._raw_quote().bytes[16..48]
             .try_into()
             .expect("Quote bytes aren't big enough to hold `basename`");
         bytes.into()
     }
 
     /// Report body
-    fn report_body(&self) -> Result<ReportBody, FfiError> {
-        self.raw_quote().bytes[48..432].try_into()
+    fn _report_body(&self) -> Result<ReportBody, FfiError> {
+        self._raw_quote().bytes[48..432].try_into()
     }
 }
 
@@ -200,7 +200,7 @@ impl<'a> From<&'a [u8]> for RawQuote<'a> {
 pub struct Quote<'a>(RawQuote<'a>);
 
 impl BaseQuote for Quote<'_> {
-    fn raw_quote(&self) -> &RawQuote {
+    fn _raw_quote(&self) -> &RawQuote {
         &self.0
     }
 }
@@ -220,7 +220,6 @@ impl<'a> From<&'a [u8]> for Quote<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{report::Report, TargetInfo};
     use core::{mem, slice};
     use mc_sgx_core_sys_types::{sgx_quote_t, sgx_report_body_t, sgx_report_t, sgx_target_info_t};
 
@@ -303,48 +302,48 @@ mod test {
     fn quote_from_bytes_1x() {
         let quote_bytes = quote_to_bytes(base_quote_1());
         let quote = Quote::from(quote_bytes.as_slice());
-        assert_eq!(quote.version(), 11.into());
+        assert_eq!(quote._version(), 11.into());
         assert_eq!(
-            quote.signature_type().unwrap(),
+            quote._signature_type().unwrap(),
             QuoteSignatureKind::UnLinkable
         );
-        assert_eq!(quote.epid_group_id(), EpidGroupId::from([13u8; 4]));
-        assert_eq!(quote.quoting_enclave_svn(), IsvSvn::from(14));
+        assert_eq!(quote._epid_group_id(), EpidGroupId::from([13u8; 4]));
+        assert_eq!(quote._quoting_enclave_svn(), IsvSvn::from(14));
         assert_eq!(
-            quote.provisioning_certification_enclave_svn(),
+            quote._provisioning_certification_enclave_svn(),
             IsvSvn::from(15)
         );
         assert_eq!(
-            quote.extended_epid_group_id(),
+            quote._extended_epid_group_id(),
             EpidGroupId::from([16u8, 0u8, 0u8, 0u8])
         );
-        assert_eq!(quote.basename(), Basename::from([17u8; BASENAME_SIZE]));
+        assert_eq!(quote._basename(), Basename::from([17u8; BASENAME_SIZE]));
 
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 18;
-        assert_eq!(quote.report_body().unwrap(), report_body.into());
+        assert_eq!(quote._report_body().unwrap(), report_body.into());
     }
 
     #[test]
     fn quote_from_bytes_2x() {
         let quote_bytes = quote_to_bytes(base_quote_2());
         let quote = Quote::from(quote_bytes.as_slice());
-        assert_eq!(quote.version(), 21.into());
+        assert_eq!(quote._version(), 21.into());
         assert_eq!(
-            quote.signature_type().unwrap(),
+            quote._signature_type().unwrap(),
             QuoteSignatureKind::Linkable
         );
-        assert_eq!(quote.epid_group_id(), EpidGroupId::from([23u8; 4]));
-        assert_eq!(quote.quoting_enclave_svn(), IsvSvn::from(24));
+        assert_eq!(quote._epid_group_id(), EpidGroupId::from([23u8; 4]));
+        assert_eq!(quote._quoting_enclave_svn(), IsvSvn::from(24));
         assert_eq!(
-            quote.provisioning_certification_enclave_svn(),
+            quote._provisioning_certification_enclave_svn(),
             IsvSvn::from(25)
         );
-        assert_eq!(quote.basename(), Basename::from([27u8; BASENAME_SIZE]));
+        assert_eq!(quote._basename(), Basename::from([27u8; BASENAME_SIZE]));
 
         let mut report_body = sgx_report_body_t::default();
         report_body.misc_select = 28;
-        assert_eq!(quote.report_body().unwrap(), report_body.into());
+        assert_eq!(quote._report_body().unwrap(), report_body.into());
     }
 
     #[test]
