@@ -13,6 +13,7 @@
         "eamodio.gitlens",
         "vadimcn.vscode-lldb",
         "rust-lang.rust-analyzer",
+        "ms-azuretools.vscode-docker",
       ]
     }
   }
