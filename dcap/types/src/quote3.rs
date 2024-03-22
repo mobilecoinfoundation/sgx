@@ -525,10 +525,8 @@ mod test {
     use core::slice;
     use mc_sgx_core_sys_types::sgx_report_body_t;
     use mc_sgx_core_types::CpuSvn;
-    use yare::parameterized;
-    extern crate alloc;
-    use alloc::vec::Vec;
     use x509_cert::{der::DecodePem, Certificate};
+    use yare::parameterized;
 
     /// A P-256 public key uncompressed in raw bytes. This was taken from a HW
     /// quote.

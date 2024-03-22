@@ -7,12 +7,10 @@
 
 use displaydoc::Display;
 use std::{
-    borrow::ToOwned,
     env,
     io::Error as IoError,
     path::{Path, PathBuf},
     process::Command,
-    string::String,
 };
 
 /// Errors which can occur when working with the edger8r tool.
