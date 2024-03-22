@@ -17,5 +17,5 @@ FFI linkage for the `sgx_dcap_quoteverify` library.
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-quoteverify-sys
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-quoteverify-sys?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-quoteverify-sys
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys/0.10.1/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys/0.10.1
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys/0.11.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-quoteverify-sys/0.11.0

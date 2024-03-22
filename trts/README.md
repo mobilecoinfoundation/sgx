@@ -17,5 +17,5 @@ Idiomatic rust for the `sgx_trts` library.
 [crate-link]: https://crates.io/crates/mc-sgx-trts
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-trts?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-trts
-[deps-image]: https://deps.rs/crate/mc-sgx-trts/0.10.1/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-trts/0.10.1
+[deps-image]: https://deps.rs/crate/mc-sgx-trts/0.11.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-trts/0.11.0
