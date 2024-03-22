@@ -21,7 +21,7 @@ jobs:
           components: rustfmt
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo fmt --all -- --check
-      - uses: xt0rted/markdownlint-problem-matcher@v2
+      - uses: xt0rted/markdownlint-problem-matcher@v3
       - uses: DavidAnson/markdownlint-cli2-action@v14
         with:
           globs: "**/*.md"
