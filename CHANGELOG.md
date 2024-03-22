@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- The SGX SDK version is now 2.23.100.2
+
 ## [0.10.1] - 2023-12-11
 
 ### Fixed
