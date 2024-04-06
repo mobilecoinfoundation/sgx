@@ -40,6 +40,13 @@ pub struct PathInitializer;
 
 static PATH_INITIALIZER: Lazy<Mutex<Option<PathInitializer>>> = Lazy::new(|| Mutex::new(None));
 
+const QUOTING_ENCLAVE: &str = "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1";
+
+const PROVISIONING_CERTIFICATE_ENCLAVE: &str = "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1";
+
+
+const ID_ENCLAVE: &str = "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1";
+
 impl PathInitializer {
     /// Try to initialize the paths to the default for the system
     ///
@@ -52,10 +59,10 @@ impl PathInitializer {
     /// * [`Error::QuoteLibrary`] if any of the default paths don't exist on the system.
     pub fn try_default() -> Result<()> {
         Self::with_paths(
-            "/usr/lib/x86_64-linux-gnu/libsgx_qe3.signed.so.1",
-            "/usr/lib/x86_64-linux-gnu/libsgx_pce.signed.so.1",
+            QUOTING_ENCLAVE,
+            PROVISIONING_CERTIFICATE_ENCLAVE,
             None::<&Path>,
-            "/usr/lib/x86_64-linux-gnu/libsgx_id_enclave.signed.so.1",
+            ID_ENCLAVE,
         )
     }
 
