@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2024 The MobileCoin Foundation
+// Copyright (c) 2022-2025 The MobileCoin Foundation
 //! SGX core SVN (Security Version Numbers)
 
 use crate::{impl_display_for_bytestruct, impl_newtype_for_bytestruct, impl_newtype_no_display};
