@@ -172,12 +172,12 @@ impl<T: AsRef<[u8]>> Quote3<T> {
     /// provided `report_data`
     ///
     /// > Note: This report data is *not* the QE report data in the quote, it is
-    ///     part of the report info returned from SGX SDK quote generation.
+    /// > part of the report info returned from SGX SDK quote generation.
     ///
     /// # Arguments
     /// * `nonce` - The nonce believed to be in the `report_data`
     /// * `report_data` - The report data to verify matches the `nonce` and this
-    ///     quote instance.
+    ///   quote instance.
     ///
     /// Returns `true` if the `report_data` matches the `nonce` and this quote
     /// instance.  Returns `false` if they differ.
