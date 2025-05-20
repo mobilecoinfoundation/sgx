@@ -12,7 +12,7 @@ pub fn fmt_hex(src: &[u8], f: &mut Formatter) -> core::fmt::Result {
     for (separator, chunk) in segments {
         write!(f, "{separator}")?;
         for byte in chunk {
-            write!(f, "{:02X}", byte)?;
+            write!(f, "{byte:02X}")?;
         }
     }
 

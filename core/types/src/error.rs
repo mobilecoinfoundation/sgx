@@ -40,7 +40,7 @@ impl From<nom::Err<nom::error::Error<&[u8]>>> for FfiError {
 ///  3. `0x2000-0x2fff`: Enclave creation errors.
 ///  4. `0x3000-0x3fff`: Local attestation/report verification errors.
 ///  5. `0x4000-0x4fff`: Errors when communicating with the Architectural
-///                      Enclave Service Manager (AESM).
+///     Enclave Service Manager (AESM).
 ///  6. `0x5000-0x5fff`: Errors internal to AESM.
 ///  7. `0x6000-0x6fff`: Errors with the encrypted enclave loader.
 ///  8. `0x7000-0x7fff`: Errors with the "SGX Encrypted FS" utility.
