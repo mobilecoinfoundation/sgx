@@ -288,14 +288,14 @@ mod test {
     #[test]
     fn from_array() {
         let raw_array = [5u8; Outer::SIZE];
-        let outer: Outer = raw_array.try_into().unwrap();
+        let outer: Outer = raw_array.into();
         assert_eq!(outer.0.field, raw_array);
     }
 
     #[test]
     fn as_ref() {
         let raw_array = [9u8; Outer::SIZE];
-        let outer: Outer = raw_array.try_into().unwrap();
+        let outer: Outer = raw_array.into();
         assert_eq!(outer.as_ref(), raw_array);
     }
 

@@ -522,6 +522,7 @@ fn take(count: usize) -> impl Fn(&[u8]) -> (&[u8], &[u8]) {
 #[cfg(test)]
 mod test {
     use super::*;
+    use core::ops::Deref;
     use core::slice;
     use mc_sgx_core_sys_types::sgx_report_body_t;
     use mc_sgx_core_types::CpuSvn;
@@ -626,6 +627,7 @@ mod test {
 
     // Get the signing key from the PCK leaf certificate in the
     // [`CertifciationData`] of the `quote`.
+    #[cfg(feature = "alloc")]
     fn pck_leaf_signing_key<T: AsRef<[u8]>>(quote: &Quote3<T>) -> VerifyingKey {
         let signature_data = quote.signature_data();
         let cert_chain = match signature_data.certification_data() {
@@ -672,7 +674,7 @@ mod test {
             .copy_from_slice(&app_report_body_bytes);
         bytes[SIGNATURE_DATA_OFFSET..SIGNATURE_DATA_OFFSET + MIN_SIGNATURE_DATA_SIZE]
             .copy_from_slice(&signature_bytes);
-        let quote = Quote3::try_from(bytes.as_ref()).unwrap();
+        let quote = Quote3::try_from(bytes.deref()).unwrap();
         assert_eq!(quote.raw_bytes, bytes);
         assert_eq!(
             quote.app_report_body(),
@@ -684,6 +686,7 @@ mod test {
         );
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn quote_from_real_quote_file() {
         let hw_quote = include_bytes!("../data/tests/hw_quote.dat");
@@ -714,7 +717,7 @@ mod test {
         bytes[..mem::size_of::<u16>()].copy_from_slice(&version_bytes);
 
         assert_eq!(
-            Quote3::try_from(bytes.as_ref()),
+            Quote3::try_from(bytes.deref()),
             Err(Quote3Error::Version(version))
         );
     }
@@ -742,7 +745,7 @@ mod test {
         bytes[cert_data_size_offset] = 1;
 
         assert_eq!(
-            Quote3::try_from(&bytes[..]),
+            Quote3::try_from(bytes.deref()),
             Err(Quote3Error::InputLength {
                 actual: MIN_QUOTE_SIZE,
                 required: MIN_QUOTE_SIZE + 1,
@@ -774,7 +777,7 @@ mod test {
         let quote = bytes.as_ref().try_into().unwrap();
         let nonce = [1u8; QuoteNonce::SIZE].into();
         let report_data = report_data_from_quote_and_nonce(&quote, &nonce);
-        assert_eq!(quote.verify_nonce(&nonce, &report_data), true);
+        assert!(quote.verify_nonce(&nonce, &report_data));
     }
 
     #[test]
@@ -784,7 +787,7 @@ mod test {
         let quote = bytes.as_ref().try_into().unwrap();
         let nonce = [5u8; QuoteNonce::SIZE].into();
         let report_data = report_data_from_quote_and_nonce(&quote, &nonce);
-        assert_eq!(quote.verify_nonce(&nonce, &report_data), true);
+        assert!(quote.verify_nonce(&nonce, &report_data));
     }
 
     #[test]
@@ -798,7 +801,7 @@ mod test {
         let contents: &mut [u8] = nonce.as_mut();
         contents[0] += 1;
 
-        assert_eq!(quote.verify_nonce(&nonce, &report_data), false);
+        assert!(!quote.verify_nonce(&nonce, &report_data));
     }
 
     #[test]
@@ -813,7 +816,7 @@ mod test {
         let hash_size = 32;
         contents[hash_size] += 1;
 
-        assert_eq!(quote.verify_nonce(&nonce, &report_data), false);
+        assert!(!quote.verify_nonce(&nonce, &report_data));
     }
 
     #[test]
@@ -876,8 +879,10 @@ mod test {
 
     #[test]
     fn signature_data_1() {
-        let mut report_body = sgx_report_body_t::default();
-        report_body.cpu_svn = CpuSvn::try_from([2u8; CpuSvn::SIZE]).unwrap().into();
+        let report_body = sgx_report_body_t {
+            cpu_svn: CpuSvn::from([2u8; CpuSvn::SIZE]).into(),
+            ..Default::default()
+        };
         let ecdsa_sig = sgx_ql_ecdsa_sig_data_t {
             sig: [1u8; SIGNATURE_SIZE],
             attest_pub_key: VALID_P256_KEY,
@@ -915,8 +920,10 @@ mod test {
 
     #[test]
     fn signature_data_2() {
-        let mut report_body = sgx_report_body_t::default();
-        report_body.cpu_svn = CpuSvn::try_from([3u8; CpuSvn::SIZE]).unwrap().into();
+        let report_body = sgx_report_body_t {
+            cpu_svn: CpuSvn::from([3u8; CpuSvn::SIZE]).into(),
+            ..Default::default()
+        };
         let ecdsa_sig = sgx_ql_ecdsa_sig_data_t {
             sig: [2u8; SIGNATURE_SIZE],
             attest_pub_key: VALID_P256_KEY,
@@ -978,7 +985,7 @@ mod test {
 
         // Test focuses on the auth parsing, so only spot checking one field
         // of SignatureData
-        let signature_data = SignatureData::try_from(bytes.as_ref()).unwrap();
+        let signature_data = SignatureData::try_from(bytes.deref()).unwrap();
         assert_eq!(
             signature_data.qe_report_signature,
             Signature::try_from([2u8; 64].as_slice()).unwrap()
@@ -998,7 +1005,7 @@ mod test {
         bytes[auth_offset] = auth_data_size as u8;
 
         assert_eq!(
-            SignatureData::try_from(bytes.as_ref()),
+            SignatureData::try_from(bytes.deref()),
             Err(Quote3Error::InputLength {
                 actual: MIN_SIGNATURE_DATA_SIZE,
                 required: MIN_SIGNATURE_DATA_SIZE + auth_data_size,
@@ -1022,7 +1029,7 @@ mod test {
 
         // Test focuses on the cert parsing, so only spot checking one field
         // of SignatureData
-        let signature_data = SignatureData::try_from(bytes.as_ref()).unwrap();
+        let signature_data = SignatureData::try_from(bytes.deref()).unwrap();
         assert_eq!(
             signature_data.qe_report_signature,
             Signature::try_from([7u8; 64].as_slice()).unwrap()
@@ -1045,7 +1052,7 @@ mod test {
         bytes[start] = 1;
 
         assert_eq!(
-            SignatureData::try_from(bytes.as_ref()),
+            SignatureData::try_from(bytes.deref()),
             Err(Quote3Error::InputLength {
                 actual: MIN_SIGNATURE_DATA_SIZE + 1,
                 required: MIN_SIGNATURE_DATA_SIZE + 2,
@@ -1079,7 +1086,7 @@ mod test {
 
         // Test focuses on the cert parsing, so only spot checking one field
         // of SignatureData
-        let signature_data = SignatureData::try_from(bytes.as_ref()).unwrap();
+        let signature_data = SignatureData::try_from(bytes.deref()).unwrap();
         assert_eq!(
             signature_data.qe_report_signature,
             Signature::try_from([7u8; 64].as_slice()).unwrap()
@@ -1088,6 +1095,7 @@ mod test {
         assert_eq!(signature_data.certification_data().raw_data(), [23u8; 4]);
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn verify_quote_signature() {
         let hw_quote = include_bytes!("../data/tests/hw_quote.dat");

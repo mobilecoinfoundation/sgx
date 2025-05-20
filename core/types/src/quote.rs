@@ -241,8 +241,10 @@ mod test {
     }
 
     fn base_quote_1() -> sgx_quote_t {
-        let mut report_body = sgx_report_body_t::default();
-        report_body.misc_select = 18;
+        let report_body = sgx_report_body_t {
+            misc_select: 18,
+            ..Default::default()
+        };
 
         sgx_quote_t {
             version: 11,
@@ -259,8 +261,10 @@ mod test {
     }
 
     fn base_quote_2() -> sgx_quote_t {
-        let mut report_body = sgx_report_body_t::default();
-        report_body.misc_select = 28;
+        let report_body = sgx_report_body_t {
+            misc_select: 28,
+            ..Default::default()
+        };
 
         sgx_quote_t {
             version: 21,
@@ -319,8 +323,10 @@ mod test {
         );
         assert_eq!(quote._basename(), Basename::from([17u8; BASENAME_SIZE]));
 
-        let mut report_body = sgx_report_body_t::default();
-        report_body.misc_select = 18;
+        let report_body = sgx_report_body_t {
+            misc_select: 18,
+            ..Default::default()
+        };
         assert_eq!(quote._report_body().unwrap(), report_body.into());
     }
 
@@ -341,17 +347,19 @@ mod test {
         );
         assert_eq!(quote._basename(), Basename::from([27u8; BASENAME_SIZE]));
 
-        let mut report_body = sgx_report_body_t::default();
-        report_body.misc_select = 28;
+        let report_body = sgx_report_body_t {
+            misc_select: 28,
+            ..Default::default()
+        };
         assert_eq!(quote._report_body().unwrap(), report_body.into());
     }
 
     #[test]
     fn default_update_info() {
         let info = UpdateInfoBit::default();
-        assert_eq!(info.ucode_needs_update(), false);
-        assert_eq!(info.csme_firmware_needs_update(), false);
-        assert_eq!(info.platform_software_needs_update(), false);
+        assert!(!info.ucode_needs_update());
+        assert!(!info.csme_firmware_needs_update());
+        assert!(!info.platform_software_needs_update());
     }
 
     #[test]
@@ -363,9 +371,9 @@ mod test {
         };
 
         let info = UpdateInfoBit::from(sgx_info);
-        assert_eq!(info.ucode_needs_update(), true);
-        assert_eq!(info.csme_firmware_needs_update(), true);
-        assert_eq!(info.platform_software_needs_update(), true);
+        assert!(info.ucode_needs_update());
+        assert!(info.csme_firmware_needs_update());
+        assert!(info.platform_software_needs_update());
     }
 
     #[test]
@@ -386,8 +394,10 @@ mod test {
 
         assert_eq!(info.nonce(), QuoteNonce::from([1u8; 16]));
 
-        let mut target_info = sgx_target_info_t::default();
-        target_info.config_svn = 2;
+        let target_info = sgx_target_info_t {
+            config_svn: 2,
+            ..Default::default()
+        };
         assert_eq!(
             info.app_enclave_target_info(),
             TargetInfo::from(target_info)
