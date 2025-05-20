@@ -90,7 +90,7 @@ impl_newtype_no_display! {
 impl Display for ExtendedProductId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let inner = u128::from_be_bytes(self.0);
-        write!(f, "{}", inner)
+        write!(f, "{inner}")
     }
 }
 
