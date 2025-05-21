@@ -51,6 +51,9 @@ lto = true
 shared-version = true
 consolidate-commits = true
 tag-name = "v{{version}}"
+# We currently have 34 crates, and already released crates can usually exceed
+# the 30 default value
+rate-limit = { existing-packages = 50 }
 
 # The file names in this key are relative to the each crate that gets released.
 # So we only need one `README.md` entry if all the README's follow a
