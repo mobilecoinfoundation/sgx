@@ -17,5 +17,5 @@ Small utilities and helpers that are useful to have in a central place.
 [crate-link]: https://crates.io/crates/mc-sgx-util
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-util?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-util
-[deps-image]: https://deps.rs/crate/mc-sgx-util/0.11.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-util/0.11.0
+[deps-image]: https://deps.rs/crate/mc-sgx-util/0.12.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-util/0.12.0
