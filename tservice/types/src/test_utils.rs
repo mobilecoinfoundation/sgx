@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2024 The MobileCoin Foundation
+// Copyright (c) 2022-2025 The MobileCoin Foundation
 //! Module used to assist unit tests that utilize the [`Sealed`] type
 
 use core::{mem, slice};

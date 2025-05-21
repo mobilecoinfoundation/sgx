@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2024 The MobileCoin Foundation
+// Copyright (c) 2022-2025 The MobileCoin Foundation
 
 //! Builds the FFI bindings for the untrusted side of the Intel SGX SDK
 
