@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- The SGX SDK version is now 2.25.100.3
+
 ## [0.11.0] - 2024-03-22
 
 ### Changed
@@ -129,7 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the `BitAnd` trait implementation for `mc-sgx-core-types::Attributes`.
 - Added the ability to get the QE(Quoting Enclave) report body from
   `mc-sgx-dcap-types::SignatureData`.
-  
+
 ### Changed
 
 - `mc-sgx-core-types::Attributes::set_flags()` and
@@ -234,7 +238,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mc-sgx-dcap-quoteverify::load_policy` have been replaced
   with `mc-sgx-dcap-quoteverify::PathInitializer` and
   `mc-sgx-dcap-quoteverify::LoadPolicyInitializer`
-  
+
 ## [0.2.1] - 2022-10-14
 
 ### Added
