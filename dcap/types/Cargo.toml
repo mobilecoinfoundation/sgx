@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-dcap-types"
-version = "0.11.0"
+version = "0.12.0"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for common DCAP types."
@@ -20,9 +20,9 @@ tcb = ["alloc", "dep:x509-cert", "dep:const-oid", "dep:hex", "serde/alloc"]
 const-oid = { version = "0.9", default-features = false, optional = true }
 displaydoc = { version = "0.2", default-features = false }
 hex = { version = "0.4", default-features = false, features = ["alloc"], optional = true }
-mc-sgx-core-types = { path = "../../core/types", version = "=0.11.0" }
-mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.11.0" }
-mc-sgx-util = { path = "../../util", version = "=0.11.0" }
+mc-sgx-core-types = { path = "../../core/types", version = "=0.12.0" }
+mc-sgx-dcap-sys-types = { path = "../sys/types", version = "=0.12.0" }
+mc-sgx-util = { path = "../../util", version = "=0.12.0" }
 nom = { version = "7", default-features = false }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa-core", "ecdsa"] }
 serde = { version = "1", default-features = false, features = ["derive"] }
@@ -33,7 +33,7 @@ x509-cert = { version = "0.2", default-features = false, features = ["pem"], opt
 
 [dev-dependencies]
 assert_matches = "1"
-mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.11.0" }
+mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.12.0" }
 serde_cbor = "0.11"
 textwrap = "0.16"
 x509-cert = { version = "0.2", default-features = false, features = ["pem"] }
