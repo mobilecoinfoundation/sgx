@@ -291,6 +291,15 @@ pub enum QlError {
     /// Invalid signature during quote verification
     InvalidSignature = quote3_error_t::SGX_QL_RESULT_INVALID_SIGNATURE.0,
 
+    /// QaE identity is not a match
+    QaeIdentityMismatch = quote3_error_t::SGX_QL_QAEIDENTITY_MISMATCH.0,
+    /// QaE ISVSVN is smaller than the minimum required ISVSVN
+    QaeOutOfDate = quote3_error_t::SGX_QL_QAE_OUT_OF_DATE.0,
+    /// QaE quote hash is not a match
+    QaeQuoteHashMismatch = quote3_error_t::SGX_QL_QUOTE_HASH_MISMATCH.0,
+    /// Report data is not a match
+    ReportDataMismatch = quote3_error_t::SGX_QL_REPORT_DATA_MISMATCH.0,
+
     /// Indicate max error to allow better translation
     Max = quote3_error_t::SGX_QL_ERROR_MAX.0,
 }
@@ -429,6 +438,12 @@ impl TryFrom<quote3_error_t> for QlError {
             quote3_error_t::SGX_QL_TCB_NOT_SUPPORTED => Ok(QlError::TcbNotSupported),
             quote3_error_t::SGX_QL_CONFIG_INVALID_JSON => Ok(QlError::ConfigInvalidJson),
             quote3_error_t::SGX_QL_RESULT_INVALID_SIGNATURE => Ok(QlError::InvalidSignature),
+
+            quote3_error_t::SGX_QL_QAEIDENTITY_MISMATCH => Ok(QlError::QaeIdentityMismatch),
+            quote3_error_t::SGX_QL_QAE_OUT_OF_DATE => Ok(QlError::QaeOutOfDate),
+            quote3_error_t::SGX_QL_QUOTE_HASH_MISMATCH => Ok(QlError::QaeQuoteHashMismatch),
+            quote3_error_t::SGX_QL_REPORT_DATA_MISMATCH => Ok(QlError::ReportDataMismatch),
+
             quote3_error_t::SGX_QL_ERROR_MAX => Ok(QlError::Max),
             // Map all unknowns to the unexpected error
             _ => Ok(QlError::Unexpected),

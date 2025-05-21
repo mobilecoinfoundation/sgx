@@ -40,7 +40,7 @@ impl From<nom::Err<nom::error::Error<&[u8]>>> for FfiError {
 ///  3. `0x2000-0x2fff`: Enclave creation errors.
 ///  4. `0x3000-0x3fff`: Local attestation/report verification errors.
 ///  5. `0x4000-0x4fff`: Errors when communicating with the Architectural
-///                      Enclave Service Manager (AESM).
+///     Enclave Service Manager (AESM).
 ///  6. `0x5000-0x5fff`: Errors internal to AESM.
 ///  7. `0x6000-0x6fff`: Errors with the encrypted enclave loader.
 ///  8. `0x7000-0x7fff`: Errors with the "SGX Encrypted FS" utility.
@@ -150,6 +150,8 @@ pub enum Error {
     InvalidIsvSvn,
     /// Unsupported key name value.
     InvalidKeyname,
+    /// The functionality is not supported
+    UnsupportedFunction,
 
     // 0x4000 - 0x4fff: AESM
     /** Architectural Enclave service does not respond or the requested
@@ -307,6 +309,7 @@ impl TryFrom<sgx_status_t> for Error {
             sgx_status_t::SGX_ERROR_INVALID_CPUSVN => Ok(Error::InvalidCpuSvn),
             sgx_status_t::SGX_ERROR_INVALID_ISVSVN => Ok(Error::InvalidIsvSvn),
             sgx_status_t::SGX_ERROR_INVALID_KEYNAME => Ok(Error::InvalidKeyname),
+            sgx_status_t::SGX_ERROR_UNSUPPORTED_FUNCTION => Ok(Error::UnsupportedFunction),
 
             // 0x4000 - 0x4fff: AESM
             sgx_status_t::SGX_ERROR_SERVICE_UNAVAILABLE => Ok(Error::ServiceUnavailable),
@@ -391,6 +394,7 @@ mod test {
         invalid_function = { sgx_status_t::SGX_ERROR_INVALID_FUNCTION, Error::InvalidFunction },
         stack_overrun = { sgx_status_t::SGX_ERROR_STACK_OVERRUN, Error::StackOverrun },
         undefined_symbol = { sgx_status_t::SGX_ERROR_UNDEFINED_SYMBOL, Error::UndefinedSymbol },
+        unsupported_function = { sgx_status_t::SGX_ERROR_UNSUPPORTED_FUNCTION, Error::UnsupportedFunction },
         invalid_launch_token = { sgx_status_t::SGX_ERROR_INVALID_LAUNCH_TOKEN, Error::InvalidLaunchToken },
         mac_mismatch = { sgx_status_t::SGX_ERROR_MAC_MISMATCH, Error::MacMismatch },
         invalid_keyname = { sgx_status_t::SGX_ERROR_INVALID_KEYNAME, Error::InvalidKeyname },

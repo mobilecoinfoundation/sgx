@@ -74,7 +74,7 @@ impl Mutex {
     ///
     /// # Errors
     /// - [`Error::Invalid`] if self is invalid or trying to lock self when
-    /// already holding a lock on self.
+    ///   already holding a lock on self.
     pub fn try_lock(&self) -> Result<bool> {
         let result = unsafe { sgx_thread_mutex_trylock(self.0.get()) };
         match result {

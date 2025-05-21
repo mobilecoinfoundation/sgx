@@ -3,7 +3,7 @@ name: ci
 on:
   push:
     branches:
-      - 'main'
+      - "main"
   pull_request:
 
 env:
@@ -13,7 +13,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -32,7 +32,7 @@ jobs:
         check:
           - advisories
           - bans licenses sources
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     steps:
@@ -45,7 +45,7 @@ jobs:
           command: check ${{ matrix.check }}
 
   sort:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     steps:
@@ -55,7 +55,7 @@ jobs:
       - run: cargo sort --workspace --check >/dev/null
 
   clippy:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     strategy:
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.20.100.2-jammy1
+          version: 1.22.100.3-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -78,7 +78,7 @@ jobs:
       - run: cargo +${{ matrix.rust }} clippy --all --all-features -- -D warnings -Aclippy::non_canonical_clone_impl
 
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     strategy:
@@ -91,10 +91,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
-          version: 2.23.100.2
+          version: 2.25.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.20.100.2-jammy1
+          version: 1.22.100.3-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -102,7 +102,7 @@ jobs:
       - run: cargo +${{ matrix.rust }} build --release --locked
 
   build-all-features:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     strategy:
@@ -115,10 +115,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
-          version: 2.23.100.2
+          version: 2.25.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.20.100.2-jammy1
+          version: 1.22.100.3-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -126,7 +126,7 @@ jobs:
       - run: cargo +${{ matrix.rust }} build --release --locked --all-features
 
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     strategy:
@@ -139,10 +139,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
-          version: 2.23.100.2
+          version: 2.25.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.20.100.2-jammy1
+          version: 1.22.100.3-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -154,7 +154,7 @@ jobs:
         run: unset SGX_AESM_ADDR && cargo +${{ matrix.rust }} test --release --features "sim alloc" --locked
 
   doc:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     strategy:
@@ -173,17 +173,17 @@ jobs:
       - run: cargo +${{ matrix.rust }} doc --release --no-deps --features sim
 
   coverage:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     steps:
       - uses: actions/checkout@v4
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
-          version: 2.23.100.2
+          version: 2.25.100.3
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.20.100.2-jammy1
+          version: 1.22.100.3-noble1
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
@@ -201,7 +201,7 @@ jobs:
   # This job ensures that the specified crates are able to build without alloc.  By proxy this also ensures that they
   # build with no_std
   build-no-alloc:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - "lint"
     strategy:

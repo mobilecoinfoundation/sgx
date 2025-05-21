@@ -50,7 +50,7 @@ impl Display for Attributes {
                 if flags.is_empty() {
                     write!(f, "Flags: (none)")?
                 } else {
-                    write!(f, "Flags: {}", flags)?
+                    write!(f, "Flags: {flags}")?
                 }
             }
 
@@ -64,7 +64,7 @@ impl Display for Attributes {
                 if xfrm.is_empty() {
                     write!(f, " Xfrm: (none)")?
                 } else {
-                    write!(f, " Xfrm: {}", xfrm)?
+                    write!(f, " Xfrm: {xfrm}")?
                 }
             }
             None => {
@@ -105,14 +105,14 @@ where
     let mut iter = bitflags.iter_names();
     for (name, _) in &mut iter {
         let separator = separators.next().expect("Separator should exist");
-        write!(f, "{}", separator)?;
-        write!(f, "{}", name)?;
+        write!(f, "{separator}")?;
+        write!(f, "{name}")?;
     }
 
     let remaining = iter.remaining().bits();
     if remaining != bitflags::Bits::EMPTY {
         let separator = separators.next().expect("Separator should exist");
-        write!(f, "{}", separator)?;
+        write!(f, "{separator}")?;
         mc_sgx_util::fmt_hex(&remaining.into().to_be_bytes(), f)?;
     }
 
@@ -263,7 +263,7 @@ mod test {
             .set_flags(flags)
             .set_extended_features_mask(xfrm);
 
-        let display_string = format!("{}", attributes);
+        let display_string = format!("{attributes}");
         let expected = format!("Flags: {flag1} | {flag2} | {flag3} Xfrm: {xfrm1} | {xfrm2}",);
 
         assert_eq!(display_string, expected);
@@ -281,7 +281,7 @@ mod test {
 
         let attributes = Attributes::default().set_flags(flags);
 
-        let display_string = format!("{}", attributes);
+        let display_string = format!("{attributes}");
         let expected = format!(
             "Flags: {flag1} | {flag2} | {flag3} | {flag4} | {flag5} | {flag6} Xfrm: (none)",
         );

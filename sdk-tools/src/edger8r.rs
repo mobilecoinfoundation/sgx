@@ -116,7 +116,7 @@ impl Edger8r {
     ///
     /// # Argumenst
     /// * `search_path` - A search path to look in for other edl files.
-    ///     The `--search-path` argument for `sgx_edger8r`.
+    ///   The `--search-path` argument for `sgx_edger8r`.
     pub fn search_path(&mut self, search_path: impl AsRef<Path>) -> &mut Self {
         self.search_paths.push(search_path.as_ref().to_owned());
         self
@@ -199,7 +199,7 @@ impl Edger8r {
     /// # Arguments
     /// * `out_dir` - The directory the generated files are created in
     /// * `suffix` - The suffix to use on the generated files. Should be one of
-    ///     "_u" or "_t"
+    ///   "_u" or "_t"
     fn generated_files(&self, out_dir: impl AsRef<Path>, suffix: impl AsRef<str>) -> Vec<PathBuf> {
         let mut output_stem = self
             .edl_file

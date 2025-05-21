@@ -275,7 +275,7 @@ mod test {
 
     #[test]
     fn valid_pck_tcb_info() {
-        let certificate = Certificate::from_der(&LEAF_CERT).expect("failed to parse DER");
+        let certificate = Certificate::from_der(LEAF_CERT).expect("failed to parse DER");
         let tcb_info = TcbInfo::try_from(&certificate).expect("failed to parse TCB info");
 
         // These were taken by looking at `leaf_cert.der` on an ASN1 decoder, like
@@ -521,7 +521,7 @@ mod test {
         let pem_byte_offset = cert_contents_offset + "-----BEGIN CERTIFICATE-----\n".len();
 
         // `%` is an invalid base64 character sure to make the parsing fail.
-        hw_quote[pem_byte_offset] = '%' as u8;
+        hw_quote[pem_byte_offset] = b'%';
 
         let quote = Quote3::try_from(hw_quote.as_ref()).expect("Failed to parse quote");
 

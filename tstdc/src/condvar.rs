@@ -54,7 +54,7 @@ impl Condvar {
     ///
     /// # Arguments:
     /// * `mutex` - The [`Mutex`] used to guard the condition variable. This
-    ///     should be locked by the current thread.
+    ///   should be locked by the current thread.
     ///
     /// # Errors
     /// - [`Error::MutexLock`] if another thread has the [`Mutex`] lock.
