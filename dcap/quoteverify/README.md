@@ -22,7 +22,7 @@ in:
 
 ## Minimum Supported Rust Version
 
-Rust **1.62** or higher.
+Rust **1.99** or higher.
 
 Minimum supported Rust version can be changed in the future, but it will be done with a minor version bump.
 
@@ -39,8 +39,8 @@ Minimum supported Rust version can be changed in the future, but it will be done
 [crate-link]: https://crates.io/crates/mc-sgx-dcap-quoteverify
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-dcap-quoteverify?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-dcap-quoteverify
-[deps-image]: https://deps.rs/crate/mc-sgx-dcap-quoteverify/0.12.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-dcap-quoteverify/0.12.0
+[deps-image]: https://deps.rs/crate/mc-sgx-dcap-quoteverify/0.13.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-dcap-quoteverify/0.13.0
 
 [dcap-reference]: <https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_SGX_ECDSA_QuoteLibReference_DCAP_API.pdf>
 [dcap-repo]: <https://github.com/intel/SGXDataCenterAttestationPrimitives>

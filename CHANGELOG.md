@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.13.0] - 2026-10-09
+
+### Changed
+
+- The minimum supported Rust version is now 1.99.
+- Updated the parsing, randomness, and cryptography dependencies to newer
+  incompatible releases, including `nom` 8, `rand` and `rand_core` 0.10,
+  `const-oid` 0.10, `p256` 0.14, `sha2` 0.11, and `x509-cert` 0.3.
+- Changed the RNG bound on `mc-sgx-core-types::KeyRequestBuilder::new` from
+  `rand_core::RngCore` to `rand_core::Rng` for compatibility with
+  `rand_core` 0.10.
+- Updated the development dependencies to `serial_test` 4 and `yare` 3.
+- Modernized the GitHub Actions workflows and `cargo-deny` configuration.
+
+### Removed
+
+- Removed the unused legacy EPID quote parsing implementation from
+  `mc-sgx-core-types`.
+- Removed the custom failing `getrandom` implementation for
+  `target_os = "none"`.
+
 ## [0.12.0] - 2025-05-21
 
 ### Changed
@@ -284,7 +305,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/mobilecoinfoundation/sgx/compare/v0.10.0...v0.10.1
