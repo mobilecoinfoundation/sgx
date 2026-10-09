@@ -9,7 +9,7 @@ keywords = ["ffi", "sgx"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [features]
 default = []
@@ -21,4 +21,4 @@ mc-sgx-core-types = { path = "../../core/types", version = "=0.12.0" }
 mc-sgx-tservice-sys-types = { path = "../sys/types", version = "=0.12.0" }
 
 [dev-dependencies]
-yare = "2"
+yare = "3"

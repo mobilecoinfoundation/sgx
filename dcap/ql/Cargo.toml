@@ -3,7 +3,7 @@ name = "mc-sgx-dcap-ql"
 version = "0.12.0"
 edition = "2021"
 authors = ["MobileCoin"]
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
@@ -11,6 +11,12 @@ description = "Rust wrappers for the `sgx_dcap_ql` library."
 
 categories = ["api-bindings", "hardware-support"]
 keywords = ["sgx"]
+
+[features]
+default = []
+
+# Used to prevent tests from running in sim environments
+sim = []
 
 [dependencies]
 displaydoc = { version = "0.2", default-features = false }
@@ -22,13 +28,7 @@ mc-sgx-dcap-types = { path = "../types", version = "=0.12.0", features = ["alloc
 mc-sgx-util = { path = "../../util", version = "=0.12.0" }
 once_cell = "1"
 
-[features]
-default = []
-
-# Used to prevent tests from running in sim environments
-sim = []
-
 [dev-dependencies]
-serial_test = { version = "2", default-features = false }
+serial_test = { version = "4", default-features = false }
 tempfile = "3"
-yare = "2"
+yare = "3"

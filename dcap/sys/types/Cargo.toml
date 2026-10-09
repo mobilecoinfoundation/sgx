@@ -9,7 +9,7 @@ keywords = ["ffi", "sgx", "no-std"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [lib]
 doctest = false

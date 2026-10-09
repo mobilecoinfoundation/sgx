@@ -10,7 +10,7 @@ license = "Apache-2.0"
 links = "sgx_tcrypto"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [lib]
 doctest = false
@@ -19,10 +19,10 @@ doctest = false
 mc-sgx-core-sys-types = { path = "../../core/sys/types", version = "=0.12.0" }
 mc-sgx-tcrypto-sys-types = { path = "types", version = "=0.12.0" }
 
-[dev-dependencies]
-sha2 = "0.10.6"
-
 [build-dependencies]
 bindgen = "0.66.1"
 cargo-emit = "0.2.1"
 mc-sgx-core-build = { path = "../../core/build", version = "=0.12.0" }
+
+[dev-dependencies]
+sha2 = "0.11"

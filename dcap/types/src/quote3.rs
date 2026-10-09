@@ -18,7 +18,7 @@ use mc_sgx_core_types::{QuoteNonce, ReportBody, ReportData};
 use mc_sgx_dcap_sys_types::{sgx_ql_ecdsa_sig_data_t, sgx_quote3_t, sgx_quote_header_t};
 use p256::{
     ecdsa::{signature::Verifier, Signature, VerifyingKey},
-    EncodedPoint,
+    Sec1Point,
 };
 
 use serde::{
@@ -202,7 +202,7 @@ impl<T: AsRef<[u8]>> Quote3<T> {
     }
 
     /// Signature data of the Quote
-    pub fn signature_data(&self) -> SignatureData {
+    pub fn signature_data(&self) -> SignatureData<'_> {
         SignatureData::try_from(&self.raw_bytes.as_ref()[mem::size_of::<sgx_quote3_t>()..])
             .expect("Signature data was validated during Quote creation.")
     }
@@ -366,8 +366,11 @@ impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
         let isv_enclave_signature = Signature::try_from(isv_signature)?;
 
         let (bytes, point_bytes) = take(KEY_SIZE)(bytes);
-        let point = EncodedPoint::from_untagged_bytes(point_bytes.into());
-        let attestation_key = VerifyingKey::from_encoded_point(&point)?;
+        let point_bytes: &[u8; KEY_SIZE] = point_bytes
+            .try_into()
+            .expect("take returned exactly KEY_SIZE bytes");
+        let point = Sec1Point::from_untagged_bytes(point_bytes.into());
+        let attestation_key = VerifyingKey::from_sec1_point(&point)?;
 
         let qe_report_body = ReportBody::try_from(bytes)
             .expect("Previous check should guarantee enough size to decode ReportBody");
@@ -412,7 +415,7 @@ impl<'a> TryFrom<&'a [u8]> for SignatureData<'a> {
 
 impl<'a> SignatureData<'a> {
     /// [`CertificationData`] of the [`SignatureData`]
-    pub fn certification_data(&self) -> &CertificationData {
+    pub fn certification_data(&self) -> &CertificationData<'_> {
         &self.certification_data
     }
 
@@ -639,8 +642,8 @@ mod test {
         let certificate = Certificate::from_pem(leaf_pem).expect("failed to parse PEM");
         let key = VerifyingKey::from_sec1_bytes(
             certificate
-                .tbs_certificate
-                .subject_public_key_info
+                .tbs_certificate()
+                .subject_public_key_info()
                 .subject_public_key
                 .as_bytes()
                 .expect("Failed to parse public key"),
@@ -1128,7 +1131,7 @@ mod test {
 
         // From https://www.secg.org/sec1-v2.pdf Section 2.3.3, uncompressed
         // sec1 is stored as `04 || X || Y`, but the quote only stores `X || Y`.
-        let point = key.to_encoded_point(false);
+        let point = key.to_sec1_point(false);
         let key_bytes = &point.as_bytes()[1..];
 
         let key_start = mem::size_of::<sgx_quote3_t>() + SIGNATURE_SIZE;

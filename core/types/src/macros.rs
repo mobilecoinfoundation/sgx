@@ -113,7 +113,7 @@ macro_rules! impl_newtype_for_bytestruct {
 
         impl PartialOrd for $wrapper {
             fn partial_cmp(&self, other: &$wrapper) -> Option<core::cmp::Ordering> {
-                Some(self.0.$fieldname.cmp(&other.0.$fieldname))
+                Some(self.cmp(other))
             }
         }
 

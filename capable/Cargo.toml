@@ -3,7 +3,7 @@ name = "mc-sgx-capable"
 version = "0.12.0"
 edition = "2021"
 authors = ["MobileCoin"]
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
@@ -20,4 +20,4 @@ mc-sgx-core-types = { path = "../core/types", version = "=0.12.0" }
 mc-sgx-util = { path = "../util", version = "=0.12.0" }
 
 [dev-dependencies]
-yare = "2"
+yare = "3"

@@ -9,7 +9,11 @@ keywords = ["ffi", "sgx"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
+
+[features]
+sim = ["mc-sgx-urts-sys/sim"]
+default = []
 
 [dependencies]
 mc-sgx-core-sys-types = { path = "../core/sys/types", version = "=0.12.0" }
@@ -17,7 +21,3 @@ mc-sgx-core-types = { path = "../core/types", version = "=0.12.0" }
 mc-sgx-urts-sys = { path = "sys", version = "=0.12.0" }
 mc-sgx-urts-sys-types = { path = "sys/types", version = "=0.12.0" }
 mc-sgx-util = { path = "../util", version = "=0.12.0" }
-
-[features]
-sim = ["mc-sgx-urts-sys/sim"]
-default = []

@@ -10,11 +10,11 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/add-to-project@v0.5.0
+      - uses: actions/add-to-project@v2
         with:
           github-token: "${{ secrets.MEOWBLECOIN_PAT }}"
           project-url: https://github.com/orgs/mobilecoinfoundation/projects/7
-      - uses: pascalgn/size-label-action@v0.5.0
+      - uses: pascalgn/size-label-action@v0.5.7
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           IGNORED: "Cargo.lock"
@@ -28,6 +28,6 @@ jobs:
               "1000": "XXL",
               "1500": "OHLAWDHECOMIN"
             }
-      - uses: actions/labeler@v5
+      - uses: actions/labeler@v7
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"

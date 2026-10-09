@@ -9,7 +9,7 @@ keywords = ["ffi", "sgx"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [features]
 default = []
@@ -22,4 +22,4 @@ mc-sgx-util = { path = "../../util", version = "=0.12.0" }
 serde = { version = "1", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
-yare = "2"
+yare = "3"

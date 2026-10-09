@@ -10,7 +10,7 @@ license = "Apache-2.0"
 links = "sgx_trts"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [lib]
 # test false due to needing an enclave to fully link

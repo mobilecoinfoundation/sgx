@@ -44,9 +44,6 @@ members = [
 # Even specifying `edition = "2021"` here will not fix this
 resolver = "2"
 
-[profile.release]
-lto = true
-
 [workspace.metadata.release]
 shared-version = true
 consolidate-commits = true
@@ -65,3 +62,6 @@ rate-limit = { existing-packages = 50 }
 pre-release-replacements = [
     {file="README.md", search="mc-sgx-[a-z-]+/[0-9.]+", replace="{{crate_name}}/{{version}}"},
 ]
+
+[profile.release]
+lto = true
