@@ -13,7 +13,7 @@ use mc_sgx_core_sys_types::{
     SGX_KEYSELECT_PROVISION, SGX_KEYSELECT_PROVISION_SEAL, SGX_KEYSELECT_REPORT,
     SGX_KEYSELECT_SEAL, SGX_KEY_REQUEST_RESERVED2_BYTES,
 };
-use rand_core::{CryptoRng, Rng};
+use rand_core::CryptoRng;
 
 /// Key ID
 #[derive(Debug, Default, Clone, Hash, PartialEq, Eq)]
@@ -90,7 +90,7 @@ impl KeyRequestBuilder {
     ///
     /// * `csprng` - A cryptographic psuedo random number generator used to
     ///   ensure similar key requests don't collide.
-    pub fn new<R: CryptoRng + Rng>(csprng: &mut R) -> Self {
+    pub fn new<R: CryptoRng>(csprng: &mut R) -> Self {
         let mut wear_out_protection = [0u8; SGX_KEYID_SIZE];
         csprng.fill_bytes(&mut wear_out_protection);
 
