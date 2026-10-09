@@ -67,6 +67,7 @@ jobs:
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -92,6 +93,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -116,6 +118,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -140,6 +143,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -181,6 +185,7 @@ jobs:
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
