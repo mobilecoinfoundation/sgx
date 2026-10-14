@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-core-types"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["MobileCoin"]
 categories = ["api-bindings", "hardware-support"]
 description = "Rust wrapper for common SGX types."
@@ -9,7 +9,7 @@ keywords = ["ffi", "sgx"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [features]
 default = []
@@ -19,20 +19,15 @@ alloc = []
 bitflags = "2"
 displaydoc = { version = "0.2", default-features = false }
 hex = { version = "0.4", default-features = false }
-mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.12.0" }
-mc-sgx-util = { path = "../../util", version = "=0.12.0" }
-nom = { version = "7", default-features = false }
-rand_core = { version = "0.6", default-features = false }
+mc-sgx-core-sys-types = { path = "../sys/types", version = "=0.13.0" }
+mc-sgx-util = { path = "../../util", version = "=0.13.0" }
+nom = { version = "8", default-features = false }
+rand_core = { version = "0.10", default-features = false }
 serde = { version = "1", default-features = false, features = ["derive"] }
 subtle = { version = "2", default-features = false }
 
-# `getrandom` is pulled in by `rand_core` we only need to access it directly when registering a custom spng,
-# `register_custom_getrandom`, which only happens for target_os = none
-[target.'cfg(target_os = "none")'.dependencies]
-getrandom = { version = "0.2", default-features = false, features = ["custom"] }
-
 [dev-dependencies]
-rand = "0.8"
+rand = "0.10"
 serde_cbor = "0.11"
 textwrap = "0.16"
-yare = "2"
+yare = "3"

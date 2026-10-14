@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-capable-sys-types"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["MobileCoin"]
 categories = ["external-ffi-bindings", "hardware-support", "no-std"]
 description = "FFI type definitions used by the `sgx_capable` library."
@@ -9,7 +9,7 @@ keywords = ["ffi", "sgx"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"
 
 [lib]
 doctest = false
@@ -17,4 +17,4 @@ doctest = false
 [build-dependencies]
 bindgen = "0.66.1"
 cargo-emit = "0.2.1"
-mc-sgx-core-build = { path = "../../../core/build", version = "=0.12.0" }
+mc-sgx-core-build = { path = "../../../core/build", version = "=0.13.0" }

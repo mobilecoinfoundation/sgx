@@ -105,7 +105,7 @@ impl_newtype_no_display! {
 
 impl Display for IsvProductId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", &self.0)
+        write!(f, "{}", self.0)
     }
 }
 

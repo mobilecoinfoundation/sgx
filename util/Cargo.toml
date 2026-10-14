@@ -1,6 +1,6 @@
 [package]
 name = "mc-sgx-util"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["MobileCoin"]
 categories = ["no-std"]
 description = "Utilities shared by SGX libraries"
@@ -9,4 +9,4 @@ keywords = ["ffi", "no-std", "sgx"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/mobilecoinfoundation/sgx"
-rust-version = "1.62.1"
+rust-version = "1.99.0"

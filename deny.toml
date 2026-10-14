@@ -1,13 +1,12 @@
+[graph]
 targets = []
 
 [advisories]
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
-vulnerability = "deny"
-unmaintained = "deny"
-unsound = "deny"
+unmaintained = "all"
+unsound = "all"
 yanked = "deny"
-notice = "warn"
 ignore = [
     # serde_cbor is only used in dev, it's to maintain parity with the serialization in
     # <https://github.com/mobilecoinfoundation/mobilecoin>
@@ -15,19 +14,14 @@ ignore = [
 ]
 
 [licenses]
-unlicensed = "deny"
 allow = [
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "BSD-3-Clause",
     "ISC",
     "MIT",
-    "Unicode-DFS-2016",
+    "Unicode-3.0",
 ]
-deny = []
-copyleft = "deny"
-allow-osi-fsf-free = "neither"
-default = "deny"
 confidence-threshold = 0.8
 exceptions = []
 
@@ -40,7 +34,7 @@ allow = [
 ]
 deny = [
     # https://github.com/briansmith/ring/issues/774
-    { name = "ring" },
+    { crate = "ring" },
 ]
 skip = []
 skip-tree = [ ]

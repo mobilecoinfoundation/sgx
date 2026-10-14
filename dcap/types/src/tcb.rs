@@ -162,9 +162,9 @@ impl<T: AsRef<[u8]>> TryFrom<&Quote3<T>> for TcbInfo {
 /// * `Error::MissingSgxExtension` if the `cert` does not have the SGX extension.
 /// * `Error::DerDecoding` if the contained DER is invalid.
 fn sgx_extensions(cert: &Certificate) -> Result<SgxExtensions, Error> {
-    let extensions = &cert.tbs_certificate.extensions;
+    let extensions = cert.tbs_certificate().extensions();
     let extension = extensions
-        .iter()
+        .into_iter()
         .flatten()
         .find(|extension| extension.extn_id == SGX_OID)
         .ok_or_else(|| Error::MissingSgxExtension(SGX_OID.to_string()))?;
@@ -181,7 +181,7 @@ fn sgx_extensions(cert: &Certificate) -> Result<SgxExtensions, Error> {
 /// * `Error::FmspcSize` if the FMSPC DER value is not exactly 6 bytes.
 fn fmspc(sgx_extensions: &SgxExtensions) -> Result<[u8; FMSPC_SIZE], Error> {
     let fmspc_value = oid_value(&FMSPC_OID, sgx_extensions)?;
-    let octet = fmspc_value.decode_as::<OctetStringRef>()?;
+    let octet = fmspc_value.decode_as::<&OctetStringRef>()?;
     let fmspc_bytes = octet.as_bytes();
 
     if fmspc_bytes.len() != FMSPC_SIZE {
@@ -336,7 +336,11 @@ mod test {
         let oid_range = oid_range(&FMSPC_OID, &der_bytes);
 
         // Expecting OctetString tag
-        der_bytes[oid_range.end] = BitString.number().value();
+        der_bytes[oid_range.end] = BitString
+            .number()
+            .value()
+            .try_into()
+            .expect("ASN.1 tag number fits in u8");
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
@@ -352,7 +356,11 @@ mod test {
         let oid_range = oid_range(&TCB_OID, &der_bytes);
 
         // Expecting Sequence tag
-        der_bytes[oid_range.end] = OctetString.number().value();
+        der_bytes[oid_range.end] = OctetString
+            .number()
+            .value()
+            .try_into()
+            .expect("ASN.1 tag number fits in u8");
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
@@ -368,7 +376,11 @@ mod test {
         let oid_range = oid_range(&PCE_SVN_OID, &der_bytes);
 
         // Expecting Integer tag
-        der_bytes[oid_range.end] = OctetString.number().value();
+        der_bytes[oid_range.end] = OctetString
+            .number()
+            .value()
+            .try_into()
+            .expect("ASN.1 tag number fits in u8");
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(
@@ -388,7 +400,11 @@ mod test {
         let oid_range = oid_range(oid, &der_bytes);
 
         // Expecting Integer tag
-        der_bytes[oid_range.end] = OctetString.number().value();
+        der_bytes[oid_range.end] = OctetString
+            .number()
+            .value()
+            .try_into()
+            .expect("ASN.1 tag number fits in u8");
 
         let certificate = Certificate::from_der(&der_bytes).expect("failed to parse DER");
         assert!(matches!(

@@ -12,12 +12,12 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: github/issue-labeler@v3.3
+      - uses: github/issue-labeler@v3.5
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           configuration-path: .github/triage-labeler.yml
           enable-versioned-regex: 0
-      - uses: actions/add-to-project@v0.5.0
+      - uses: actions/add-to-project@v2
         with:
           github-token: "${{ secrets.MEOWBLECOIN_PAT }}"
           project-url: https://github.com/orgs/mobilecoinfoundation/projects/5

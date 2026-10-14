@@ -15,14 +15,14 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       - uses: r7kamura/rust-problem-matchers@v1
       - run: cargo fmt --all -- --check
-      - uses: xt0rted/markdownlint-problem-matcher@v2
-      - uses: DavidAnson/markdownlint-cli2-action@v14
+      - uses: xt0rted/markdownlint-problem-matcher@v3
+      - uses: DavidAnson/markdownlint-cli2-action@v24
         with:
           globs: "**/*.md"
 
@@ -36,11 +36,11 @@ jobs:
     needs:
       - "lint"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: "true"
-      - uses: EmbarkStudios/cargo-deny-action@v1
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check ${{ matrix.check }}
 
@@ -49,9 +49,9 @@ jobs:
     needs:
       - "lint"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install cargo-sort
+      - run: cargo install cargo-sort --version 2.1.4 --locked
       - run: cargo sort --workspace --check >/dev/null
 
   clippy:
@@ -66,7 +66,8 @@ jobs:
     # Prevent beta warnings from causing CI failure
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -86,12 +87,13 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2023-10-01
+          - nightly-2026-08-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -110,12 +112,13 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2023-10-01
+          - nightly-2026-08-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -134,12 +137,13 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly-2023-10-01
+          - nightly-2026-08-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -165,7 +169,7 @@ jobs:
     # Prevent beta warnings from causing CI failure
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -177,10 +181,11 @@ jobs:
     needs:
       - "lint"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: mobilecoinfoundation/actions/sgxsdk@main
         with:
           version: 2.25.100.3
+      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
           version: 1.22.100.3-noble1
@@ -194,7 +199,7 @@ jobs:
         # We can't just set to 0 or "" as the SGX code looks for it being set, not what the value is :(
         # The FFI bindings crates always report 100% because they have no code
         run: unset SGX_AESM_ADDR && cargo llvm-cov --locked --features sim --ignore-filename-regex '\/sys/src/lib\.rs' --workspace --lcov --output-path lcov.info
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v7
         with:
           files: lcov.info
 
@@ -214,10 +219,10 @@ jobs:
           - aarch64-apple-ios
           - wasm32-unknown-unknown
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2023-10-01
+          toolchain: nightly-2026-08-15
           targets: ${{ matrix.target }},x86_64-unknown-linux-gnu
           components: rust-src
       - uses: r7kamura/rust-problem-matchers@v1
@@ -228,4 +233,4 @@ jobs:
           cargo metadata --no-deps --format-version=1 |  \
             jq -r '.packages[].name' | \
             grep -e types | \
-            xargs -n1 sh -c 'cargo +nightly-2023-10-01 build -Z build-std=core --target ${{ matrix.target }} -p $0 --locked || exit 255'
+            xargs -n1 sh -c 'cargo +nightly-2026-08-15 build -Z build-std=core --target ${{ matrix.target }} -p $0 --locked || exit 255'
