@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- Updated the SGX SDK to 2.30.101.1 (release 2.30.1) and DCAP to
+  1.27.101.1 (release 1.27.1) in CI, the devcontainer, and vendored headers.
+- Updated the quote verification supplemental-data layout to match DCAP 1.27.
+- Updated the untrusted runtime bindings for reserved launch-token parameters,
+  retaining the `sgx_launch_token_t` alias.
+
+### Removed
+
+- Removed linkage to the obsolete SGX launch libraries and the CI header-package
+  pin required by DCAP 1.22.
+- Removed vendored headers no longer shipped in the SDK or DCAP development
+  packages.
+
 ## [0.13.0] - 2026-10-09
 
 ### Changed

@@ -5,6 +5,7 @@ use mc_sgx_core_build::SgxParseCallbacks;
 
 const URTS_TYPES: &[&str] = &[
     "sgx_enclave_id_t",
+    "sgx_reserved_field_1024t",
     "sgx_launch_token_t",
     "_sgx_misc_attribute_t",
     "_sgx_kss_config_t",

@@ -67,10 +67,9 @@ jobs:
     continue-on-error: ${{ matrix.rust == 'beta' }}
     steps:
       - uses: actions/checkout@v7
-      - uses: ./.github/actions/pin-sgx-headers
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.22.100.3-noble1
+          version: 1.27.101.1-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -90,13 +89,13 @@ jobs:
           - nightly-2026-08-15
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
-          version: 2.25.100.3
-      - uses: ./.github/actions/pin-sgx-headers
+          version: 2.30.101.1
+          release: 2.30.1
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.22.100.3-noble1
+          version: 1.27.101.1-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -115,13 +114,13 @@ jobs:
           - nightly-2026-08-15
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
-          version: 2.25.100.3
-      - uses: ./.github/actions/pin-sgx-headers
+          version: 2.30.101.1
+          release: 2.30.1
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.22.100.3-noble1
+          version: 1.27.101.1-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -140,13 +139,13 @@ jobs:
           - nightly-2026-08-15
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
-          version: 2.25.100.3
-      - uses: ./.github/actions/pin-sgx-headers
+          version: 2.30.101.1
+          release: 2.30.1
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.22.100.3-noble1
+          version: 1.27.101.1-noble1
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -182,13 +181,13 @@ jobs:
       - "lint"
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@main
+      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
-          version: 2.25.100.3
-      - uses: ./.github/actions/pin-sgx-headers
+          version: 2.30.101.1
+          release: 2.30.1
       - uses: mobilecoinfoundation/actions/dcap-libs@main
         with:
-          version: 1.22.100.3-noble1
+          version: 1.27.101.1-noble1
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview

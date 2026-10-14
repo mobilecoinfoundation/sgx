@@ -34,13 +34,12 @@
 
 #ifdef __DEPRECATED
 #warning This header is deprecated. \
-Please consider using one of the 3 headers \
-"sgx_uae_launch.h", "sgx_uae_epid.h" and "sgx_uae_quote_ex.h". \
+Please consider using one of the 2 headers \
+"sgx_uae_launch.h" and "sgx_uae_quote_ex.h". \
 To disable this warning use -Wno-deprecated.
 #endif
 
 #include "sgx_uae_launch.h"
-#include "sgx_uae_epid.h"
 #include "sgx_uae_quote_ex.h"
 
 #endif

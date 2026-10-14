@@ -190,8 +190,8 @@ extern "C" {
         uint32_t *p_decrypted_text_length);
 
     /* sgx_mac_aadata
-    * Purpose: Use AES-GCM algorithm to generate a sealed data structure with integrity protection.
-    *          Specifically, the input data set is ONLY the plaintext data stream, or
+    * Purpose: Use AES-GCM algorithm to generate a sealed data structure with integrity protection.  
+    *          Specifically, the input data set is ONLY the plaintext data stream, or 
     *          additional authenticated data(AAD), no encrypt data.
     *          The sgx_sealed_data_t structure should be allocated prior to the API call and
     *          should include buffer storage for the plaintext data.
@@ -237,7 +237,7 @@ extern "C" {
         sgx_sealed_data_t *p_sealed_data);
 
     /* sgx_unmac_aadata
-    * Purpose: Unseal the sealed data structure passed in and populate the plaintext data stream
+    * Purpose: Unseal the sealed data structure passed in and populate the plaintext data stream 
     *          with the appropriate data from the sealed data structure.
     *
     * Parameters:

@@ -85,7 +85,7 @@ typedef enum _pck_cert_flag_enum_t {
 // Assume each TCB level has 20 advisoryIDs at the very most
 #define MAX_SA_SIZE     20
 #define MAX_SA_NUMBER_PER_TCB   20
-#define MAX_SA_LIST_SIZE    320
+#define MAX_SA_LIST_SIZE    450
 
 // Nameless struct generates C4201 warning in MS compiler, but it is allowed in c++ 11 standard
 // Should remove the pragma after Microsoft fixes this issue
@@ -114,7 +114,7 @@ typedef struct _sgx_ql_qv_supplemental_t
                                           ///< See Intel Security Center Advisories
     uint32_t pck_crl_num;                 ///< CRL Num from PCK Cert CRL
     uint32_t root_ca_crl_num;             ///< CRL Num from Root CA CRL
-    uint32_t tcb_eval_ref_num;            ///< Lower number of the TCBInfo and QEIdentity
+    uint32_t tcb_eval_ref_num;            ///< Use the lower TCB evaluation data number from Platform and QE Identity
     uint8_t root_key_id[ROOT_KEY_ID_SIZE];              ///< ID of the collateral's root signer (hash of Root CA's public key SHA-384)
     sgx_key_128bit_t pck_ppid;            ///< PPID from remote platform.  Can be used for platform ownership checks
     sgx_cpu_svn_t tcb_cpusvn;             ///< CPUSVN of the remote platform's PCK Cert
@@ -134,9 +134,21 @@ typedef struct _sgx_ql_qv_supplemental_t
     time_t qe_iden_earliest_issue_date;           ///< Earliest issue date of QEIdentity (UTC)
     time_t qe_iden_latest_issue_date;             ///< Latest issue date of QEIdentity (UTC)
     time_t qe_iden_earliest_expiration_date;      ///< Earliest expiration date of QEIdentity (UTC)
-    time_t qe_iden_tcb_level_date_tag;            ///< The SGX TCB of the platform that generated the quote is not vulnerable
-    uint32_t qe_iden_tcb_eval_ref_num;            ///< Lower number of the QEIdentity
-    sgx_ql_qv_result_t qe_iden_status;            /// QEIdentity status
+    time_t qe_iden_tcb_level_date_tag;            ///< TCB date for the current QE identity TCB level
+    uint32_t qe_iden_tcb_eval_ref_num;            ///< The TCB evaluation data number of QE Identity
+    sgx_ql_qv_result_t qe_iden_status;            ///< QEIdentity TCB status
+    time_t platform_tcb_level_date_tag;           ///< TCB date for the matched platform TCB level
+
+    // Appended in supplemental data minor_version 5.
+    // A TDX TD-Preserving update leaves a TD with two TCB levels: the one it
+    // launched at and its current one. platform_tcb_level_date_tag / sa_list
+    // (and the returned quote verification result) report the launch level; the
+    // fields below report the same endorsements evaluated for the current level.
+    // Equal to the launch values for SGX and for TDs with no TD-Preserving update.
+    time_t tcb_date_current;                ///< platform_tcb_level_date_tag, evaluated for the current TCB level
+    sgx_ql_qv_result_t tcb_status_current;  ///< TCB status, evaluated for the current TCB level
+    char sa_list_current[MAX_SA_LIST_SIZE]; ///< sa_list, evaluated for the current TCB level
+
 } sgx_ql_qv_supplemental_t;
 
 #ifdef _MSC_VER

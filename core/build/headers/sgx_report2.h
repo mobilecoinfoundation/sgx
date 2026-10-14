@@ -62,14 +62,21 @@ typedef struct _tee_report_data_t {
 
 typedef struct _tee_attributes_t
 {
-    uint32_t                a[2];
+    uint32_t a[2];
 } tee_attributes_t;
+
 
 #define SGX_LEGACY_REPORT_TYPE  0x0     /* SGX Legacy Report Type */
 #define TEE_REPORT2_TYPE        0x81    /* TEE Report Type2 */
 #define TEE_REPORT2_SUBTYPE     0x0     /* SUBTYPE for Report Type2 is 0 */
 #define TEE_REPORT2_VERSION     0x0     /* VERSION for Report Type2 is 0 */
 #define TEE_REPORT2_VERSION_SERVICETD 0x1 /* VERSION for Report Type2 which mr_servicetd is used */
+
+#define TEE_REPORT2_SUBTYPE_0 TEE_REPORT2_SUBTYPE /* SUBTYPE for Report Type2 is 0 */
+#define TEE_REPORT2_SUBTYPE_1 0x1                 /* SUBTYPE that support TDX connect */
+#define TEE_REPORT2_VERSION_0 TEE_REPORT2_VERSION /* Report Type2 version 0 */
+#define TEE_REPORT2_VERSION_1 TEE_REPORT2_VERSION_SERVICETD /* Report Type2 version 1, which mr_servicetd is used */
+#define TEE_REPORT2_VERSION_3 0x3                 /* Report Type2 version 3, which TDID, VMID and VALID are introduced */
 
 typedef struct _tee_report_type_t {
     uint8_t type;       /* Trusted Execution Environment(TEE) type:
@@ -79,8 +86,19 @@ typedef struct _tee_report_type_t {
                             0x81:      TEE Report type 2
                             0xFF-0x82: Reserved
                         */
-    uint8_t subtype;    /* TYPE-specific subtype, Stage1: value is 0 */
-    uint8_t version;    /* TYPE-specific version, Stage1: value is 0 */
+    uint8_t subtype;    /* TYPE-specific subtype
+                            0: TD + TCB Measurements
+                            1: TD Binding Report where REPORTDATA = SHA384(Device Info CBOR)
+                        */
+    uint8_t version;    /* TYPE-specific version.
+                            Type 0x00:
+                                0: SGXINFO_STRUCT
+                            Type 0x81:
+                                0: There are no bound nor pre-bound service TDs.  TDINFO_STRUCT.SERVTD_HASH is not used (its value is 0).
+                                1: There is one or more bound or pre-bound service TDs.  TDINFO_STRUCT.SERVTD_HASH is used.
+                                2: The TD has been assigned an MRSIGNER and SVNs.
+                                3: The TDINFO structure adds support for the TDID, VMID and VALID fields
+                        */
     uint8_t reserved;   /* Reserved, must be zero */
 } tee_report_type_t;
 
