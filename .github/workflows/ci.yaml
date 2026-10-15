@@ -89,7 +89,7 @@ jobs:
           - nightly-2026-08-15
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
+      - uses: mobilecoinfoundation/actions/sgxsdk@b4ed10aafba2f80087715a7e3220566595fba9e7 # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
           version: 2.30.101.1
           release: 2.30.1
@@ -114,7 +114,7 @@ jobs:
           - nightly-2026-08-15
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
+      - uses: mobilecoinfoundation/actions/sgxsdk@b4ed10aafba2f80087715a7e3220566595fba9e7 # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
           version: 2.30.101.1
           release: 2.30.1
@@ -139,7 +139,7 @@ jobs:
           - nightly-2026-08-15
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
+      - uses: mobilecoinfoundation/actions/sgxsdk@b4ed10aafba2f80087715a7e3220566595fba9e7 # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
           version: 2.30.101.1
           release: 2.30.1
@@ -181,7 +181,7 @@ jobs:
       - "lint"
     steps:
       - uses: actions/checkout@v7
-      - uses: mobilecoinfoundation/actions/sgxsdk@3fc8fe5df0a4c6e7c4e65241b6694b1ae1658f7e # https://github.com/mobilecoinfoundation/actions/pull/7
+      - uses: mobilecoinfoundation/actions/sgxsdk@b4ed10aafba2f80087715a7e3220566595fba9e7 # https://github.com/mobilecoinfoundation/actions/pull/7
         with:
           version: 2.30.101.1
           release: 2.30.1
