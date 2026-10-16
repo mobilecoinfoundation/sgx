@@ -51,5 +51,5 @@ wrappers.
 [chat-link]: https://mobilecoin.chat
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-core-build?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-core-build
-[deps-image]: https://deps.rs/crate/mc-sgx-core-build/0.13.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-core-build/0.13.0
+[deps-image]: https://deps.rs/crate/mc-sgx-core-build/0.14.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-core-build/0.14.0
