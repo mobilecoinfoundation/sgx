@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2021 Intel Corporation. All rights reserved.
+ * Copyright (C) 2011-2019 Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -123,7 +123,7 @@ typedef struct _sgx_quote4_header_t {
 typedef struct _sgx_report2_body_t {
     tee_tcb_svn_t       tee_tcb_svn;          ///<  0:  TEE_TCB_SVN Array
     tee_measurement_t   mr_seam;              ///< 16:  Measurement of the SEAM module
-    tee_measurement_t   mrsigner_seam;        ///< 64:  Measurement of a 3rd party SEAM module’s signer (SHA384 hash).
+    tee_measurement_t   mrsigner_seam;        ///< 64:  Measurement of a 3rd party SEAM module’s signer (SHA384 hash). 
                                               ///       The value is 0’ed for Intel SEAM module
     tee_attributes_t    seam_attributes;      ///< 112: MBZ: TDX 1.0
     tee_attributes_t    td_attributes;        ///< 120: TD's attributes

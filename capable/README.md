@@ -17,5 +17,5 @@ Idiomatic rust for the `sgx_capable` library.
 [crate-link]: https://crates.io/crates/mc-sgx-capable
 [docs-image]: https://img.shields.io/docsrs/mc-sgx-capable?style=flat-square
 [docs-link]: https://docs.rs/crate/mc-sgx-capable
-[deps-image]: https://deps.rs/crate/mc-sgx-capable/0.13.0/status.svg?style=flat-square
-[deps-link]: https://deps.rs/crate/mc-sgx-capable/0.13.0
+[deps-image]: https://deps.rs/crate/mc-sgx-capable/0.14.0/status.svg?style=flat-square
+[deps-link]: https://deps.rs/crate/mc-sgx-capable/0.14.0

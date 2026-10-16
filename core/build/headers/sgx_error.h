@@ -68,7 +68,7 @@ typedef enum _status_t
     SGX_ERROR_MODE_INCOMPATIBLE  = SGX_MK_ERROR(0x200e),      /* The target enclave 32/64 bit mode or sim/hw mode is incompatible with the mode of current uRTS. */
     SGX_ERROR_ENCLAVE_FILE_ACCESS = SGX_MK_ERROR(0x200f),     /* Can't open enclave file. */
     SGX_ERROR_INVALID_MISC        = SGX_MK_ERROR(0x2010),     /* The MiscSelct/MiscMask settings are not correct.*/
-    SGX_ERROR_INVALID_LAUNCH_TOKEN = SGX_MK_ERROR(0x2011),    /* The launch token is not correct.*/
+    SGX_ERROR_INVALID_LAUNCH_TOKEN = SGX_MK_ERROR(0x2011),    /* DEPRECATED (LE-based launch control support removed since v2.28) */
 
     SGX_ERROR_MAC_MISMATCH       = SGX_MK_ERROR(0x3001),      /* Indicates verification error for reports, sealed datas, etc */
     SGX_ERROR_INVALID_ATTRIBUTE  = SGX_MK_ERROR(0x3002),      /* The enclave is not authorized, e.g., requesting invalid attribute or launch key access on legacy SGX platform without FLC  */
@@ -79,9 +79,9 @@ typedef enum _status_t
 
     SGX_ERROR_SERVICE_UNAVAILABLE       = SGX_MK_ERROR(0x4001),   /* Indicates aesm didn't respond or the requested service is not supported */
     SGX_ERROR_SERVICE_TIMEOUT           = SGX_MK_ERROR(0x4002),   /* The request to aesm timed out */
-    SGX_ERROR_AE_INVALID_EPIDBLOB       = SGX_MK_ERROR(0x4003),   /* Indicates epid blob verification error */
+    SGX_ERROR_AE_INVALID_EPIDBLOB       = SGX_MK_ERROR(0x4003),   /* DEPRECATED - EPID-based functionality is no longer supported (removed in v2.28). Indicates epid blob verification error */
     SGX_ERROR_SERVICE_INVALID_PRIVILEGE = SGX_MK_ERROR(0x4004),   /*  Enclave not authorized to run, .e.g. provisioning enclave hosted in an app without access rights to /dev/sgx_provision */
-    SGX_ERROR_EPID_MEMBER_REVOKED       = SGX_MK_ERROR(0x4005),   /* The EPID group membership is revoked. */
+    SGX_ERROR_EPID_MEMBER_REVOKED       = SGX_MK_ERROR(0x4005),   /* DEPRECATED - EPID-based functionality is no longer supported (removed in v2.28). The EPID group membership is revoked. */
     SGX_ERROR_UPDATE_NEEDED             = SGX_MK_ERROR(0x4006),   /* SGX needs to be updated */
     SGX_ERROR_NETWORK_FAILURE           = SGX_MK_ERROR(0x4007),   /* Network connecting or proxy setting issue is encountered */
     SGX_ERROR_AE_SESSION_INVALID        = SGX_MK_ERROR(0x4008),   /* Session is invalid or ended by server */
@@ -91,8 +91,8 @@ typedef enum _status_t
     SGX_ERROR_MC_USED_UP                = SGX_MK_ERROR(0x400e),   /* Monotonic counters are used out */
     SGX_ERROR_MC_OVER_QUOTA             = SGX_MK_ERROR(0x400f),   /* Monotonic counters exceeds quota limitation */
     SGX_ERROR_KDF_MISMATCH              = SGX_MK_ERROR(0x4011),   /* Key derivation function doesn't match during key exchange */
-    SGX_ERROR_UNRECOGNIZED_PLATFORM     = SGX_MK_ERROR(0x4012),   /* EPID Provisioning failed due to platform not recognized by backend server*/
-    SGX_ERROR_UNSUPPORTED_CONFIG        = SGX_MK_ERROR(0x4013),   /* The config for trigging EPID Provisiong or PSE Provisiong&LTP is invalid*/
+    SGX_ERROR_UNRECOGNIZED_PLATFORM     = SGX_MK_ERROR(0x4012),   /* DEPRECATED - EPID-based functionality is no longer supported (removed in v2.28). EPID Provisioning failed due to platform not recognized by backend server*/
+    SGX_ERROR_UNSUPPORTED_CONFIG        = SGX_MK_ERROR(0x4013),   /* DEPRECATED - EPID-based functionality is no longer supported (removed in v2.28). The config for trigging EPID Provisiong or PSE Provisiong&LTP is invalid*/
 
     SGX_ERROR_NO_PRIVILEGE              = SGX_MK_ERROR(0x5002),   /* Not enough privilege to perform the operation */
 
@@ -102,7 +102,7 @@ typedef enum _status_t
     SGX_ERROR_PCL_MAC_MISMATCH          = SGX_MK_ERROR(0x6003),   /* section mac result does not match build time mac */
     SGX_ERROR_PCL_SHA_MISMATCH          = SGX_MK_ERROR(0x6004),   /* Unsealed key MAC does not match MAC of key hardcoded in enclave binary */
     SGX_ERROR_PCL_GUID_MISMATCH         = SGX_MK_ERROR(0x6005),   /* GUID in sealed blob does not match GUID hardcoded in enclave binary */
-
+    
     /* SGX errors are only used in the file API when there is no appropriate EXXX (EINVAL, EIO etc.) error code */
     SGX_ERROR_FILE_BAD_STATUS               = SGX_MK_ERROR(0x7001),	/* The file is in bad status, run sgx_clearerr to try and fix it */
     SGX_ERROR_FILE_NO_KEY_ID                = SGX_MK_ERROR(0x7002),	/* The Key ID field is all zeros, can't re-generate the encryption key */
@@ -122,7 +122,7 @@ typedef enum _status_t
     SGX_ERROR_PLATFORM_CERT_UNAVAILABLE     = SGX_MK_ERROR(0x8005),    /* The PCK Cert for the platform is not available.*/
 
     SGX_ERROR_TLS_X509_INVALID_EXTENSION   = SGX_MK_ERROR(0x9001),    /* error of RA-TLS x509 invalid extension */
-    SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED = SGX_MK_ERROR(0xF001), /* The ioctl for enclave_create unexpectedly failed with EINTR. */
+    SGX_INTERNAL_ERROR_ENCLAVE_CREATE_INTERRUPTED = SGX_MK_ERROR(0xF001), /* The ioctl for enclave_create unexpectedly failed with EINTR. */ 
 
 } sgx_status_t;
 

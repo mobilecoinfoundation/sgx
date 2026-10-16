@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.14.0] - 2026-10-16
+
+### Changed
+
+- Updated the SGX SDK to 2.30.101.1 (release 2.30.1) and DCAP to
+  1.27.101.1 (release 1.27.1) in CI, the devcontainer, and vendored headers.
+- Updated the quote verification supplemental-data layout to match DCAP 1.27.
+- Updated the untrusted runtime bindings for reserved launch-token parameters,
+  retaining the `sgx_launch_token_t` alias.
+
+### Removed
+
+- Removed linkage to the obsolete SGX launch libraries and the CI header-package
+  pin required by DCAP 1.22.
+- Removed vendored headers no longer shipped in the SDK or DCAP development
+  packages.
+
 ## [0.13.0] - 2026-10-09
 
 ### Changed
@@ -305,7 +322,8 @@ doc builds for:
 - Initial release of FFI bindings crates
 
 <!-- next-url -->
-[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/mobilecoinfoundation/sgx/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/mobilecoinfoundation/sgx/compare/v0.10.1...v0.11.0

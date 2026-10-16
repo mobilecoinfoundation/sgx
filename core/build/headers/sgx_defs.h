@@ -50,6 +50,16 @@
 
 #define SGX_DEPRECATED __attribute__((deprecated))
 
+#if !defined(SGX_DEPRECATED_MSG)
+#if defined(_MSC_VER)
+#define SGX_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
+#elif defined(__GNUC__) || defined(__clang__)
+#define SGX_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
+#else
+#define SGX_DEPRECATED_MSG(msg)
+#endif
+#endif
+
 
 #define SGX_NOCONVENTION /* Empty.  No calling convention specified. */
 
