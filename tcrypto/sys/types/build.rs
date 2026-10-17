@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2024 The MobileCoin Foundation
+// Copyright (c) 2022-2025 The MobileCoin Foundation
 //! Builds the FFI type bindings for the trusted crypto functions, (aes, rsa,
 //! etc.), of the Intel SGX SDK
 

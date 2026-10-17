@@ -1,4 +1,4 @@
-// Copyright (c) 2023-2024 The MobileCoin Foundation
+// Copyright (c) 2023-2025 The MobileCoin Foundation
 
 //! Provides functionality to get collateral for a [`Quote3`].
 

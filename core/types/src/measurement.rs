@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2024 The MobileCoin Foundation
+// Copyright (c) 2018-2025 The MobileCoin Foundation
 
 //! This module contains the wrapper types for an sgx_measurement_t
 //!
